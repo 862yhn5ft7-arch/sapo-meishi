@@ -59,6 +59,24 @@
 .flip.sk .face{outline:3px solid var(--clubc);outline-offset:-3px}
 .code{font:600 22px/1.3 var(--num);letter-spacing:.08em;padding:10px 12px;border:1px dashed var(--line);border-radius:5px;background:var(--surface);user-select:all;-webkit-user-select:all;overflow-wrap:anywhere}
 .reasons{display:flex;flex-wrap:wrap;gap:6px}
+.hbar{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.ibtn{flex:none;width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:none;color:var(--muted);font:700 15px/1 var(--num);cursor:pointer}
+body:not(.in) .ibtn{display:none}
+body.in .lede,body.in .foot{display:none}
+body.in header{gap:0}
+body.in h1{font-size:16px}
+body.in .wrap{padding-block:calc(10px + env(safe-area-inset-top,0px)) calc(84px + env(safe-area-inset-bottom,0px));gap:12px}
+body.in .tabs{position:fixed;left:0;right:0;bottom:0;z-index:40;border:0;border-top:1px solid var(--line);background:var(--surface);padding:5px max(6px,env(safe-area-inset-left,0px)) calc(5px + env(safe-area-inset-bottom,0px)) max(6px,env(safe-area-inset-right,0px))}
+body.in .tabs button{flex:1 1 0;display:flex;flex-direction:column;align-items:center;gap:1px;font-size:11px;padding:6px 2px 4px;border-radius:8px;color:var(--muted);background:none}
+body.in .tabs button[aria-selected="true"]{background:var(--bg);color:var(--ink)}
+.tabs svg{display:none}
+body.in .tabs svg{display:block;width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+body.in .tabs .count{font-size:12px;margin-left:3px}
+body.in .stage{padding-block:0;gap:6px}
+body.in #card-view>.row.center{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+body.in #card-view>.row.center .btn{padding:11px 2px;font-size:13px}
+body.in section{gap:12px}
+.log li span:only-child{font-family:inherit;font-size:13px;white-space:normal}
 #net{margin:8px 0;padding:8px 10px;border:1px solid var(--line);border-radius:5px;font-size:13px;color:var(--muted);background:var(--surface)}
 /* Layout: one narrow column like a phone app. Three tabs. The 91:55 名刺 is the only "object" on the page; everything else stays flat. */
 :root{
@@ -437,7 +455,7 @@ button.pick{cursor:pointer}
 <body>
 <div class="wrap">
   <header>
-    <h1>サポ名刺すれちがい</h1>
+    <div class="hbar"><h1>サポ名刺すれちがい</h1><button type="button" class="ibtn" id="about-top" aria-label="このアプリについて・利用上の注意">i</button></div>
     <p class="lede">同じ試合にいたサポーターと、名刺が自動で交換される。チェックインできるのは試合の日だけ。非公式のファンアプリです。</p>
     <p id="net" hidden></p>
   </header>
@@ -480,10 +498,10 @@ button.pick{cursor:pointer}
     <div id="card-view">
       <div class="stage" id="stage"></div>
       <div class="row center">
-        <button type="button" class="btn" id="e-open">名刺を編集する</button>
-        <button type="button" class="btn ghost" id="x-open">リンクで交換</button>
-        <button type="button" class="btn ghost" id="m-share-go">Xでシェアする</button>
-        <button type="button" class="btn ghost" id="m-season-go">今季のまとめ</button>
+        <button type="button" class="btn" id="e-open">編集</button>
+        <button type="button" class="btn ghost" id="x-open">交換</button>
+        <button type="button" class="btn ghost" id="m-share-go">シェア</button>
+        <button type="button" class="btn ghost" id="m-season-go">まとめ</button>
       </div>
       <div id="m-share"></div>
       <div class="xpanel" id="x-panel" hidden>
@@ -1343,6 +1361,7 @@ function renderSetup(){
 }
 function applySetup(){
   const need=!S.setup;
+  document.body.classList.toggle("in",!need);fitCard();
   $("p-setup").hidden=!need;$("tabs").hidden=need;
   TABS.forEach(t=>$("p-"+t).hidden=need||t!==curTab);
 }
@@ -1570,8 +1589,7 @@ async function boot(){
     if(!S.setup){
       const k=PKEY||keyGet();let back=false;
       if(k){back=await restoreWith(k,true);if(!back&&PKEY&&keyGet()&&keyGet()!==PKEY)back=await restoreWith(keyGet(),true)}
-      if(back)netMsg("名刺を呼び戻しました。会員番号は "+idText(S.me.idn)+" のままです。");
-      else if(was){const keep=S.me;S=seed();S.seen={};S.ex={};S.cnt={};S.hidden={};S.me.style=keep.style;S.setup=false}
+      if(!back&&was){const keep=S.me;S=seed();S.seen={};S.ex={};S.cnt={};S.hidden={};S.me.style=keep.style;S.setup=false}
     }
     try{localStorage.setItem(KEY,packS())}catch(e){}
     fillForm();renderAll();renderSetup();applySetup();await phLoad();
@@ -1654,6 +1672,25 @@ $("t-go").addEventListener("click",async()=>{
     save();fillForm();renderAll();applySetup();await sync(true);netMsg("引き継ぎました。会員番号は "+idText(S.me.idn)+" のままです。");
   }catch(e){o.textContent=errText(e,T_ERR);b.disabled=false}
 });
+
+
+// タブに絵を付ける
+(()=>{
+  const ICON={card:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 10h5M7 14h9"/>',checkin:'<path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/>',book:'<rect x="6" y="3" width="14" height="14" rx="2"/><path d="M4 7v12a2 2 0 0 0 2 2h11"/>',zukan:'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>'};
+  document.querySelectorAll(".tabs button").forEach(b=>{
+    const s=document.createElement("span");s.className="tl";while(b.firstChild)s.appendChild(b.firstChild);
+    b.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true">'+(ICON[b.dataset.tab]||"")+'</svg>';b.appendChild(s);
+  });
+})();
+// 名刺が画面の高さに収まるように、必要なときだけ少し縮める
+function fitCard(){
+  const st=$("stage");if(!st)return;
+  if(!document.body.classList.contains("in")){st.style.zoom="";return}
+  const h=window.innerHeight||0,need=562,room=h-246;   // 上の見出し・下のタブ・ボタンの分を引く
+  st.style.zoom=h&&room<need?String(Math.max(.7,Math.round(room/need*100)/100)):"";
+}
+window.addEventListener("resize",fitCard);
+$("about-top").addEventListener("click",()=>$("about-open").click());
 
 // このアプリについて
 $("about-contact").innerHTML=CONTACT?'不具合や、不適切な名刺の連絡は、Xの <a href="https://x.com/'+esc(CONTACT)+'" target="_blank" rel="noopener">@'+esc(CONTACT)+'</a> までお願いします。':'お問い合わせ先は準備中です。';
