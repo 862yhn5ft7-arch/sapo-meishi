@@ -160,7 +160,7 @@ body.tut #a2hs,body.tut #c-norm{display:none!important}
 #c-norm{display:flex;flex-direction:column;gap:8px}
 #p-book.nm .stats{grid-template-columns:repeat(2,1fr)}
 #p-book.nm .stats div:nth-child(n+3),#p-book.nm #b-divs button[data-rare]{display:none}
-#b-kind,.z-kind{margin-bottom:6px;grid-template-columns:1fr 1fr 1fr}
+#b-kind,.z-kind{margin-bottom:6px}
 #b-kind button,.z-kind button{font-size:13px;padding:10px 2px}
 body.tut #c-remote{display:none!important}
 .kd.r{background:linear-gradient(160deg,#2a3542,#1b222b);color:#eef2f6;border:1px solid #46566a}
@@ -378,6 +378,7 @@ a.btn{text-decoration:none;display:inline-block}
 .st-rows div:last-child{border-bottom:0}
 .st-rows dt{flex:none;white-space:nowrap}
 .st-rows dd{margin:0;font-size:13px;font-weight:700;text-align:right;min-width:0;overflow-wrap:anywhere}
+.st-rows dd small{font-size:11px;font-weight:700;opacity:.8}
 .st-rows dd b{font:600 19px/1 var(--num);margin:0 2px 0 4px;font-variant-numeric:tabular-nums}
 .l-word{margin:12px 0 0;line-height:1.45;font-size:13px;font-weight:500;overflow-wrap:anywhere}
 .l-bars{display:flex;flex-direction:column;gap:9px;margin-top:auto;padding-top:10px}
@@ -591,11 +592,10 @@ button.pick{cursor:pointer}
     </div>
   </div>
   <div class="a2pop" id="kindpop" hidden role="dialog" aria-modal="true" aria-label="ノーマル名刺とスタジアム名刺のちがい">
-    <div class="a2card"><b>名刺は3種類あります</b>
+    <div class="a2card"><b>名刺は2種類あります</b>
       <div class="kd n"><strong>ノーマル名刺</strong><ul><li>チェックインの画面で、1日3枚までもらえる</li><li>全国のサポの中から、だれかの名刺が届く</li><li>もらうだけ。相手に自分の名刺は渡らない</li><li>紙の名刺。レアはなし</li></ul></div>
-      <div class="kd r"><strong>リモート名刺</strong><ul><li>推しクラブの試合の日に「リモートで応援する」を押す（位置情報は使わない）</li><li>同じ試合にチェックインした人と交換になる</li><li>どちらかがリモートなら、リモート名刺。レアはなし</li><li>現地の試合数や称号には数えない</li></ul></div>
       <div class="kd s"><strong>スタジアム名刺</strong><ul><li>試合の日にスタジアムでチェックインすると、同じ試合にいたサポと交換になる</li><li>QRで直接交換しても手に入る</li><li>レア・激レアがある</li><li>称号とレア図鑑は、こちらの名刺で数える</li><li>相手のXアカウントが載る</li></ul></div>
-      <span>同じ人でも、種類ごとに別の名刺として集まります。</span>
+      <span>同じ人でも、ノーマルとスタジアムは別の名刺として集まります。スタジアムに行けない日は「リモートで応援する」を押すと、名刺は増えませんが、リモートの戦績と称号が残ります。</span>
       <div class="row"><button type="button" class="btn ghost" id="kind-x">閉じる</button></div></div>
   </div>
   <div class="a2pop" id="tutpop" hidden role="dialog" aria-modal="true" aria-label="はじめの1枚">
@@ -816,8 +816,16 @@ const TITLES=[
 ["歴史の証人","昇格が決まった試合に立ち会う",()=>tagged("promo")],
 ["地獄まで一緒","推しクラブの降格が決まった試合に立ち会う",()=>tagged("down",true)],
 ["戴冠式の参列者","優勝が決まった試合に立ち会う",()=>tagged("champ")],
+["画面の前から","リモートで1試合チェックインする",()=>RL().length>=1],
+["二刀流","同じシーズンに、現地とリモートの両方でチェックインする",()=>RL().some(r=>S.log.some(l=>(l.season||SEASON)===(r.season||SEASON)))],
+["家だと勝つ","リモートで3連勝する",()=>rstreak("W")>=3],
+["テレビを消した","リモートで3連敗する",()=>rstreak("L")>=3],
+["お茶の間サポ","リモートで5試合チェックインする",()=>RL().length>=5],
+["配信の住人","リモートで20試合チェックインする",()=>RL().length>=20],
 ["住んでる","今季のホームのリーグ戦に全部チェックインする",()=>{const all=schedule(S.me.club).filter(m=>m.comp==="リーグ"&&m.ha==="H").length;return all>0&&S.log.filter(l=>(l.season||SEASON)===SEASON&&(l.comp||"リーグ")==="リーグ"&&l.ha==="H").length>=all}]];
 // 面白い称号の材料: 推しクラブの試合で結果が出ているもの（古い順）、得点・失点、続いた回数、試合に付いた印
+const RL=()=>S.rlog||[];
+const rstreak=k=>{let best=0,cur=0;RL().filter(l=>l.res).forEach(l=>{cur=l.res===k?cur+1:0;if(cur>best)best=cur});return best};
 const ownLog=()=>S.log.filter(l=>l.ha!=="N"&&l.res);
 const gf=l=>{const v=parseInt(String(l.score||"").split("-")[0],10);return isNaN(v)?-1:v},ga=l=>{const v=parseInt(String(l.score||"").split("-")[1],10);return isNaN(v)?-1:v};
 const streak=f=>{let best=0,cur=0;ownLog().forEach(l=>{cur=f(l)?cur+1:0;if(cur>best)best=cur});return best};
@@ -827,7 +835,7 @@ const tagged=(kind,mineOnly)=>S.log.some(l=>String(l.tags||"").split(",").some(t
 const ID_EPOCH=Date.UTC(2026,9,3,15,0),idText=n=>"No."+String(n||0).padStart(6,"0");
 const newId=()=>Math.max(1,Math.floor((Date.now()-ID_EPOCH)/60000)+1);
 // プレートの格: 1 銅、2 銀、3 金、4 黒金
-const TIER={"はじめの一歩":1,"遠征デビュー":1,"はじめまして":1,"雨天決行":2,"平日休みの達人":2,"通い慣れ":2,"顔なじみ":2,"現地で名刺交換":2,"三階級制覇":3,"全国に知り合い":3,"レアハンター":3,"アウェイの鬼":4,"顔が広い":4,"最初の5人":4,"傷心旅行":1,"泣きっ面に雨":1,"ハシゴ観戦":1,"疫病神":2,"ゴールを知らない":2,"修行僧":2,"ドロー沼":2,"持ってる人":2,"お祭り騒ぎ":2,"浮気性":2,"有給の使い手":2,"雨男・雨女":2,"新体制の目撃者":2,"それでも来る人":3,"不敗神話":3,"ウノゼロ職人":3,"解任立会人":3,"歴史の証人":4,"地獄まで一緒":4,"戴冠式の参列者":4,"住んでる":4};
+const TIER={"はじめの一歩":1,"遠征デビュー":1,"はじめまして":1,"雨天決行":2,"平日休みの達人":2,"通い慣れ":2,"顔なじみ":2,"現地で名刺交換":2,"三階級制覇":3,"全国に知り合い":3,"レアハンター":3,"アウェイの鬼":4,"顔が広い":4,"最初の5人":4,"傷心旅行":1,"泣きっ面に雨":1,"ハシゴ観戦":1,"疫病神":2,"ゴールを知らない":2,"修行僧":2,"ドロー沼":2,"持ってる人":2,"お祭り騒ぎ":2,"浮気性":2,"有給の使い手":2,"雨男・雨女":2,"新体制の目撃者":2,"それでも来る人":3,"不敗神話":3,"ウノゼロ職人":3,"解任立会人":3,"歴史の証人":4,"地獄まで一緒":4,"戴冠式の参列者":4,"住んでる":4,"画面の前から":1,"二刀流":2,"家だと勝つ":2,"テレビを消した":2,"お茶の間サポ":2,"配信の住人":3};
 const TIER_NAME=["","銅","銀","金","黒金"];
 const plateHTML=(name,sm)=>'<span class="plate t'+(TIER[name]||1)+(sm?' sm':'')+'"><i></i><b>'+esc(name)+'</b><i></i></span>';
 const earned=()=>TITLES.filter(t=>t[2]()).map(t=>t[0]);
@@ -883,7 +891,7 @@ let KIND="n";
 const REMALL=()=>Array.isArray(S.rem)?S.rem:[];
 const REM=()=>REMALL().filter(c=>!(S.hidden&&S.hidden[c.id]));
 const SRC=()=>KIND==="n"?NORM():KIND==="r"?REM():BOOK();
-const kindSeg=()=>'<button type="button" data-k="n" aria-pressed="'+(KIND==="n")+'">ノーマル '+NORM().length+'</button><button type="button" data-k="r" aria-pressed="'+(KIND==="r")+'">リモート '+REM().length+'</button><button type="button" data-k="st" aria-pressed="'+(KIND==="st")+'">スタジアム '+BOOK().length+'</button>';
+const kindSeg=()=>'<button type="button" data-k="n" aria-pressed="'+(KIND==="n")+'">ノーマル '+NORM().length+'</button><button type="button" data-k="st" aria-pressed="'+(KIND==="st")+'">スタジアム '+BOOK().length+'</button>';
 const PACK_SIZE=5,ADS=false,CONTACT=""; // ADS: 2袋目から広告を挟むか（Web版では切っておく）
 const packS=()=>JSON.stringify(Object.assign({},S,{book:S.book.map(c=>c.photo?Object.assign({},c,{photo:""}):c)}));
 function save(){try{localStorage.setItem(KEY,packS())}catch(e){}if(typeof pushProfile==="function")pushProfile()}
@@ -895,7 +903,7 @@ function paperHTML(c,big){
     +'<div class="p-top"><span>'+esc(c.club)+'サポ　'+esc(divOf(c.club)||"")+'</span><span class="p-kind">'+(rm?"リモート":"ノーマル")+'</span></div>'
     +'<div class="p-who">'+(c.photo?'<img class="p-ava" src="'+esc(c.photo)+'" alt="">':'<span class="p-ava">'+esc([...(c.nick||"?")][0])+'</span>')+'<div><div class="p-nick">'+esc(c.nick)+'</div><div class="p-no">背番号 '+(c.no||12)+(c.fav?'　推し '+esc(c.fav):'')+'</div></div></div>'
     +(c.word?'<p class="p-word">「'+esc(c.word)+'」</p>':'')
-    +'<div class="p-rec"><span>戦績 <b>'+c.rec[0]+'</b>勝<b>'+c.rec[1]+'</b>分<b>'+c.rec[2]+'</b>敗</span><span>現地 <b>'+c.games+'</b>試合</span></div>'
+    +'<div class="p-rec"><span>現地 <b>'+c.rec[0]+'</b>勝<b>'+c.rec[1]+'</b>分<b>'+c.rec[2]+'</b>敗</span>'+(c.rrec?'<span>リモート <b>'+c.rrec[0]+'</b>勝<b>'+c.rrec[1]+'</b>分<b>'+c.rrec[2]+'</b>敗</span>':'')+'<span>現地 <b>'+c.games+'</b>試合</span></div>'
     +'<div class="p-foot">'+(rm?esc(c.date)+'　'+esc(c.match)+' をリモートで'+((c.met||1)>1?'　<b>'+c.met+'回目</b>':''):esc(c.date)+' にもらった名刺')+'</div></article>';
 }
 function cardHTML(c,opt){
@@ -926,10 +934,10 @@ function frontHTML(c){
     +'<div class="l-sub"><span>'+esc(c.club)+'サポーター　'+d+'</span><span class="f-no">'+idn+'</span></div>'
     +'<div class="l-cols"><div class="l-left">'+(c.photo?'<img class="l-ava" src="'+esc(c.photo)+'" alt="" draggable="false">':'<span class="l-ava">'+esc(n[0])+'</span>')
     +'<div class="l-coin"><span class="lb">現地</span><b class="chrome">'+c.games+'</b><span class="lb">試合</span></div></div>'
-    +'<dl class="pan st-rows"><div><dt class="lb">戦績</dt><dd><b>'+c.rec[0]+'</b>勝<b>'+c.rec[1]+'</b>分<b>'+c.rec[2]+'</b>敗</dd></div>'
+    +'<dl class="pan st-rows">'+recRow("現地",c.rec)+recRow("リモート",c.rrec||[0,0,0])
     +'<div><dt class="lb">スタイル</dt><dd>'+esc(c.style)+'</dd></div>'
     +(c.fav?'<div><dt class="lb">推し</dt><dd>'+esc(c.fav)+'</dd></div>':'')
-    +'<div><dt class="lb">名刺</dt><dd><b>'+c.cards+'</b>枚</dd></div><div><dt class="lb">レア</dt><dd><b>'+c.rare+'</b>枚</dd></div></dl></div>'
+    +'<div><dt class="lb">名刺</dt><dd><b>'+c.cards+'</b>枚<small>　レア '+c.rare+'</small></dd></div></dl></div>'
     +(c.word?'<p class="l-word">「'+esc(c.word)+'」</p>':'')
     +'<div class="l-bars">'+[["今季のホーム戦",c.home],["クラブ図鑑",c.zukan],["称号",c.titles]].map(b=>'<div class="l-bar"><div><span class="lb">'+b[0]+'</span><span class="v">'+b[1][0]+' / '+b[1][1]+'</span></div><div class="l-track"><i style="width:'+(b[1][1]?Math.min(100,Math.round(b[1][0]/b[1][1]*100)):0)+'%"></i></div></div>').join("")+'</div>';
 }
@@ -968,7 +976,7 @@ const SKINS=[["","クラブカラー","最初から使えます",()=>true],["gol
 const skinOK=s=>{const k=SKINS.find(x=>x[0]===(s||""));return !!k&&k[3]()};
 function myStats(){
   const e=earned(),mine=S.log.filter(l=>(l.season||SEASON)===SEASON),n=k=>mine.filter(l=>(l.comp||"リーグ")===k).length;
-  return Object.assign({},S.me,{games:mine.length,by:"リーグ "+n("リーグ")+"・ルヴァン "+n("ルヴァンカップ")+"・天皇杯 "+n("天皇杯"),rec:["W","D","L"].map(k=>mine.filter(l=>l.res===k).length),title:myTitle(),skin:skinOK(S.me.skin)?S.me.skin||"":"",
+  return Object.assign({},S.me,{games:mine.length,by:"リーグ "+n("リーグ")+"・ルヴァン "+n("ルヴァンカップ")+"・天皇杯 "+n("天皇杯"),rec:["W","D","L"].map(k=>mine.filter(l=>l.res===k).length),rrec:["W","D","L"].map(k=>(S.rlog||[]).filter(l=>(l.season||SEASON)===SEASON&&l.res===k).length),title:myTitle(),skin:skinOK(S.me.skin)?S.me.skin||"":"",
     cards:BOOK().length,rare:BOOK().filter(c=>rareOf(c).length).length,
     home:[mine.filter(l=>(l.comp||"リーグ")==="リーグ"&&l.ha==="H").length,schedule(S.me.club).filter(m=>m.comp==="リーグ"&&m.ha==="H").length],
     zukan:[new Set(BOOK().map(c=>c.club).filter(divOf)).size,CLUBS.length],titles:[e.length,TITLES.length]});
@@ -1279,8 +1287,8 @@ $("c-remote").addEventListener("click",async()=>{
     const n=(r.data&&r.data.others)||0;
     while(syncing)await new Promise(ok=>setTimeout(ok,150));
     await sync(true);
-    const cards=REM().filter(c=>S.seen[c.id]==null).slice(0,PACK_SIZE);
-    $("c-out").innerHTML='<div class="result"><p class="big">リモートで <b>'+n+'</b> 人と同じ試合にいます</p><p class="note">'+esc(home)+' vs '+esc(away)+'。'+(cards.length?'リモート名刺が袋で届きます。':'まだ誰もチェックインしていません。')+'あとからチェックインした人の名刺は、名刺帳の「リモート」に届きます。</p><p class="note">スタジアムに着いたら「スタジアムに着いた」を押すと、スタジアムのチェックインに切り替わります。</p></div>';
+    const cards=[],rw=(S.rlog||[]).length;
+    $("c-out").innerHTML='<div class="result"><p class="big">リモートでチェックインしました</p><p class="note">'+esc(home)+' vs '+esc(away)+'。いま、この試合を <b>'+(n+1)+'</b> 人が応援しています。リモートは '+rw+' 試合目です。試合の結果は、名刺の「リモート」の戦績に入ります。</p><p class="note">スタジアムに着いたら「スタジアムに着いた」を押すと、スタジアムのチェックインに切り替わります。</p></div>';
     if(cards.length)openPack(cards,{line:home+" vs "+away,label:fmt(today()),kind:"r"});
   }catch(e){
     $("c-out").innerHTML='<p class="xmsg">'+esc(errText(e,CK_ERR))+'</p>';
@@ -1452,7 +1460,7 @@ function paperFront(c){
     +'<div class="l-sub"><span>'+esc(c.club)+'サポーター　'+d+'</span><span class="f-no">'+idText(c.idn)+'</span></div>'
     +'<div class="l-cols"><div class="l-left">'+(c.photo?'<img class="l-ava" src="'+esc(c.photo)+'" alt="" draggable="false">':'<span class="l-ava">'+esc(n[0]||"?")+'</span>')
     +'<div class="l-coin"><span class="lb">現地</span><b>'+c.games+'</b><span class="lb">試合</span></div></div>'
-    +'<dl class="pan st-rows"><div><dt class="lb">戦績</dt><dd><b>'+c.rec[0]+'</b>勝<b>'+c.rec[1]+'</b>分<b>'+c.rec[2]+'</b>敗</dd></div>'
+    +'<dl class="pan st-rows">'+recRow("現地",c.rec)+(c.rrec?recRow("リモート",c.rrec):'')
     +'<div><dt class="lb">背番号</dt><dd><b>'+(c.no||12)+'</b></dd></div>'
     +(c.style?'<div><dt class="lb">スタイル</dt><dd>'+esc(c.style)+'</dd></div>':'')
     +(c.fav?'<div><dt class="lb">推し</dt><dd>'+esc(c.fav)+'</dd></div>':'')+'</dl></div>'
@@ -1860,7 +1868,7 @@ function applyProfile(p){
   pickClub=p.club;
 }
 // 自分の名刺の数字（相手の画面に出す用）
-function myStatsJSON(){const q=myStats();return {cards:q.cards,rare:q.rare,zukan:q.zukan[0],titles:q.titles[0],homeAll:q.home[1]}}
+function myStatsJSON(){const q=myStats();return {cards:q.cards,rare:q.rare,zukan:q.zukan[0],titles:q.titles[0],homeAll:q.home[1],rr:q.rrec}}
 function profilePayload(){const m=S.me;return {nick:m.nick,club:m.club,color:m.color,style:m.style||"",word:m.word||"",fav:m.fav||"",back_no:m.no||12,x_handle:m.x||"",title:myTitle()||"",photo:m.photo||null,stats:myStatsJSON(),skin:skinOK(m.skin)?m.skin||"":""}}
 var pushT=0,pushed="";
 async function flushProfile(){
@@ -1884,7 +1892,7 @@ function buildBook(rows){
   const book=rows.map(r=>{
     const st=r.stats&&typeof r.stats==="object"?r.stats:{},day=[r.last_day,r.last_exchange].filter(Boolean).sort().pop()||"";
     return {id:r.id,nick:r.nick,club:r.club,color:/^#[0-9a-fA-F]{6}$/.test(r.color)?r.color:colorOf(r.club),style:r.style||"",word:r.word||"",fav:r.fav||"",no:r.back_no||12,x:xHandle(r.x_handle||""),title:names.includes(r.title)?r.title:"",pk:r.photo_key||"",photo:photoOf(r.id,r.photo_key),idn:r.member_no,
-      games:r.games||0,rec:[r.wins||0,r.draws||0,r.losses||0],home:[r.home_games||0,Math.max(1,num(st.homeAll,40))],cards:num(st.cards,9999),rare:num(st.rare,9999),zukan:[num(st.zukan,CLUBS.length),CLUBS.length],titles:[num(st.titles,TITLES.length),TITLES.length],
+      games:r.games||0,rec:[r.wins||0,r.draws||0,r.losses||0],rrec:rrOf(st),home:[r.home_games||0,Math.max(1,num(st.homeAll,40))],cards:num(st.cards,9999),rare:num(st.rare,9999),zukan:[num(st.zukan,CLUBS.length),CLUBS.length],titles:[num(st.titles,TITLES.length),TITLES.length],
       met:r.met||1,day,date:day?fmt(dateOf(day)):"",match:r.last_match||"",ha:r.last_away?"A":"H",rain:!!r.any_rain,wd:!!r.any_weeknight,trav:!!r.any_trav,op:!!r.any_opening,fin:!!r.any_final,skin:["gold","black"].includes(r.skin)?r.skin:"",direct:!!r.direct,place:r.stadium?"stadium":"town",ex:r.last_exchange||""};
   }).sort((a,b)=>a.day<b.day?-1:a.day>b.day?1:0);
   const add=[];
@@ -1907,9 +1915,11 @@ function buildBook(rows){
   S.book=book;S.synced=true;
   return add.length;
 }
+const rrOf=st=>st&&Array.isArray(st.rr)?[0,1,2].map(i=>Math.min(999,Math.max(0,parseInt(st.rr[i],10)||0))):[0,0,0];
+const recRow=(lb,r)=>'<div><dt class="lb">'+lb+'</dt><dd><b>'+r[0]+'</b>勝<b>'+r[1]+'</b>分<b>'+r[2]+'</b>敗</dd></div>';
 function buildNorm(rows){
   S.norm=rows.map(r=>({id:"n:"+r.id,pid:r.id,kind:"n",nick:r.nick,club:r.club,color:/^#[0-9a-fA-F]{6}$/.test(r.color)?r.color:colorOf(r.club),style:r.style||"",word:r.word||"",fav:r.fav||"",no:r.back_no||12,
-    pk:r.photo_key||"",photo:photoOf(r.id,r.photo_key),idn:r.member_no,games:r.games||0,rec:[r.wins||0,r.draws||0,r.losses||0],day:r.day||"",date:r.day?fmt(dateOf(r.day)):"",met:1}));
+    pk:r.photo_key||"",photo:photoOf(r.id,r.photo_key),idn:r.member_no,games:r.games||0,rec:[r.wins||0,r.draws||0,r.losses||0],rrec:r.stats?rrOf(r.stats):null,day:r.day||"",date:r.day?fmt(dateOf(r.day)):"",met:1}));
 }
 function buildRem(rows){
   S.rem=rows.map(r=>({id:"r:"+r.id,pid:r.id,kind:"r",nick:r.nick,club:r.club,color:/^#[0-9a-fA-F]{6}$/.test(r.color)?r.color:colorOf(r.club),style:r.style||"",word:r.word||"",fav:r.fav||"",no:r.back_no||12,
@@ -1956,7 +1966,7 @@ async function sync(force){
     if(a.error)throw a.error;if(b.error)throw b.error;
     try{const f=await sb.rpc("club_firsts");if(!f.error&&Array.isArray(f.data)){FIRST5=new Set(f.data.map(Number));try{localStorage.setItem(KEY+"-first5",JSON.stringify([...FIRST5]))}catch(e){}}}catch(e){}
     try{const nr=await sb.rpc("my_normals");if(!nr.error)buildNorm(nr.data||[])}catch(e){}
-    try{const rr=await sb.rpc("my_remotes");if(!rr.error)buildRem(rr.data||[])}catch(e){}
+    S.rem=[];if(KIND==="r")KIND="n";
     buildLog(a.data||[]);added=buildBook(b.data||[]);
     try{const mt=matchToday();if(mt){const c=await sb.rpc("match_count",{p_match:mt.id});if(!c.error)NOW={id:mt.id,n:c.data||0}}}catch(e){}
     save();renderAll();netMsg("");lastSync=Date.now();fetchPhotos();
@@ -2105,7 +2115,7 @@ $("about-top").addEventListener("click",()=>$("about-open").click());
 
 
 // 新しい版が公開されていたら、自動で読み込み直す（ホーム画面から開くと更新ボタンがないため）
-const APP_VER="20261004174227";
+const APP_VER="20261004233638";
 async function checkUpdate(){
   try{
     const r=await fetch("version.txt?t="+Date.now(),{cache:"no-store"});if(!r.ok)return;
