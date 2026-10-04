@@ -1,0 +1,1351 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#14202B">
+<meta name="description" content="同じ試合にいたサポーターと、名刺が自動で交換される。非公式のファンアプリ。">
+<meta property="og:title" content="サポ名刺すれちがい">
+<meta property="og:description" content="スタジアムに行くと、名刺が増える。">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="サポ名刺">
+<title>サポ名刺すれちがい</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Barlow+Condensed:wght@500;600&display=swap">
+<style>
+[hidden]{display:none!important}
+#net{margin:8px 0;padding:8px 10px;border:1px solid var(--line);border-radius:5px;font-size:13px;color:var(--muted);background:var(--surface)}
+/* Layout: one narrow column like a phone app. Three tabs. The 91:55 名刺 is the only "object" on the page; everything else stays flat. */
+:root{
+  --bg:#ECEFF2; --surface:#FFFFFF; --ink:#14202B; --muted:#5A6774; --line:#D2D9E0;
+  --flood:#F2C200; --on-flood:#14202B; --ok:#1F7A4D;
+  --display:"Dela Gothic One","Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",sans-serif;
+  --body:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic","Meiryo",sans-serif;
+  --num:"Barlow Condensed","Zen Kaku Gothic New","Hiragino Sans",sans-serif;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0F161D; --surface:#19232D; --ink:#E9EEF2; --muted:#94A2AF; --line:#2B3844;
+  --flood:#FFD23F; --on-flood:#14202B; --ok:#5FD39A; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#0F161D; --surface:#19232D; --ink:#E9EEF2; --muted:#94A2AF; --line:#2B3844;
+  --flood:#FFD23F; --on-flood:#14202B; --ok:#5FD39A; color-scheme:dark }
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.6}
+.wrap{max-width:720px;margin:0 auto;padding-inline:16px;padding-block:20px 56px;display:flex;flex-direction:column;gap:20px}
+header{display:flex;flex-direction:column;gap:4px}
+h1{font-family:var(--display);font-weight:400;font-size:26px;line-height:1.2;margin:0;text-wrap:balance}
+.lede{margin:0;color:var(--muted);font-size:13px}
+h2{font-size:16px;font-weight:700;margin:0;text-wrap:balance}
+.note{color:var(--muted);font-size:12px;margin:0}
+
+.tabs{display:flex;border-bottom:2px solid var(--ink)}
+.tabs button{flex:1 1 auto;white-space:nowrap;font:inherit;font-weight:700;font-size:13px;color:var(--muted);background:none;border:0;padding:10px 4px;cursor:pointer;border-radius:4px 4px 0 0}
+.tabs button[aria-selected="true"]{background:var(--ink);color:var(--bg)}
+.tabs .count{font-family:var(--num);font-size:15px;margin-left:4px}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--flood);outline-offset:2px}
+
+section{display:flex;flex-direction:column;gap:16px}
+.form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.form .full{grid-column:1/-1}
+@media (max-width:480px){.form{grid-template-columns:minmax(0,1fr)}}
+label{display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:700;color:var(--muted)}
+input[type=text],input[type=number],select{font:inherit;font-size:16px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:9px 10px;width:100%;min-width:0}
+input[type=color]{width:100%;height:42px;border:1px solid var(--line);border-radius:4px;background:var(--surface);padding:3px}
+
+.btn{font:inherit;font-weight:700;font-size:15px;background:var(--ink);color:var(--bg);border:0;border-radius:4px;padding:13px 18px;cursor:pointer}
+.btn.flood{background:var(--flood);color:var(--on-flood)}
+.btn.ghost{background:none;color:var(--muted);border:1px solid var(--line);font-size:13px;padding:8px 12px}
+.btn:disabled{opacity:.55;cursor:default}
+.seg{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line);border-radius:4px;overflow:hidden}
+.seg button{font:inherit;font-weight:700;font-size:14px;padding:10px;border:0;background:var(--surface);color:var(--muted);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+
+/* 名刺 */
+.meishi{--club:#888;--on-club:#fff;display:grid;grid-template-columns:16px minmax(0,1fr);max-width:100%;background:var(--surface);border:1px solid var(--line);border-radius:5px;box-shadow:0 1px 0 var(--line)}
+.meishi::before{content:"";grid-area:1/1/2/3;width:100%;aspect-ratio:91/55;pointer-events:none}
+.meishi .muffler{grid-area:1/1;border-radius:4px 0 0 4px;background:repeating-linear-gradient(180deg,var(--club) 0 16px,color-mix(in srgb,var(--club) 45%,var(--surface)) 16px 22px)}
+.meishi .in{grid-area:1/2;padding:12px 14px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.meishi .top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.meishi .club{background:var(--club);color:var(--on-club);font-size:11px;font-weight:700;padding:2px 8px;border-radius:2px;overflow-wrap:anywhere}
+.meishi .lg{display:flex;gap:6px;align-items:center;min-width:0}
+.meishi .div{font-family:var(--num);font-weight:600;font-size:13px;line-height:1.4;border:1px solid var(--ink);border-radius:2px;padding:0 5px}
+.meishi .who{display:flex;gap:10px;align-items:center;min-width:0}
+.meishi .ava{flex:none;width:46px;height:46px;border-radius:4px;background:var(--club);color:var(--on-club);display:grid;place-items:center;font-family:var(--display);font-size:20px;object-fit:cover}
+.photo{display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:700;color:var(--muted)}
+.photo input{font:inherit;font-size:13px;color:var(--ink);max-width:100%}
+.group{display:flex;flex-direction:column;gap:10px}
+.group h2 span{font-family:var(--num);font-size:18px;color:var(--muted);margin-left:6px}
+#b-list{display:flex;flex-direction:column;gap:20px}
+.meishi .tag{font-size:10px;font-weight:700;letter-spacing:.06em;color:var(--muted);white-space:nowrap}
+.meishi .tag.new{background:var(--flood);color:var(--on-flood);padding:1px 6px;border-radius:2px}
+.meishi .nick{font-family:var(--display);font-size:20px;line-height:1.25;overflow-wrap:anywhere}
+.meishi .word{font-size:13px;overflow-wrap:anywhere}
+.meishi .links{display:flex;flex-wrap:wrap;gap:2px 14px;font-size:12px;color:var(--muted);font-weight:700}
+.meishi .links b{color:var(--ink);overflow-wrap:anywhere}
+.meishi .links a{color:var(--ink);font-weight:700;text-underline-offset:2px}
+.meishi dl{display:flex;flex-wrap:wrap;gap:4px 16px;margin:0;margin-top:auto}
+.meishi dl div{display:flex;flex-direction:column}
+.meishi dt{font-size:10px;color:var(--muted);font-weight:700}
+.meishi dd{margin:0;font-size:13px;font-weight:700}
+.meishi dd b{font-family:var(--num);font-size:19px;font-weight:600;line-height:1;font-variant-numeric:tabular-nums}
+.meishi .met{border-top:1px dashed var(--line);padding-top:5px;font-size:11px;color:var(--muted)}
+.mine{max-width:420px;width:100%}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(280px,100%),1fr));gap:12px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;border-block:1px solid var(--line);padding-block:12px}
+.stats div{display:flex;flex-direction:column}
+.stats b{font-family:var(--num);font-size:30px;line-height:1;font-weight:600;font-variant-numeric:tabular-nums}
+.stats span{font-size:11px;color:var(--muted);font-weight:700}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{font:inherit;font-size:12px;font-weight:700;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:4px 11px;cursor:pointer}
+.chips button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+
+.result{border:2px solid var(--ink);border-radius:5px;padding:16px;display:flex;flex-direction:column;gap:12px;background:var(--surface)}
+.result .big{font-family:var(--display);font-size:22px;line-height:1.3;margin:0;text-wrap:balance}
+.result .big b{font-family:var(--num);font-size:40px;font-weight:600;color:var(--ok);line-height:1}
+.searching{font-weight:700;margin:0}
+.searching::after{content:"";display:inline-block;width:1.2em;text-align:left;animation:dots 1.2s steps(4) infinite}
+@keyframes dots{0%{content:""}25%{content:"."}50%{content:".."}75%{content:"..."}}
+@media (prefers-reduced-motion:reduce){.searching::after{animation:none;content:"..."}}
+.log{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.log li{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px}
+.log li span:last-child{font-family:var(--num);font-size:16px;white-space:nowrap}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.meishi.rare{border:2px solid var(--flood)}
+.meishi.super{border:2px solid var(--flood);background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--flood) 16%,var(--surface)) 0 10px,var(--surface) 10px 20px)}
+.meishi .tags{display:flex;gap:4px;align-items:center}
+.meishi .tag.rr{background:var(--ink);color:var(--bg);padding:1px 6px;border-radius:2px}
+.meishi .ttl{font-size:11px;font-weight:700;color:var(--muted)}
+.meishi .ttl b{color:var(--ink)}
+.meishi .why{background:var(--flood);color:var(--on-flood);padding:0 6px;border-radius:2px;font-size:11px}
+.meishi .met b{color:var(--ink)}
+h3{font-size:13px;margin:6px 0 0;font-weight:700}
+h3 span,.group h2 span{font-family:var(--num);font-size:17px;color:var(--muted);margin-left:6px;font-weight:600}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:6px}
+.tile{border:1px dashed var(--line);border-radius:4px;padding:6px 8px;display:flex;flex-direction:column;font-size:12px;font-weight:700;color:var(--muted);overflow-wrap:anywhere;min-width:0}
+.tile.got{background:var(--club);color:var(--on-club);border:1px solid var(--club)}
+button.tile{font-family:inherit;text-align:left;cursor:pointer}
+button.tile:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.rows button.st{color:var(--ink);padding:5px 10px}
+.tile b{font-family:var(--num);font-size:16px;font-weight:600;line-height:1.2}
+.rows{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.rows li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 12px;padding:8px 0;border-bottom:1px solid var(--line);align-items:center}
+.rows strong{font-size:14px}
+.rows small{grid-column:1;font-size:12px;color:var(--muted)}
+.rows .st{grid-column:2;grid-row:1/span 2;font-size:12px;font-weight:700;color:var(--muted);white-space:nowrap}
+.rows .got .st{color:var(--ok)}
+.rows li:not(.got) strong{color:var(--muted)}
+.rows li.locked .plate{filter:grayscale(1);opacity:.45}
+#z-out{display:flex;flex-direction:column;gap:24px}
+.today{border:2px solid var(--ink);border-radius:5px;background:var(--surface);padding:14px 16px;display:flex;flex-direction:column;gap:6px}
+.today .d{font-size:12px;font-weight:700;color:var(--muted)}
+.today .m{font-family:var(--display);font-size:20px;line-height:1.3;margin:0;text-wrap:balance}
+.today.off{border:1px dashed var(--line);background:none}
+.next{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.next li{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px}
+.next button{white-space:nowrap;flex:none}
+.testbar{border-top:1px solid var(--line);padding-top:12px;display:flex;flex-direction:column;gap:8px}
+.testbar input{width:auto;font:inherit;font-size:16px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:7px 10px}
+.meishi dd small{display:block;font-size:10px;font-weight:700;color:var(--muted);margin-top:2px}
+.tile.pickc{flex-direction:row;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;font:inherit;font-size:13px;font-weight:700;text-align:left}
+.tile.pickc i{flex:none;width:10px;height:10px;border-radius:2px;background:var(--club)}
+.tile.pickc[aria-pressed="true"]{background:var(--club);color:var(--on-club);border-color:var(--club)}
+.tile.pickc[aria-pressed="true"] i{background:var(--on-club)}
+a.btn{text-decoration:none;display:inline-block}
+.share{display:flex;flex-direction:column;gap:10px}
+.share img{width:100%;height:auto;border-radius:5px;border:1px solid var(--line)}
+#card-view,#card-edit{display:flex;flex-direction:column;gap:16px}
+.row.center{justify-content:center}
+.row.between{justify-content:space-between}
+/* 縦型の名刺（55:91）。クラブカラーに染めた金属板。要素を絞り、細い罫線と欧文の小ラベルで整える。
+   裏返しは角度をスクリプトで動かし、90度を越えたところで表と裏の表示を切り替える（透け防止）。 */
+.stage{display:flex;flex-direction:column;align-items:center;gap:12px;padding-block:6px 2px}
+.flip{--ang:0deg;--mx:28%;--w:min(340px,calc(100vw - 32px));--p:perspective(1100px) rotateY(var(--ang));position:relative;width:var(--w);aspect-ratio:55/91;touch-action:pan-y;cursor:grab;user-select:none;-webkit-user-select:none}
+.flip.drag{cursor:grabbing}
+.flip.on-dark{--emb:0 1px 1px rgba(0,0,0,.4);--c1:#ffffff;--c2:#d3dae0;--c3:#8d98a3;--c4:#f3f6f8;--cs:rgba(0,0,0,.35);--hair:rgba(255,255,255,.38);--deep:50%;--pan:rgba(0,0,0,.26);--panhi:rgba(255,255,255,.2)}
+.flip.on-light{--emb:0 1px 0 rgba(255,255,255,.45);--c1:#4a5662;--c2:#1c2731;--c3:#05090d;--c4:#303b46;--cs:rgba(255,255,255,.4);--hair:rgba(0,0,0,.34);--deep:76%;--pan:rgba(0,0,0,.11);--panhi:rgba(255,255,255,.5)}
+.face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:flex;flex-direction:column;padding:20px;overflow:hidden;border-radius:16px;color:var(--on-club);text-shadow:var(--emb);
+  background:radial-gradient(120% 70% at 0% 0%,rgba(255,255,255,.2),transparent 60%),repeating-linear-gradient(90deg,rgba(255,255,255,.05) 0 1px,rgba(0,0,0,.045) 1px 2px,transparent 2px 4px),linear-gradient(128deg,color-mix(in srgb,var(--club) 84%,#fff) 0%,var(--club) 24%,color-mix(in srgb,var(--club) var(--deep),#000) 56%,color-mix(in srgb,var(--club) 88%,#000) 80%,color-mix(in srgb,var(--club) 84%,#fff) 100%);
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--club) 40%,#fff),inset 0 0 0 2px color-mix(in srgb,var(--club) 62%,#000),inset 0 2px 2px 2px rgba(255,255,255,.22),inset 0 -2px 2px 2px rgba(0,0,0,.3),0 30px 40px -18px rgba(0,0,0,.55)}
+/* 厚み: 部品ごとに同じ遠近と同じ回転をかけて、1枚の厚い板に見せる（ブラウザの立体合成には頼らない）。
+   奥から手前へ: 同じ色の薄い板7枚と左右の側面 → その上に、いま見えている面を1枚だけ描く。
+   板と側面は全部同じ色なので、重なる順番が変わっても見た目は変わらない。 */
+.flip{--side:color-mix(in srgb,var(--club) 46%,#000)}
+.slab{position:absolute;inset:0;border-radius:16px;background:var(--side);transform:var(--p) translateZ(var(--z));pointer-events:none}
+.edge{position:absolute;left:calc(50% - 3px);top:16px;bottom:16px;width:6px;background:var(--side);pointer-events:none}
+.edge.l{transform:var(--p) translateX(calc(var(--w) / -2)) rotateY(90deg)}
+.edge.r{transform:var(--p) translateX(calc(var(--w) / 2)) rotateY(90deg)}
+.face.front{transform:var(--p) translateZ(3px)}
+.face.back{transform:var(--p) rotateY(180deg) translateZ(3px);visibility:hidden}
+.flip.show-back .face.back{visibility:visible}
+.flip.show-back .face.front{visibility:hidden}
+.face::after{content:"";position:absolute;inset:0;pointer-events:none;mix-blend-mode:overlay;background:linear-gradient(105deg,transparent calc(var(--mx) - 24%),rgba(255,255,255,.7) var(--mx),transparent calc(var(--mx) + 24%))}
+.face>*{position:relative;z-index:1}
+/* 表の面: ゲームのステータス画面。主役はニックネーム。
+   上に称号と名前、中段は左に写真と今季の現地数、右に彫り込んだ項目の板、下に達成度のゲージ。 */
+.lb{font-size:11px;font-weight:700;letter-spacing:.06em;opacity:.88}
+.chrome{color:var(--on-club);text-shadow:none}
+@supports ((-webkit-background-clip:text) or (background-clip:text)){.chrome{background:linear-gradient(180deg,var(--c1) 8%,var(--c2) 46%,var(--c3) 54%,var(--c4) 92%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 2px 0 var(--cs))}}
+.f-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.h-div{flex:none;font:600 15px/1 var(--num);border:1.5px solid currentColor;border-radius:2px;padding:3px 6px;letter-spacing:.04em}
+.f-no{font:600 15px/1 var(--num);letter-spacing:.12em;font-variant-numeric:tabular-nums}
+.pan{background:var(--pan);border-radius:6px;box-shadow:inset 0 2px 4px rgba(0,0,0,.42),0 1px 0 var(--panhi)}
+.screw{position:absolute!important;width:9px;height:9px;border-radius:50%;background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.9),rgba(0,0,0,.55) 75%);box-shadow:0 1px 1px rgba(0,0,0,.5)}
+.screw::after{content:"";position:absolute;left:1px;right:1px;top:4px;height:1px;background:rgba(0,0,0,.6);rotate:-35deg}
+.screw.s1{left:7px;top:7px}.screw.s2{right:7px;top:7px}.screw.s3{left:7px;bottom:7px}.screw.s4{right:7px;bottom:7px}
+.l-plate{min-height:27px;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:6px 8px}
+.c-nick{font-family:var(--display);line-height:1.12;overflow-wrap:anywhere}
+.l-nick{margin-top:8px}
+.l-sub{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 10px;margin-top:6px;font-size:12px;font-weight:700;letter-spacing:.04em}
+.l-x{display:inline-flex;align-items:center;gap:6px;max-width:100%;padding:4px 9px;border-radius:999px;color:inherit;font-size:12px;line-height:1.3;font-weight:700;text-decoration:none;overflow-wrap:anywhere}
+.l-x b{font:600 14px/1 var(--num)}
+.l-x:focus-visible{outline:2px solid var(--on-club);outline-offset:2px}
+.l-cols{display:grid;grid-template-columns:90px minmax(0,1fr);gap:12px;margin-top:14px}
+.l-left{display:flex;flex-direction:column;gap:10px}
+.l-ava{width:90px;height:90px;border-radius:6px;object-fit:cover;background:var(--on-club);color:var(--club);display:grid;place-items:center;font:400 42px/1 var(--display);text-shadow:none;box-shadow:0 0 0 2px var(--on-club),0 0 0 3px rgba(0,0,0,.4)}
+.l-coin{width:90px;height:90px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;box-shadow:inset 0 2px 4px rgba(0,0,0,.45),0 0 0 2px var(--on-club),0 1px 0 3px rgba(0,0,0,.35)}
+.l-coin b{font:600 46px/1 var(--num);margin-block:-.14em -.1em;font-variant-numeric:tabular-nums}
+.st-rows{display:flex;flex-direction:column;justify-content:space-around;margin:0;padding:4px 12px}
+.st-rows div{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:5px 0;border-bottom:1px solid var(--hair)}
+.st-rows div:last-child{border-bottom:0}
+.st-rows dt{flex:none;white-space:nowrap}
+.st-rows dd{margin:0;font-size:13px;font-weight:700;text-align:right;min-width:0;overflow-wrap:anywhere}
+.st-rows dd b{font:600 19px/1 var(--num);margin:0 2px 0 4px;font-variant-numeric:tabular-nums}
+.l-word{margin:12px 0 0;line-height:1.45;font-size:13px;font-weight:500;overflow-wrap:anywhere}
+.l-bars{display:flex;flex-direction:column;gap:9px;margin-top:auto;padding-top:10px}
+.l-bar>div:first-child{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:5px}
+.l-bar .v{font:600 16px/1 var(--num);letter-spacing:.04em;font-variant-numeric:tabular-nums}
+.l-track{height:9px;border-radius:5px;background:var(--pan);box-shadow:inset 0 1px 3px rgba(0,0,0,.5),0 1px 0 var(--panhi);overflow:hidden}
+.l-track i{display:block;height:100%;border-radius:5px;background:linear-gradient(180deg,var(--c1),var(--c2) 45%,var(--c3) 55%,var(--c4))}
+/* 裏の面: 交換と詳細。 */
+.k-club{display:flex;align-items:center;gap:10px;min-width:0;font:400 22px/1.1 var(--display)}
+.k-name{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-top:22px}
+.k-num{flex:none;display:flex;align-items:flex-end;gap:6px}
+.k-num b{font:600 58px/1 var(--num);margin-block:-.14em -.1em;font-variant-numeric:tabular-nums}
+.k-num .lb{padding-bottom:2px}
+.k-qr{align-self:center;display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:16px}
+.b-qr{display:block;width:min(152px,40vw);aspect-ratio:1;image-rendering:pixelated;background:#fff;padding:9px;border-radius:6px;box-shadow:0 2px 0 var(--cs)}
+.k-big{align-self:center;margin-block:auto;font:600 min(230px,60vw)/1 var(--num);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.k-word{margin:auto 0 0;padding-top:14px;font-size:13px;font-weight:500;overflow-wrap:anywhere}
+.k-dl{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px 16px;margin:12px 0 0;padding-top:12px;border-top:1px solid var(--hair)}
+.k-dl div{display:flex;flex-direction:column;gap:3px;min-width:0}
+.k-dl .wide{grid-column:1/-1}
+.k-dl dd{margin:0;font-size:13px;font-weight:700;overflow-wrap:anywhere}
+.k-dl a{color:inherit;text-underline-offset:3px}
+.stage .hint{font-size:12px;color:var(--muted);font-weight:700;margin:0}
+.xpanel{border:2px solid var(--ink);border-radius:5px;background:var(--surface);padding:16px;display:flex;flex-direction:column;gap:14px}
+.xpanel textarea{font:500 12px/1.4 ui-monospace,Menlo,Consolas,monospace;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:8px;width:100%;min-width:0;resize:vertical;overflow-wrap:anywhere}
+.xmsg{font-size:13px;font-weight:700;margin:0}
+.meishi.direct{border:2px solid var(--ink);outline:2px solid var(--flood);outline-offset:-5px}
+.meishi .tag.dx{background:var(--flood);color:var(--on-flood);padding:1px 6px;border-radius:2px}
+.meishi .idn{font:600 14px/1.3 var(--num);letter-spacing:.06em;color:var(--ink)}
+/* 称号プレート: 名刺に鋲で留めた金属の銘板。銅→銀→金→黒金の順に手に入りにくい。 */
+.plate{position:relative;display:inline-flex;align-items:center;gap:8px;max-width:100%;padding:4px 8px;border-radius:3px;overflow:hidden;font-family:var(--body);font-size:12px;font-weight:700;letter-spacing:.12em;line-height:1.35;white-space:nowrap;text-shadow:none;box-shadow:inset 0 1px 0 rgba(255,255,255,.6),inset 0 -1px 0 rgba(0,0,0,.35),0 1px 2px rgba(0,0,0,.45)}
+.plate b{font-weight:700}
+.plate i{flex:none;width:4px;height:4px;border-radius:50%;background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.85),rgba(0,0,0,.6) 70%)}
+.plate.t1{background:linear-gradient(180deg,#dcae82,#a66a3d 55%,#c9925f);color:#3a1f0c}
+.plate.t2{background:linear-gradient(180deg,#f6f8fa,#a7b0ba 55%,#dfe4e9);color:#1b2630}
+.plate.t3{background:linear-gradient(180deg,#ffeca8,#cf9c1c 55%,#f7d76a);color:#3b2900;box-shadow:inset 0 1px 0 rgba(255,255,255,.75),inset 0 -1px 0 rgba(0,0,0,.35),0 0 0 1px #8a6508,0 1px 3px rgba(0,0,0,.5)}
+.plate.t4{background:linear-gradient(180deg,#30363e,#090c10 58%,#252a31);color:#f5d36a;padding:5px 10px;box-shadow:inset 0 1px 0 rgba(255,255,255,.3),inset 0 -1px 0 rgba(0,0,0,.6),0 0 0 1px #f0c84f,0 0 0 2px #5d4406,0 2px 6px rgba(0,0,0,.55)}
+.plate.t4 i{background:radial-gradient(circle at 35% 30%,#fff3c4,#b8860b 70%)}
+.plate.t3::after,.plate.t4::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 38%,rgba(255,255,255,.6) 50%,transparent 62%);transform:translateX(-120%);animation:plate-shine 3.6s ease-in-out infinite;pointer-events:none}
+.plate.t3::after{animation-duration:5.4s;opacity:.7}
+@keyframes plate-shine{0%,55%{transform:translateX(-120%)}85%,100%{transform:translateX(120%)}}
+@media (prefers-reduced-motion:reduce){.plate::after{animation:none!important}}
+.plate.sm{font-size:10px;padding:2px 6px;gap:5px;letter-spacing:.08em}
+.plate.sm i{width:3px;height:3px}
+.plates{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.pick{display:flex;flex-direction:column;align-items:flex-start;gap:6px;min-width:0;padding:10px;border:1px solid var(--line);border-radius:5px;background:var(--surface);font:inherit;color:var(--ink);text-align:left}
+button.pick{cursor:pointer}
+.pick small{font-size:11px;color:var(--muted);font-weight:500;line-height:1.4}
+.pick[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.pick.locked .plate{filter:grayscale(1);opacity:.4}
+.pick .none{font-size:13px;font-weight:700}
+.lab{font-size:12px;font-weight:700;color:var(--muted);display:block;margin-bottom:6px}
+.meishi[data-id]{cursor:pointer}
+.meishi[data-id]:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+.viewer{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;gap:14px;overflow-y:auto;padding:calc(16px + env(safe-area-inset-top,0px)) 16px calc(24px + env(safe-area-inset-bottom,0px));background:color-mix(in srgb,var(--bg) 94%,transparent);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.viewer .bar{align-self:stretch;display:flex;justify-content:space-between;align-items:center;gap:12px;max-width:340px;width:100%;margin-inline:auto}
+.viewer .flip{flex:none}
+.viewer .hint{font-size:12px;color:var(--muted);font-weight:700;margin:0}
+.viewer .info{width:min(100%,340px);display:flex;flex-direction:column;gap:8px;font-size:13px}
+.viewer .info p{margin:0}
+.viewer .why{background:var(--flood);color:var(--on-flood);padding:0 6px;border-radius:2px;font-size:11px;font-weight:700;margin-right:4px}
+/* 開封: 袋の上を横にスワイプして破り、名刺を1枚ずつスワイプでめくる。レアは光と振動で知らせる。 */
+.pack{justify-content:flex-start;gap:14px;overflow-x:hidden;touch-action:manipulation}
+.pack h2{margin:0;text-align:center;text-wrap:balance}
+.pk-wrap{margin-top:1vh;flex:none;position:relative}
+.pk-wrap::after{content:"";position:absolute;left:6%;right:6%;bottom:-20px;height:28px;border-radius:50%;background:radial-gradient(closest-side,rgba(0,0,0,.45),transparent);z-index:-1}
+/* 袋: アルミ蒸着のトレカの袋を、画面いっぱいに近い大きさで。
+   上の圧着の帯をなぞると、指の位置まで帯がちぎれてめくれ上がり、切り口から袋の内側の銀色と、中の名刺の頭が見える。 */
+.pk{--club:#888;--on-club:#fff;--t:0%;--tn:0;position:relative;width:min(300px,78vw);aspect-ratio:10/15;color:var(--on-club);touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none;animation:pk-wobble 2.4s ease-in-out infinite}
+.pk.drag,.pk.open{animation:none;cursor:grabbing}
+.pk-in{position:absolute;left:1%;right:1%;top:9%;height:7%;background:linear-gradient(180deg,#07090c,#232a32 70%,#39424c);clip-path:inset(0 calc(100% - var(--t)) 0 0)}
+.pk-peek{position:absolute;left:7%;right:7%;top:10%;height:8%;border-radius:5px 5px 0 0;background:linear-gradient(180deg,#ffffff,#dfe5ea 60%,#b9c2cb);box-shadow:0 -3px 0 -1px #c9d1d9,0 -6px 0 -2px #aeb8c2;clip-path:inset(-10px calc(100% - var(--t)) 0 0);transform:translateY(calc(var(--tn) * -7px))}
+.pk-top{position:absolute;left:0;right:0;top:0;height:12.4%;z-index:2}
+.pk-top i{position:absolute;inset:0;clip-path:polygon(0% 24%,4% 0%,8% 24%,12% 0%,16% 24%,20% 0%,24% 24%,28% 0%,32% 24%,36% 0%,40% 24%,44% 0%,48% 24%,52% 0%,56% 24%,60% 0%,64% 24%,68% 0%,72% 24%,76% 0%,80% 24%,84% 0%,88% 24%,92% 0%,96% 24%,100% 0%,100% calc(100% - 0px),96.7% calc(100% - 3px),93.3% calc(100% - 4px),90% calc(100% - 4px),86.7% calc(100% - 0px),83.3% calc(100% - 4px),80% calc(100% - 1px),76.7% calc(100% - 0px),73.3% calc(100% - 4px),70% calc(100% - 0px),66.7% calc(100% - 3px),63.3% calc(100% - 4px),60% calc(100% - 0px),56.7% calc(100% - 1px),53.3% calc(100% - 0px),50% calc(100% - 3px),46.7% calc(100% - 3px),43.3% calc(100% - 0px),40% calc(100% - 0px),36.7% calc(100% - 1px),33.3% calc(100% - 4px),30% calc(100% - 0px),26.7% calc(100% - 4px),23.3% calc(100% - 2px),20% calc(100% - 0px),16.7% calc(100% - 4px),13.3% calc(100% - 0px),10% calc(100% - 0px),6.7% calc(100% - 3px),3.3% calc(100% - 1px),0% calc(100% - 2px));background:repeating-linear-gradient(90deg,rgba(255,255,255,.22) 0 1.5px,rgba(0,0,0,.2) 1.5px 3px),linear-gradient(90deg,rgba(0,0,0,.42) 0,rgba(255,255,255,.2) 9%,rgba(255,255,255,0) 26%,rgba(0,0,0,.1) 52%,rgba(255,255,255,.24) 80%,rgba(0,0,0,.45) 100%),color-mix(in srgb,var(--club) 80%,#000)}
+/* 破れた側（左から指の位置まで）は持ち上がってめくれ、残りはまだ付いている */
+.pk-top.a{clip-path:inset(-120% calc(100% - var(--t)) -40% 0);transform-origin:0 100%;transform:translateY(calc(var(--tn) * -16px)) rotate(calc(var(--tn) * -8deg));filter:drop-shadow(0 4px 3px rgba(0,0,0,.35));transition:transform .45s cubic-bezier(.3,.6,.3,1),opacity .45s}
+.pk.drag .pk-top.a{transition:none}
+.pk-top.b{clip-path:inset(-120% 0 -40% var(--t))}
+.pk-rip{position:absolute;left:0;top:11.6%;width:var(--t);height:5px;z-index:1;background:linear-gradient(180deg,#f4f7f9,#aab3bc);clip-path:polygon(0% 2px,3.3% 3px,6.7% 1px,10% 4px,13.3% 4px,16.7% 0px,20% 4px,23.3% 2px,26.7% 0px,30% 4px,33.3% 0px,36.7% 3px,40% 4px,43.3% 4px,46.7% 1px,50% 1px,53.3% 4px,56.7% 3px,60% 4px,63.3% 0px,66.7% 1px,70% 4px,73.3% 0px,76.7% 4px,80% 3px,83.3% 0px,86.7% 4px,90% 0px,93.3% 0px,96.7% 1px,100% 4px,100% 100%,0 100%);opacity:.95}
+.pk-cut{position:absolute;left:0;right:0;top:11.4%;border-top:2px dashed color-mix(in srgb,var(--on-club) 75%,transparent);z-index:3}
+.pk-cut::after{content:"";position:absolute;top:-10px;left:0;width:0;height:0;border:9px solid transparent;border-left:14px solid var(--on-club);filter:drop-shadow(0 1px 1px rgba(0,0,0,.5));animation:pk-hand 1.6s ease-in-out infinite}
+.pk.drag .pk-cut,.pk.open .pk-cut{opacity:0}
+.pk-spark{position:absolute;top:11.6%;left:var(--t);width:26px;height:26px;margin:-13px;border-radius:50%;background:radial-gradient(circle,#fff,rgba(255,220,120,.9) 40%,transparent 70%);opacity:0;z-index:4}
+.pk.drag .pk-spark{opacity:1}
+.pk-body{position:absolute;left:0;right:0;top:11.6%;bottom:0;display:flex;flex-direction:column;z-index:1;transition:transform .45s .2s cubic-bezier(.5,0,.8,.4),opacity .4s .25s}
+.pk-main{position:relative;flex:1;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:22px 16px 16px;text-shadow:0 1px 1px rgba(0,0,0,.35);clip-path:polygon(0% 2px,3.3% 3px,6.7% 1px,10% 4px,13.3% 4px,16.7% 0px,20% 4px,23.3% 2px,26.7% 0px,30% 4px,33.3% 0px,36.7% 3px,40% 4px,43.3% 4px,46.7% 1px,50% 1px,53.3% 4px,56.7% 3px,60% 4px,63.3% 0px,66.7% 1px,70% 4px,73.3% 0px,76.7% 4px,80% 3px,83.3% 0px,86.7% 4px,90% 0px,93.3% 0px,96.7% 1px,100% 4px,100% 100%,0 100%);
+  background:linear-gradient(101deg,transparent 0 17%,rgba(255,255,255,.13) 18%,transparent 20%),linear-gradient(76deg,transparent 0 71%,rgba(255,255,255,.1) 72.5%,transparent 74%),linear-gradient(95deg,transparent 0 44%,rgba(0,0,0,.1) 45%,transparent 47%),
+    linear-gradient(112deg,transparent 30%,rgba(255,255,255,.3) 41%,rgba(255,255,255,.06) 47%,transparent 58%),radial-gradient(140% 22% at 50% 0,rgba(0,0,0,.36),transparent 70%),radial-gradient(140% 20% at 50% 100%,rgba(0,0,0,.3),transparent 70%),linear-gradient(90deg,rgba(0,0,0,.42) 0,rgba(255,255,255,.2) 9%,rgba(255,255,255,0) 26%,rgba(0,0,0,.1) 52%,rgba(255,255,255,.24) 80%,rgba(0,0,0,.45) 100%),linear-gradient(180deg,color-mix(in srgb,var(--club) 88%,#fff),var(--club) 45%,color-mix(in srgb,var(--club) 78%,#000))}
+.pk-main::before{content:"";position:absolute;left:-20%;right:-20%;top:38%;height:32%;rotate:-9deg;background:repeating-linear-gradient(90deg,var(--on-club) 0 20px,transparent 20px 34px);opacity:.14}
+.pk-main::after{content:"";position:absolute;top:-20%;bottom:-20%;left:-60%;width:38%;rotate:14deg;background:linear-gradient(90deg,transparent,rgba(255,255,255,.5),transparent);animation:pk-glint 3.6s ease-in-out infinite}
+.pk-main>*{position:relative}
+.pk-brand{font:400 25px/1.2 var(--display);letter-spacing:.08em}
+.pk-brand small{display:block;margin-top:6px;font:600 15px/1 var(--num);letter-spacing:.2em;text-align:center}
+.pk-n{display:flex;align-items:flex-end;gap:6px}
+.pk-n b{font:600 144px/1 var(--num);margin-block:-.15em -.1em;filter:drop-shadow(0 4px 0 rgba(0,0,0,.3))}
+.pk-n span{font-size:17px;font-weight:700;padding-bottom:10px}
+.pk-match{font-size:13px;font-weight:700;letter-spacing:.04em;text-align:center;line-height:1.5}
+.pk-bot{flex:none;height:8.5%;clip-path:polygon(0 0,100% 0,100% 72%,96% 100%,92% 72%,88% 100%,84% 72%,80% 100%,76% 72%,72% 100%,68% 72%,64% 100%,60% 72%,56% 100%,52% 72%,48% 100%,44% 72%,40% 100%,36% 72%,32% 100%,28% 72%,24% 100%,20% 72%,16% 100%,12% 72%,8% 100%,4% 72%,0% 100%);background:repeating-linear-gradient(90deg,rgba(255,255,255,.22) 0 1.5px,rgba(0,0,0,.2) 1.5px 3px),linear-gradient(90deg,rgba(0,0,0,.42) 0,rgba(255,255,255,.2) 9%,rgba(255,255,255,0) 26%,rgba(0,0,0,.1) 52%,rgba(255,255,255,.24) 80%,rgba(0,0,0,.45) 100%),color-mix(in srgb,var(--club) 80%,#000)}
+.pk.open .pk-top.a{transform:translate(44px,-130px) rotate(28deg);opacity:0}
+.pk.open .pk-top.b,.pk.open .pk-rip{opacity:0}
+.pk.open .pk-peek{transform:translateY(-34px);transition:transform .3s}
+.pk.open .pk-body{transform:translateY(60px) scale(.92);opacity:0}
+@keyframes pk-glint{0%,55%{left:-60%}85%,100%{left:130%}}
+.pk-hint{margin:0;font-size:13px;font-weight:700;color:var(--muted);text-align:center;min-height:21px}
+.pk-count{margin:0;font:600 20px/1 var(--num);letter-spacing:.1em;color:var(--muted)}
+.gc-area{position:relative;display:grid;width:min(100%,340px);flex:none;margin-bottom:20px}
+.gc-area>*{grid-area:1/1}
+/* 下に残っている束（裏向き）。いちばん上と同じ大きさで、少しずつ下にずらす */
+.gc-deck{align-self:stretch;border-radius:5px;background:linear-gradient(135deg,#2c3743,#0f161d 60%,#28323d);box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)}
+.gc-deck.d1{transform:translateY(8px) scale(.965)}
+.gc-deck.d2{transform:translateY(16px) scale(.93)}
+/* いちばん上の1枚。裏と表を同じ場所に重ねてあり、角度 --a（0〜180度）で裏から表へ回る。指の動きに角度がついてくる */
+.gc{--dx:0;--a:0deg;position:relative;display:grid;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;transform:translateX(calc(var(--dx) * 1px)) rotate(calc(var(--dx) / 22 * 1deg));transition:transform .2s cubic-bezier(.2,.8,.2,1),opacity .18s}
+.gc.drag{transition:none;cursor:grabbing}
+.gc.out{opacity:0}
+.gc.rise{animation:gc-rise .24s cubic-bezier(.2,.8,.2,1)}
+.gc.first{animation:gc-in .4s cubic-bezier(.2,.9,.2,1)}
+.gcf{grid-area:1/1;min-width:0;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.gcf.back{position:relative;overflow:hidden;align-self:stretch;border-radius:5px;display:grid;place-items:center;background:linear-gradient(135deg,#2c3743,#0f161d 60%,#28323d);color:#e9eef2;font:400 46px/1 var(--display);box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);transform:perspective(900px) rotateY(var(--a))}
+.gcf.back::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(135deg,rgba(255,255,255,.06) 0 10px,transparent 10px 20px)}
+.gcf.back span{position:relative}
+.gcf.front{visibility:hidden;transform:perspective(900px) rotateY(calc(var(--a) - 180deg))}
+.gc.up .gcf.front{visibility:visible}
+.gc.up .gcf.back{visibility:hidden}
+.gc.rare .gcf.back{box-shadow:0 0 0 2px #ffd23f,0 0 26px 3px rgba(255,210,63,.55);animation:gc-pulse 1s ease-in-out infinite alternate}
+.gc.super .gcf.back{box-shadow:0 0 0 2px #ffd23f,0 0 34px 6px rgba(255,210,63,.75)}
+.gc.super .gcf.back::after{content:"";position:absolute;inset:-60%;background:conic-gradient(#ffd23f,#ff7ab6,#7ad7ff,#9dff9a,#ffd23f);opacity:.38;animation:gc-spin 2.2s linear infinite}
+.gc-rays{position:absolute;inset:-28% -12%;z-index:-1;border-radius:50%;background:repeating-conic-gradient(rgba(255,210,63,.5) 0 8deg,transparent 8deg 20deg);-webkit-mask:radial-gradient(closest-side,#000 35%,transparent);mask:radial-gradient(closest-side,#000 35%,transparent);animation:gc-spin 9s linear infinite;pointer-events:none}
+.pk-tag{margin:0;min-height:30px;font:400 22px/1.3 var(--display);text-align:center}
+.pk-tag.hit{animation:gc-pop .35s cubic-bezier(.3,1.6,.5,1)}
+/* 光: 開封とレアの瞬間に画面全体が一瞬光る。色でレア度が分かる */
+.pk-flash{position:fixed;inset:0;z-index:5;pointer-events:none;background:radial-gradient(circle at 50% 38%,var(--fc,#fff),transparent 70%);animation:pk-flash .7s ease-out forwards}
+.pk-flash.rb{background:radial-gradient(circle at 50% 38%,#fff 0,transparent 22%),conic-gradient(from 0deg at 50% 38%,#ffd23f,#ff7ab6,#7ad7ff,#9dff9a,#ffd23f);animation-duration:1s}
+.pk-flash.soft{animation-name:pk-flash-soft;animation-duration:.5s}
+@keyframes pk-flash-soft{0%{opacity:0}25%{opacity:.4}100%{opacity:0}}
+.sparks{position:absolute;left:50%;top:40%;width:0;height:0;z-index:4;pointer-events:none}
+.sparks i{position:absolute;left:-3px;top:-3px;width:6px;height:6px;border-radius:50%;background:var(--sc,#ffd23f);animation:spark .8s cubic-bezier(.1,.7,.3,1) forwards}
+.pack.shake>*:not(.pk-flash){animation:pk-shake .32s linear}
+@keyframes pk-wobble{0%,100%{transform:rotate(-1.4deg)}50%{transform:rotate(1.4deg)}}
+@keyframes pk-hand{0%{left:4%;opacity:0}15%{opacity:1}80%{opacity:1}100%{left:88%;opacity:0}}
+@keyframes pk-flash{0%{opacity:0}18%{opacity:.92}100%{opacity:0}}
+@keyframes pk-shake{0%,100%{transform:translate(0,0)}20%{transform:translate(-5px,2px)}40%{transform:translate(5px,-2px)}60%{transform:translate(-3px,-1px)}80%{transform:translate(3px,1px)}}
+@keyframes spark{from{transform:rotate(var(--a)) translateY(0) scale(1);opacity:1}to{transform:rotate(var(--a)) translateY(calc(var(--d) * -1)) scale(.3);opacity:0}}
+@keyframes gc-in{from{transform:translateY(120px) scale(.8);opacity:0}to{transform:none;opacity:1}}
+@keyframes gc-rise{from{transform:translateY(8px) scale(.965);filter:brightness(.8)}to{transform:none;filter:none}}
+@keyframes gc-pulse{from{filter:brightness(1)}to{filter:brightness(1.35)}}
+@keyframes gc-spin{to{transform:rotate(360deg)}}
+@keyframes gc-pop{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
+@media (prefers-reduced-motion:reduce){.mv{display:none}.pk,.pk-main::after,.pk-cut::after,.gc.rise,.gc.first,.gc-rays,.gc .gcf.back,.gc.super .gcf.back::after,.pk-tag.hit,.pack.shake>*{animation:none!important}.pk-top.a,.pk-body,.gc,.gc-back,.gc-front{transition:none}.pk-flash,.sparks{display:none}}
+/* レアのムービー: めくる前に入る短い演出。画面が暗くなり、裏向きの名刺が光って、光の輪が広がり、白く光ってめくれる。
+   レアは金（約1.1秒）、激レアは虹で輪が2つ（約1.6秒）。タップで飛ばせる。 */
+.mv{--D:1.1s;--g:#ffd23f;position:fixed;inset:0;z-index:8;overflow:hidden;display:grid;place-items:center;cursor:pointer}
+.mv.lv2{--D:1.6s;--g:#ff7ab6}
+.mv>*{grid-area:1/1}
+.mv-bg{position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,#232a33,#07090c 75%);animation:mv-fade var(--D) linear both}
+.mv-ring{width:min(64vw,260px);aspect-ratio:1;border-radius:50%;border:3px solid var(--g);box-shadow:0 0 30px 6px var(--g),inset 0 0 30px 6px var(--g);opacity:0;animation:mv-ring .9s ease-out both;animation-delay:calc(var(--D) * .18)}
+.mv.lv2 .mv-ring{border-color:#fff;box-shadow:0 0 34px 8px #7ad7ff,inset 0 0 34px 8px #ff7ab6}
+.mv-ring.r2{display:none}
+.mv.lv2 .mv-ring.r2{display:block;animation-delay:calc(var(--D) * .42);box-shadow:0 0 34px 8px #ffd23f,inset 0 0 34px 8px #9dff9a}
+.mv-core{position:relative;display:flex;flex-direction:column;align-items:center;gap:18px;animation:mv-core var(--D) cubic-bezier(.3,.6,.3,1) both}
+.mv-card{width:min(64vw,260px);aspect-ratio:91/55;border-radius:6px;display:grid;place-items:center;background:linear-gradient(135deg,#2c3743,#0f161d 60%,#28323d);color:#fff;font:400 56px/1 var(--display);box-shadow:0 0 0 3px var(--g),0 0 60px 14px color-mix(in srgb,var(--g) 80%,transparent)}
+.mv.lv2 .mv-card{box-shadow:0 0 0 3px #fff,0 0 50px 12px #ff7ab6,0 0 90px 26px rgba(122,215,255,.7)}
+.mv-text{font:400 30px/1 var(--display);letter-spacing:.14em;color:#fff;text-shadow:0 0 18px var(--g),0 2px 0 rgba(0,0,0,.5)}
+.mv-white{position:absolute;inset:0;background:#fff;animation:mv-white .3s ease-in both;animation-delay:calc(var(--D) - .3s)}
+.mv-skip{position:absolute;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));font-size:12px;font-weight:700;color:rgba(255,255,255,.7)}
+@keyframes mv-fade{0%{opacity:0}16%,100%{opacity:1}}
+@keyframes mv-core{0%{transform:scale(.7);opacity:0}22%{transform:scale(1);opacity:1}100%{transform:scale(1.14);opacity:1}}
+@keyframes mv-ring{0%{transform:scale(.5);opacity:.9}100%{transform:scale(3.2);opacity:0}}
+@keyframes mv-white{from{opacity:0}to{opacity:1}}
+.ad{width:min(100%,340px);margin-top:8vh;display:flex;flex-direction:column;gap:16px}
+.ad-tag{align-self:flex-start;font-size:11px;font-weight:700;border:1px solid var(--line);border-radius:2px;padding:1px 6px;color:var(--muted)}
+.ad-box{aspect-ratio:16/9;border:1px dashed var(--line);border-radius:5px;background:var(--surface);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:12px;text-align:center}
+.ad-box p{margin:0;font-weight:700}
+.ad-box small{font-size:12px;color:var(--muted)}
+.pack .done{width:min(100%,720px);display:flex;flex-direction:column;gap:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>サポ名刺すれちがい</h1>
+    <p class="lede">同じ試合にいたサポーターと、名刺が自動で交換される。チェックインできるのは試合の日だけ。非公式のファンアプリです。</p>
+    <p id="net" hidden></p>
+  </header>
+
+  <section id="p-setup" hidden>
+    <h2>推しクラブを選んでください</h2>
+    <p class="note">あとから名刺の画面で変えられます。</p>
+    <div id="s-clubs-pick" class="group"></div>
+    <label>ニックネーム<input type="text" id="s-nick" maxlength="14" placeholder="名刺に出る名前"></label>
+    <button class="btn flood" id="s-go" disabled>推しクラブを選ぶと始められます</button>
+  </section>
+
+  <div class="tabs" role="tablist" id="tabs">
+    <button role="tab" id="tab-card" data-tab="card" aria-selected="true">名刺</button>
+    <button role="tab" id="tab-checkin" data-tab="checkin" aria-selected="false">チェックイン</button>
+    <button role="tab" id="tab-book" data-tab="book" aria-selected="false">名刺帳<span class="count" id="bookCount"></span></button>
+    <button role="tab" id="tab-zukan" data-tab="zukan" aria-selected="false">図鑑</button>
+  </div>
+
+  <section id="p-card">
+    <div id="card-view">
+      <div class="stage" id="stage"></div>
+      <div class="row center">
+        <button type="button" class="btn" id="e-open">名刺を編集する</button>
+        <button type="button" class="btn ghost" id="x-open">リンクで交換</button>
+        <button type="button" class="btn ghost" id="m-share-go">Xでシェアする</button>
+      </div>
+      <div id="m-share"></div>
+      <div class="xpanel" id="x-panel" hidden>
+        <h2>直接交換</h2>
+        <p class="note">名刺を裏返すと、交換用のQRが出ます。相手のスマホのカメラで読んでもらうと、2人の名刺帳にお互いの名刺が入ります。2人とも今日の試合にチェックイン済みなら「スタジアムで交換」、それ以外は「街で交換」です。QRは1分ごとに新しくなります。</p>
+        <label for="x-code">自分の交換リンク（1分で切れます）</label>
+        <textarea id="x-code" rows="3" readonly></textarea>
+        <div class="row"><button type="button" class="btn ghost" id="x-copy">リンクをコピー</button></div>
+        <label for="x-in">相手の交換リンク</label>
+        <textarea id="x-in" rows="3" placeholder="QRが読めないときは、相手のリンクをここに貼り付け" autocapitalize="off" autocomplete="off" spellcheck="false"></textarea>
+        <div class="row"><button type="button" class="btn" id="x-go">交換する</button></div>
+        <div id="x-out"></div>
+      </div>
+    </div>
+    <div id="card-edit" hidden>
+      <div class="row between"><h2>名刺を編集</h2><button type="button" class="btn ghost" id="e-done">完了</button></div>
+      <p class="note">名刺帳で相手に見える形はこうなります。</p>
+      <div class="mine" id="myCard"></div>
+      <div class="form">
+      <label>ニックネーム<input type="text" id="f-nick" maxlength="14"></label>
+      <label>推しクラブ<select id="f-club"></select></label>
+      <label>クラブカラー<input type="color" id="f-color"></label>
+      <label>観戦スタイル<select id="f-style"></select></label>
+      <label>ひとこと<input type="text" id="f-word" maxlength="24"></label>
+      <label>背番号（1〜99）<input type="number" id="f-no" min="1" max="99" inputmode="numeric"></label>
+      <label>推し選手<input type="text" id="f-fav" maxlength="16" placeholder="例：背番号14のあの人"></label>
+      <label>Xのアカウント<input type="text" id="f-x" maxlength="40" placeholder="@なしでもOK" autocapitalize="off" autocomplete="off" spellcheck="false"></label>
+      <div class="full"><span class="lab">名刺に付けるプレート</span><div class="plates" id="f-plates"></div></div>
+      <div class="photo full">
+        <span>写真（自分で撮ったものや自分のアイコン）</span>
+        <div class="row"><input type="file" id="f-photo" accept="image/*" aria-label="名刺の写真を選ぶ"><button type="button" class="btn ghost" id="f-photo-x">写真を外す</button></div>
+      </div>
+    </div>
+    <p class="note">本名は載せません。Xのアカウントは入れた人だけ名刺に出て、すれちがった相手がタップするとXのプロフィールが開きます。名刺の内容は、すれちがった相手と交換した相手にだけ見えます。試合数は、今シーズン（2026/27）にこのアプリでチェックインした分だけを数えます。リーグ戦、ルヴァンカップ、天皇杯が対象です。</p>
+      <button type="button" class="btn" id="e-done2">完了して名刺を見る</button>
+    </div>
+  </section>
+
+  <section id="p-checkin" hidden>
+    <h2>今日の試合にチェックイン</h2>
+    <div id="c-today"></div>
+    <button class="btn flood" id="c-go">スタジアムに着いた</button>
+    <div id="c-queue"></div>
+    <div id="c-out"></div>
+    <h2>次の試合</h2>
+    <ul class="next" id="c-next"></ul>
+    <p class="note" id="c-note"></p>
+    <input type="hidden" id="c-date"><button type="button" id="c-date-x" hidden></button>
+    <h2>チェックイン履歴</h2>
+    <ul class="log" id="c-log"></ul>
+  </section>
+
+  <section id="p-book" hidden>
+    <div class="stats">
+      <div><b id="s-total">0</b><span>集めた名刺</span></div>
+      <div><b id="s-clubs">0</b><span>クラブ数</span></div>
+      <div><b id="s-rare">0</b><span>レア</span></div>
+      <div><b id="s-re">0</b><span>再会した人</span></div>
+    </div>
+    <div class="chips" id="b-divs"></div>
+    <div class="chips" id="b-chips"></div>
+    <div id="b-list"></div>
+    <button id="reset" hidden></button>
+  </section>
+
+  <section id="p-zukan" hidden>
+    <div id="z-out"></div>
+  </section>
+</div>
+
+<div class="viewer pack" id="pack" hidden role="dialog" aria-modal="true" aria-label="すれちがった名刺を開ける"></div>
+<div class="viewer" id="viewer" hidden role="dialog" aria-modal="true" aria-label="名刺"></div>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const LEAGUE={
+J1:[["鹿島","#9E1B32"],["水戸","#1D2E8A"],["浦和","#E6002D"],["千葉","#F7D500"],["柏","#F5D000"],["FC東京","#1E3A9F"],["東京V","#00693E"],["町田","#0A2A6B"],["川崎","#23B6E6"],["横浜FM","#0B3B8C"],["清水","#F39800"],["名古屋","#D80C18"],["京都","#7A1A7E"],["G大阪","#0A4EA3"],["C大阪","#E4568F"],["神戸","#A01437"],["岡山","#8E1230"],["広島","#51318F"],["福岡","#1B2A5C"],["長崎","#2A6EBB"]],
+J2:[["札幌","#C8102E"],["八戸","#0B8F4D"],["仙台","#E8B600"],["秋田","#0F5BB5"],["山形","#1E4FA3"],["いわき","#C8102E"],["栃木C","#0F3B8F"],["大宮","#F26522"],["横浜FC","#4CB5E8"],["湘南","#6FBA2C"],["甲府","#1B4BA0"],["新潟","#F47B20"],["富山","#1C3C8C"],["磐田","#6CA6D9"],["藤枝","#6A2C91"],["徳島","#1F3F94"],["今治","#1A3E8C"],["鳥栖","#3FA7D6"],["大分","#1C3F94"],["宮崎","#2B2B2B"]],
+J3:[["福島","#D7141A"],["栃木SC","#F5D000"],["群馬","#1B2A5C"],["相模原","#0E7A3B"],["松本","#0B6B3A"],["長野","#F47B20"],["金沢","#C8102E"],["岐阜","#0B6B3A"],["滋賀","#1F4E9E"],["FC大阪","#6EC6E8"],["奈良","#1D2C6B"],["鳥取","#7BC043"],["山口","#F26522"],["讃岐","#5BB5E5"],["愛媛","#F47B20"],["高知","#C8102E"],["北九州","#F5C400"],["熊本","#C8102E"],["鹿児島","#1F3A7A"],["琉球","#8C1D40"]]};
+const DIVS=Object.keys(LEAGUE);
+const CLUBS=DIVS.flatMap(d=>LEAGUE[d].map(c=>[c[0],c[1],d]));
+const divOf=c=>(CLUBS.find(x=>x[0]===c)||[0,0,""])[2];
+const clubOpts=ex=>DIVS.map(d=>'<optgroup label="'+d+'">'+LEAGUE[d].filter(c=>c[0]!==ex).map(c=>'<option>'+c[0]+'</option>').join("")+'</optgroup>').join("");
+const STYLES=["ゴール裏で跳ぶ","ゴール裏で声出し","バクスタでじっくり","メインで戦術を見る","家族でのんびり","スタグル優先"];
+const NICKS=["ゴール裏の住人","遠征は寝台派","雨男サポ","スタグル番長","太鼓のとなり","年チケ12年目","バクスタの主","声枯れ担当","ゲーフラ職人","平日は社畜","子連れ参戦","アウェイ皆勤","終電ダッシュ","タオマフ収集家","逆転信者","PK見れない人","前泊の達人","コンコース徘徊","選手バス待ち","開門3時間前","ビール片手に","今日も最前列"];
+const WORDS=["勝っても負けても唐揚げ","アウェイ全通が今年の目標","後半40分からが本番","雨の日ほど燃える","まずは残留、話はそれから","遠征先の銭湯を巡ってます","スタメン発表が一番緊張する","引き分けは勝ちに数えない派","ユニは毎年買う派","セットプレーで祈る係","帰りの電車で反省会","選手入場で毎回泣く"];
+const RARES=[["遠征組","アウェイから来ていたサポ"],["常連","今季20試合以上チェックインしている人"],["雨の日","雨の試合で会った"],["平日ナイター","平日の夜に会った"],["スタジアムで交換","2人とも同じ日にチェックインして、その場で直接交換した"]];
+const SEASON="2026/27",COMPS=["リーグ","ルヴァンカップ","天皇杯"];
+const KEY="sapo-meishi-live-1",OLD_KEY="sapo-meishi-none";
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const colorOf=c=>(CLUBS.find(x=>x[0]===c)||[0,"#777777"])[1];
+function onColor(hex){const n=parseInt(hex.slice(1),16),r=n>>16&255,g=n>>8&255,b=n&255;return (0.299*r+0.587*g+0.114*b)>160?"#14202B":"#FFFFFF"}
+function fmt(d){return d.getFullYear()+"."+String(d.getMonth()+1).padStart(2,"0")+"."+String(d.getDate()).padStart(2,"0")}
+
+let S;
+const TITLES=[
+["はじめの一歩","初めてチェックインする",()=>S.log.length>=1],
+["遠征デビュー","アウェイで1試合チェックインする",()=>S.log.filter(l=>l.ha==="A").length>=1],
+["雨天決行","雨の試合にチェックインする",()=>S.log.some(l=>l.rain)],
+["平日休みの達人","平日ナイターにチェックインする",()=>S.log.some(l=>l.wd)],
+["通い慣れ","5試合チェックインする",()=>S.log.length>=5],
+["アウェイの鬼","アウェイで5試合チェックインする",()=>S.log.filter(l=>l.ha==="A").length>=5],
+["顔なじみ","同じ人と3回すれちがう",()=>BOOK().some(c=>(c.met||1)>=3)],
+["三階級制覇","J1・J2・J3すべてのサポ名刺を集める",()=>DIVS.every(d=>BOOK().some(c=>divOf(c.club)===d))],
+["全国に知り合い","10クラブのサポ名刺を集める",()=>new Set(BOOK().map(c=>c.club)).size>=10],
+["レアハンター","レア名刺を10枚集める",()=>BOOK().filter(c=>rareOf(c).length).length>=10],
+["顔が広い","名刺を50枚集める",()=>BOOK().length>=50],
+["はじめまして","直接交換を1回する",()=>BOOK().some(c=>c.direct)],
+["現地で名刺交換","スタジアムで直接交換を1回する",()=>BOOK().some(c=>c.direct&&c.place==="stadium")]];
+// 会員番号。本番ではサーバーが登録順に振る。試作ではサーバーがないので、始めた時刻が早いほど小さい番号にしている。
+const ID_EPOCH=Date.UTC(2026,9,3,15,0),idText=n=>"No."+String(n||0).padStart(6,"0");
+const newId=()=>Math.max(1,Math.floor((Date.now()-ID_EPOCH)/60000)+1);
+// プレートの格: 1 銅、2 銀、3 金、4 黒金
+const TIER={"はじめの一歩":1,"遠征デビュー":1,"はじめまして":1,"雨天決行":2,"平日休みの達人":2,"通い慣れ":2,"顔なじみ":2,"現地で名刺交換":2,"三階級制覇":3,"全国に知り合い":3,"レアハンター":3,"アウェイの鬼":4,"顔が広い":4};
+const TIER_NAME=["","銅","銀","金","黒金"];
+const plateHTML=(name,sm)=>'<span class="plate t'+(TIER[name]||1)+(sm?' sm':'')+'"><i></i><b>'+esc(name)+'</b><i></i></span>';
+const earned=()=>TITLES.filter(t=>t[2]()).map(t=>t[0]);
+function myTitle(){const e=earned();if(S.me.title===undefined)return e[e.length-1]||"";return e.includes(S.me.title)?S.me.title:""}
+
+function rareOf(c){
+  const trav=c.trav!==undefined?c.trav:(String(c.match||"").split(" vs ")[1]===c.club);
+  const r=[];if(trav)r.push("遠征組");if(c.games>=20)r.push("常連");if(c.rain)r.push("雨の日");if(c.wd)r.push("平日ナイター");if(c.direct&&c.place==="stadium")r.push("スタジアムで交換");return r;
+}
+// 同じ試合の人を book に足す。すでに持っている人とは再会として回数を増やす。
+function meet(book,n,home,away,date,ha,rain,wd){
+  const ids=[];let re=0;
+  for(let i=0;i<n;i++){
+    const club=i%6===5?away:home,match=home+" vs "+away;
+    const known=book.filter(c=>!c.direct&&c.club===club&&!ids.includes(c.id));
+    if(known.length&&Math.random()<0.4){
+      const c=pick(known);c.met=(c.met||1)+1;c.date=date;c.match=match;c.ha=ha;c.rain=c.rain||rain;c.wd=c.wd||wd;c.trav=rareOf(c).includes("遠征組")||club===away;
+      ids.push(c.id);re++;continue;
+    }
+    const used=book.filter(c=>c.club===club).map(c=>c.nick),pool=NICKS.filter(x=>!used.includes(x));
+    const nick=pool.length?pick(pool):pick(NICKS)+(used.length+1);
+    const r=Math.random(),id=Date.now().toString(36)+"-"+i+"-"+Math.random().toString(36).slice(2,7);
+    book.push({id,nick,club,color:colorOf(club),style:pick(STYLES),word:pick(WORDS),fav:"背番号"+pick([1,4,5,7,8,9,10,11,13,14,18,20,23,27,41]),title:Math.random()<0.35?pick(TITLES)[0]:"",idn:Math.random()<0.04?1+Math.floor(Math.random()*100):101+Math.floor(Math.random()*4900),games:1+Math.floor(r*r*24),date,match,ha,rain,wd,trav:club===away,met:1});
+    ids.push(id);
+  }
+  return {ids,re};
+}
+function seed(){
+  // 試合数はチェックインした分だけ数えるので、最初は名刺帳も履歴も空
+  let me={nick:"",club:"",color:"#777777",style:STYLES[2],word:"スタグルは早めに並ぶ派",fav:"",x:"",photo:""};
+  try{const o=JSON.parse(localStorage.getItem(OLD_KEY));if(o&&o.me&&divOf(o.me.club)){me=o.me;delete me.since;delete me.title}}catch(e){}
+  return {me,book:[],log:[],fresh:[],queue:[],setup:false};
+}
+try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+if(!S||!S.me||!S.book||!S.log)S=seed();
+if(!S.seen)S.seen={};if(!S.ex)S.ex={};if(!S.cnt)S.cnt={};
+// クラブ名の表記を変えたときの読み替え（保存済みの名刺や履歴にも当てる）
+const RENAMED={"\u6803\u6728\u30b7\u30c6\u30a3":"栃木C"};
+(()=>{const fix=v=>typeof v==="string"?Object.keys(RENAMED).reduce((t,k)=>t.split(k).join(RENAMED[k]),v):v;
+  if(RENAMED[S.me.club])S.me.club=RENAMED[S.me.club];
+  S.book.forEach(c=>{c.club=fix(c.club);c.match=fix(c.match);if(typeof c.id==="string")c.id=fix(c.id)});
+  S.log.forEach(l=>{l.match=fix(l.match)});})();
+if(!Array.isArray(S.queue))S.queue=[];
+// 名刺帳に見えるのは開封済みの名刺だけ。未開封の名刺は袋の中（S.queue に順番待ち）にある。
+const BOOK=()=>S.book.filter(c=>!c.sealed);
+const PACK_SIZE=5;
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}if(typeof pushProfile==="function")pushProfile()}
+
+function cardHTML(c,opt){
+  opt=opt||{};
+  const rare=opt.mine?[]:rareOf(c),met=c.met||1;
+  let tags=opt.mine?'<span class="tag">MY CARD</span>':'';
+  if(!opt.mine){
+    if(c.direct)tags+=c.place==="stadium"?'<span class="tag dx">スタジアムで交換</span>':'<span class="tag">街で交換</span>';
+    if(opt.isNew)tags+='<span class="tag new">'+(met>1?"再会":"NEW")+'</span>';
+    if(rare.length)tags+='<span class="tag rr">'+(rare.length>1?"激レア":"レア")+'</span>';
+  }
+  const links=(c.idn?'<span class="idn">'+idText(c.idn)+'</span>':'')+(c.fav?'<span>推し <b>'+esc(c.fav)+'</b></span>':'')+(c.x?'<a href="https://x.com/'+esc(c.x)+'" target="_blank" rel="noopener">X @'+esc(c.x)+'</a>':'')+rare.map(r=>'<span class="why">'+r+'</span>').join("");
+  const foot=opt.mine?'':'<div class="met">'+esc(c.date)+'　'+(c.direct&&!c.match?(c.place==="stadium"?'スタジアムで交換':'街で交換'):esc(c.match)+(c.ha==="A"?"（アウェイ）":"")+' ですれちがい')+(met>1?'　<b>'+met+'回目</b>':'')+'</div>';
+  return '<article class="meishi'+(rare.length>1?" super":rare.length?" rare":"")+(c.direct&&c.place==="stadium"?" direct":"")+'"'+(opt.mine||!c.id?'':' data-id="'+esc(c.id)+'" tabindex="0" role="button" aria-label="'+esc(c.nick)+'さんの名刺を開く"')+' style="--club:'+esc(c.color)+';--on-club:'+onColor(c.color)+'"><div class="muffler"></div><div class="in">'
+    +'<div class="top"><span class="lg"><span class="div">'+esc(divOf(c.club)||"J")+'</span><span class="club">'+esc(c.club)+'サポ</span></span><span class="tags">'+tags+'</span></div>'
+    +'<div class="who">'+(c.photo?'<img class="ava" src="'+esc(c.photo)+'" alt="">':'<span class="ava">'+esc([...(c.nick||"?")][0])+'</span>')+'<div><div class="nick">'+(esc(c.nick)||"ニックネーム")+'</div>'+(c.title?'<div>'+plateHTML(c.title,true)+'</div>':'')+'</div></div>'
+    +(c.word?'<div class="word">「'+esc(c.word)+'」</div>':'')
+    +(links?'<div class="links">'+links+'</div>':'')
+    +'<dl><div><dt>今季の現地（'+SEASON+'）</dt><dd><b>'+c.games+'</b> 試合'+(c.by?'<small>'+c.by+'</small>':'')+'</dd></div><div><dt>スタイル</dt><dd>'+esc(c.style)+'</dd></div></dl>'
+    +foot+'</div></article>';
+}
+// 表の面の中身（自分の名刺でも、名刺帳から開いた相手の名刺でも同じ形）
+function frontHTML(c){
+  const n=[...(c.nick||"ニックネーム")],hsize=n.length<=6?34:n.length<=9?27:n.length<=12?21:18,d=esc(divOf(c.club)||"J"),idn="No."+String(c.idn||0).padStart(6,"0");
+  return '<i class="screw s1"></i><i class="screw s2"></i><i class="screw s3"></i><i class="screw s4"></i>'
+    +'<div class="l-plate">'+(c.title?plateHTML(c.title):'<span></span>')+(c.x?'<a class="l-x pan" href="https://x.com/'+esc(c.x)+'" target="_blank" rel="noopener"><b>X</b>@'+esc(c.x)+'</a>':'')+'</div>'
+    +'<div class="c-nick l-nick" style="font-size:'+hsize+'px">'+esc(n.join(""))+'</div>'
+    +'<div class="l-sub"><span>'+esc(c.club)+'サポーター　'+d+'</span><span class="f-no">'+idn+'</span></div>'
+    +'<div class="l-cols"><div class="l-left">'+(c.photo?'<img class="l-ava" src="'+esc(c.photo)+'" alt="" draggable="false">':'<span class="l-ava">'+esc(n[0])+'</span>')
+    +'<div class="l-coin"><span class="lb">現地</span><b class="chrome">'+c.games+'</b><span class="lb">試合</span></div></div>'
+    +'<dl class="pan st-rows"><div><dt class="lb">戦績</dt><dd><b>'+c.rec[0]+'</b>勝<b>'+c.rec[1]+'</b>分<b>'+c.rec[2]+'</b>敗</dd></div>'
+    +'<div><dt class="lb">スタイル</dt><dd>'+esc(c.style)+'</dd></div>'
+    +(c.fav?'<div><dt class="lb">推し</dt><dd>'+esc(c.fav)+'</dd></div>':'')
+    +'<div><dt class="lb">名刺</dt><dd><b>'+c.cards+'</b>枚</dd></div><div><dt class="lb">レア</dt><dd><b>'+c.rare+'</b>枚</dd></div></dl></div>'
+    +(c.word?'<p class="l-word">「'+esc(c.word)+'」</p>':'')
+    +'<div class="l-bars">'+[["今季のホーム戦",c.home],["クラブ図鑑",c.zukan],["称号",c.titles]].map(b=>'<div class="l-bar"><div><span class="lb">'+b[0]+'</span><span class="v">'+b[1][0]+' / '+b[1][1]+'</span></div><div class="l-track"><i style="width:'+(b[1][1]?Math.min(100,Math.round(b[1][0]/b[1][1]*100)):0)+'%"></i></div></div>').join("")+'</div>';
+}
+// 厚みのある1枚の板として、表と裏を組み立てる
+function solid(c,a,front,back,id){
+  const on=onColor(c.color);
+  return '<div class="flip '+(on==="#FFFFFF"?"on-dark":"on-light")+(Math.cos(a*Math.PI/180)<0?" show-back":"")+'"'+(id?' id="'+id+'"':'')+' style="--club:'+esc(c.color)+';--on-club:'+on+';--ang:'+a+'deg">'
+    +[-3,-2,-1,0,1,2,3].map(z=>'<i class="slab" style="--z:'+z+'px"></i>').join("")+'<i class="edge l"></i><i class="edge r"></i>'
+    +'<article class="face front">'+front+'</article><article class="face back">'+back+'</article></div>';
+}
+// 裏の面の上の部分（クラブ、会員番号、名前）は自分も相手も同じ
+function backHead(c){
+  const n=[...(c.nick||"ニックネーム")],nsize=n.length<=5?26:n.length<=8?21:n.length<=11?17:14;
+  return {top:'<div class="f-top"><div class="k-club"><span class="h-div">'+esc(divOf(c.club)||"J")+'</span><span>'+esc(c.club)+'</span></div><span class="f-no">No.'+String(c.idn||0).padStart(6,"0")+'</span></div>',
+    nick:'<div class="c-nick" style="font-size:'+nsize+'px">'+esc(n.join(""))+'</div>'};
+}
+const HERO={ang:0,cur:0},VIEW={ang:0,cur:0};
+function heroHTML(c){
+  const h=backHead(c),no=c.no||12;
+  let qr="";try{qr=xLink()?qrURL(xLink()):""}catch(e){}
+  HERO.cur=HERO.ang;
+  const back=h.top+'<div class="k-name">'+h.nick+(qr?'<div class="k-num"><span class="lb">背番号</span><b class="chrome">'+no+'</b></div>':'')+'</div>'
+    +(qr?'<div class="k-qr"><img class="b-qr" src="'+qr+'" alt="交換用のQRコード" draggable="false"><span class="lb">読み取って名刺を交換</span></div>':'<div class="k-big chrome">'+no+'</div>')
+    +'<p class="k-word"></p><dl class="k-dl"><div class="wide"><dt class="lb">'+SEASON+' の内訳</dt><dd>'+c.by.replace(/・/g,'　')+'</dd></div></dl>';
+  return solid(c,HERO.ang,frontHTML(c),back,"flip")+'<p class="hint">スワイプで裏返すと、交換用のQRが出ます</p>';
+}
+// 相手の名刺の裏: ユニフォームの背中のように名前と背番号。下に、その人とのすれちがいの記録。
+function otherBackHTML(c,raw){
+  const h=backHead(c),rare=rareOf(raw),met=raw.met||1;
+  const where=raw.direct&&!raw.match?(raw.place==="stadium"?"スタジアムで交換":"街で交換"):esc(raw.match)+(raw.ha==="A"?"（アウェイ）":"");
+  return h.top+'<div class="k-name">'+h.nick+'</div><div class="k-big chrome">'+(c.no||12)+'</div>'
+    +'<dl class="k-dl"><div class="wide"><dt class="lb">'+(raw.direct&&!raw.match?"交換した日":"最後にすれちがった試合")+'</dt><dd>'+esc(raw.date)+'　'+where+'</dd></div>'
+    +'<div><dt class="lb">会った回数</dt><dd>'+met+' 回</dd></div><div><dt class="lb">レア</dt><dd>'+(rare.length?rare.join("、"):"なし")+'</dd></div></dl>';
+}
+function myStats(){
+  const e=earned(),mine=S.log.filter(l=>(l.season||SEASON)===SEASON),n=k=>mine.filter(l=>(l.comp||"リーグ")===k).length;
+  return Object.assign({},S.me,{games:mine.length,by:"リーグ "+n("リーグ")+"・ルヴァン "+n("ルヴァンカップ")+"・天皇杯 "+n("天皇杯"),rec:["W","D","L"].map(k=>mine.filter(l=>l.res===k).length),title:myTitle(),
+    cards:BOOK().length,rare:BOOK().filter(c=>rareOf(c).length).length,
+    home:[mine.filter(l=>(l.comp||"リーグ")==="リーグ"&&l.ha==="H").length,schedule(S.me.club).filter(m=>m.comp==="リーグ"&&m.ha==="H").length],
+    zukan:[new Set(BOOK().map(c=>c.club).filter(divOf)).size,CLUBS.length],titles:[e.length,TITLES.length]});
+}
+// 相手の名刺の数字。直接交換した相手は本人の数字が入っている。サンプルの相手は、試合数に合わせた仮の数字を作る。
+function statsOf(c){
+  if(c.rec&&c.home)return c;
+  let h=11;for(const ch of String(c.id||c.nick))h=(h*33+ch.charCodeAt(0))%99991;
+  const g=c.games||0,w=Math.round(g*.42),l=Math.round(g*.3),cards=Math.round(g*(4+h%5))+h%7;
+  return Object.assign({no:[12,12,12,12,10,7,9,14,23,8][h%10]},c,{rec:[w,Math.max(0,g-w-l),l],cards,rare:Math.round(cards*(.15+(h%20)/100)),home:[Math.min(19,Math.round(g*.62)),19],zukan:[Math.min(60,1+Math.round(g*.6)+h%4),CLUBS.length],titles:[Math.min(TITLES.length,1+Math.round(g/4)+h%3),TITLES.length]});
+}
+function renderMine(){
+  const e=earned(),cur=myTitle();
+  $("f-plates").innerHTML='<button type="button" class="pick" data-t="" aria-pressed="'+(cur==="")+'"><span class="none">付けない</span><small>名刺にプレートを出しません</small></button>'
+    +TITLES.slice().sort((a,b)=>(TIER[a[0]]||1)-(TIER[b[0]]||1)).map(t=>e.includes(t[0])
+      ?'<button type="button" class="pick" data-t="'+esc(t[0])+'" aria-pressed="'+(cur===t[0])+'">'+plateHTML(t[0])+'<small>'+TIER_NAME[TIER[t[0]]||1]+'　'+t[1]+'</small></button>'
+      :'<div class="pick locked">'+plateHTML(t[0])+'<small>'+TIER_NAME[TIER[t[0]]||1]+'　未獲得：'+t[1]+'</small></div>').join("");
+  const my=myStats();
+  $("myCard").innerHTML=cardHTML(my,{mine:true});$("stage").innerHTML=heroHTML(my);
+}
+
+let filter="",fdiv="",onlyRare=false,rareKind="";
+function renderBook(){
+  const rares=BOOK().filter(c=>rareOf(c).length);
+  $("bookCount").textContent=BOOK().length;
+  $("s-total").textContent=BOOK().length;
+  $("s-clubs").textContent=new Set(BOOK().map(c=>c.club)).size;
+  $("s-rare").textContent=rares.length;
+  $("s-re").textContent=BOOK().filter(c=>(c.met||1)>1).length;
+  const inDiv=BOOK().filter(c=>(!fdiv||divOf(c.club)===fdiv)&&(!onlyRare||rareOf(c).length)&&(!rareKind||rareOf(c).includes(rareKind)));
+  const clubs=[...new Set(inDiv.map(c=>c.club))];
+  if(filter&&!clubs.includes(filter))filter="";
+  $("b-divs").innerHTML=[""].concat(DIVS).map(d=>'<button type="button" data-d="'+d+'" aria-pressed="'+(d===fdiv)+'">'+(d||"全リーグ")+' '+(d?BOOK().filter(c=>divOf(c.club)===d).length:BOOK().length)+'</button>').join("")+'<button type="button" data-rare="1" aria-pressed="'+(onlyRare||!!rareKind)+'">'+(rareKind?esc(rareKind)+'だけ '+BOOK().filter(c=>rareOf(c).includes(rareKind)).length:'レアだけ '+rares.length)+'</button>';
+  $("b-chips").innerHTML=[""].concat(clubs).map(c=>'<button type="button" data-c="'+esc(c)+'" aria-pressed="'+(c===filter)+'">'+(c?esc(c):"全クラブ")+'</button>').join("");
+  const list=inDiv.filter(c=>!filter||c.club===filter).slice().reverse();
+  const grid=l=>'<div class="grid">'+l.map(c=>cardHTML(c,{isNew:S.fresh.includes(c.id)})).join("")+'</div>';
+  let html;
+  if(!list.length)html='<p class="note">ここに並ぶ名刺がまだありません。チェックインすると、同じ試合にいた人の名刺が届きます。</p>';
+  else if(fdiv||filter||rareKind)html=grid(list);
+  else html=DIVS.concat([""]).map(d=>{const l=list.filter(c=>divOf(c.club)===d);return l.length?'<div class="group"><h2>'+(d||"その他")+'<span>'+l.length+' 枚</span></h2>'+grid(l)+'</div>':""}).join("");
+  $("b-list").innerHTML=html;
+}
+function renderZukan(){
+  const cnt={};BOOK().forEach(c=>cnt[c.club]=(cnt[c.club]||0)+1);
+  const got=Object.keys(cnt).filter(c=>divOf(c)).length;
+  let h='<div class="group"><h2>クラブ図鑑<span>'+got+' / '+CLUBS.length+'</span></h2><p class="note">そのクラブのサポ名刺を1枚でも持っていると色がつきます。数字は持っている枚数です。色のついたクラブを押すと、その名刺が見られます。</p>';
+  h+=DIVS.map(d=>'<h3>'+d+'<span>'+LEAGUE[d].filter(c=>cnt[c[0]]).length+' / '+LEAGUE[d].length+'</span></h3><div class="tiles">'+LEAGUE[d].map(c=>{const k=cnt[c[0]]||0;return k?'<button type="button" class="tile got" data-club="'+c[0]+'" aria-label="'+c[0]+'サポの名刺 '+k+'枚を見る" style="--club:'+c[1]+';--on-club:'+onColor(c[1])+'"><span>'+c[0]+'</span><b>×'+k+'</b></button>':'<div class="tile"><span>'+c[0]+'</span><b>—</b></div>'}).join("")+'</div>').join("")+'</div>';
+  const rc=RARES.map(r=>BOOK().filter(c=>rareOf(c).includes(r[0])).length);
+  h+='<div class="group"><h2>レア図鑑<span>'+rc.filter(Boolean).length+' / '+RARES.length+'</span></h2><p class="note">条件が1つでレア、2つ以上重なると激レアです。</p><ul class="rows">'+RARES.map((r,i)=>'<li class="'+(rc[i]?'got':'')+'"><strong>'+r[0]+'</strong><small>'+r[1]+'</small>'+(rc[i]?'<button type="button" class="btn ghost st" data-kind="'+r[0]+'">'+rc[i]+' 枚を見る</button>':'<span class="st">未発見</span>')+'</li>').join("")+'</ul></div>';
+  const e=earned();
+  h+='<div class="group"><h2>称号<span>'+e.length+' / '+TITLES.length+'</span></h2><ul class="rows">'+TITLES.map(t=>'<li class="'+(e.includes(t[0])?'got':'locked')+'"><strong>'+plateHTML(t[0])+'</strong><small>'+t[1]+'</small><span class="st">'+(e.includes(t[0])?'獲得':'未獲得')+'</span></li>').join("")+'</ul></div>';
+  $("z-out").innerHTML=h;
+}
+function renderLog(){
+  $("c-log").innerHTML=S.log.slice().reverse().map(l=>'<li><span>'+esc(l.date)+'　'+esc(l.match)+(l.ha==="A"?"（アウェイ）":"")+"　"+esc(l.comp||"リーグ")+(l.res?"　"+RES_JA[l.res]+(l.score?" "+l.score:""):"")+(l.rain?"　雨":"")+'</span><span>'+(l.n==null?'':l.n+' 人')+'</span></li>').join("")||'<li><span>まだチェックインがありません。試合の日にチェックインすると、ここに残ります。</span></li>';
+}
+// サンプル日程: 週末にリーグ戦、数週おきの水曜にルヴァンカップと天皇杯を交互に
+const isoOf=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+const jp=d=>(d.getMonth()+1)+"月"+d.getDate()+"日（"+"日月火水木金土"[d.getDay()]+"）";
+// 徳島の2026/27日程。クラブ公式サイトの発表（2026年10月4日時点）を見て手入力。"/"は開催日が未定で、どちらかの日。
+const TOKU=[
+["J2 第1節","2026-08-08","14:45","A","札幌","プレド","L","0-2"],["J2 第2節","2026-08-16","19:00","H","鳥栖","鳴門大塚","D","0-0"],["J2 第3節","2026-08-22","19:00","A","磐田","ヤマハ","L","1-2"],
+["天皇杯 2回戦","2026-08-26","18:30","H","FC徳島","鳴門大塚","W","3-0"],["J2 第4節","2026-08-29","19:00","H","大分","鳴門大塚","W","1-0"],["ルヴァンカップ 1回戦","2026-09-02","19:00","A","岐阜","ヒマスタ","D","0-0"],
+["J2 第5節","2026-09-05","19:00","H","いわき","鳴門大塚","W","1-0"],["J2 第6節","2026-09-12","18:00","A","秋田","ソユスタ","L","1-4"],["J2 第7節","2026-09-19","19:00","A","甲府","JITス","W","1-0"],
+["天皇杯 3回戦","2026-09-23","17:00","A","G大阪","パナソニック吹田","L","0-5"],["J2 第8節","2026-09-26","17:00","H","栃木C","鳴門大塚","W","3-0"],["J2 第9節","2026-10-03","14:00","A","新潟","デンカS","D","0-0"],
+["J2 第10節","2026-10-10","14:00","H","今治","鳴門大塚"],["J2 第11節","2026-10-17","14:00","A","仙台","ユアスタ"],["J2 第12節","2026-10-21","19:00","H","八戸","鳴門大塚"],
+["J2 第13節","2026-10-24","14:00","A","藤枝","藤枝サ"],["J2 第14節","2026-10-31","14:00","H","横浜FC","鳴門大塚"],["J2 第15節","2026-11-03","14:00","A","山形","NDスタ"],
+["J2 第16節","2026-11-07","14:00","H","宮崎","鳴門大塚"],["J2 第17節","2026-11-15","14:00","A","富山","富山"],["J2 第18節","2026-11-22","14:00","H","湘南","鳴門大塚"],
+["J2 第19節","2026-11-25","19:00","A","大宮","NACK"],["J2 第20節","2026-11-29","14:00","A","大分","クラド"],["J2 第21節","2026-12-05","14:00","H","磐田","鳴門大塚"],
+["J2 第22節","2026-12-12","15:00","A","いわき","ハワスタ"],["J2 第23節","2027-02-20/21","","H","富山","鳴門大塚"],["J2 第24節","2027-02-27/28","","H","秋田","鳴門大塚"],
+["J2 第25節","2027-03-06/07","","A","湘南","レモンS"],["J2 第26節","2027-03-13/14","","A","栃木C","CFS"],["J2 第27節","2027-03-17","","H","大宮","鳴門大塚"],
+["J2 第28節","2027-03-20/21","","H","新潟","鳴門大塚"],["J2 第29節","2027-03-27/28","","A","宮崎","いちご"],["J2 第30節","2027-04-03/04","","H","山形","鳴門大塚"],
+["J2 第31節","2027-04-10/11","","A","横浜FC","ニッパツ"],["J2 第32節","2027-04-17/18","","H","札幌","鳴門大塚"],["J2 第33節","2027-04-24/25","","A","鳥栖","駅スタ"],
+["J2 第34節","2027-04-29","","H","藤枝","鳴門大塚"],["J2 第35節","2027-05-03/04","","A","今治","アシさと"],["J2 第36節","2027-05-09","","H","仙台","鳴門大塚"],
+["J2 第37節","2027-05-15/16","","A","八戸",""],["J2 第38節","2027-05-23","","H","甲府","鳴門大塚"]];
+const HOLIDAYS=["2026-09-23","2026-11-03","2027-04-29","2027-05-03","2027-05-04"];
+const REAL={徳島:TOKU};
+const dateOf=iso=>{const p=iso.split("-").map(Number);return new Date(p[0],p[1]-1,p[2])};
+function realSchedule(rows){
+  return rows.map(r=>{
+    const a=r[1].split("/"),isos=a.length>1?[a[0],a[0].slice(0,8)+a[1]]:[a[0]],d=dateOf(isos[0]),day=d.getDay();
+    const comp=r[0].startsWith("J")?"リーグ":r[0].split(" ")[0];
+    return {id:r[0],isos,iso:isos[0],d,tbd:isos.length>1,time:r[2],opp:r[4],ha:r[3],venue:r[5],res:r[6]||"",score:r[7]||"",comp,label:r[0],wd:isos.length===1&&day>=1&&day<=5&&r[2]>="18:00"&&!HOLIDAYS.includes(isos[0])};
+  });
+}
+function schedule(club){
+  return MATCHES.filter(m=>m.home===club||m.away===club).map(m=>{
+    const isos=m.day_from===m.day_to?[m.day_from]:[m.day_from,m.day_to],ha=m.home===club?"H":"A";
+    const done=m.score_home!=null&&m.score_away!=null,a=ha==="H"?m.score_home:m.score_away,b=ha==="H"?m.score_away:m.score_home;
+    return {id:m.id,isos,iso:isos[0],d:dateOf(isos[0]),tbd:isos.length>1,time:String(m.kickoff||"").slice(0,5),opp:ha==="H"?m.away:m.home,ha,venue:m.venue||"",
+      res:done?(a>b?"W":a<b?"L":"D"):"",score:done?a+"-"+b:"",comp:m.comp,label:m.label,wd:!!m.weeknight,rain:!!m.rain,lat:m.lat,lng:m.lng};
+  }).sort((x,y)=>x.iso<y.iso?-1:1);
+}
+// 天気は入力させず、アプリ側で決める。本番は試合会場の天気を自動で取る。
+// 試作は外と通信できないので、日付から決まる仮の天気（5試合に1回ほど雨）で代用する。
+const rainOn=iso=>MATCHES.some(m=>m.day_from===iso&&m.rain&&(m.home===S.me.club||m.away===S.me.club));
+// 試合結果（推しクラブから見た勝ち・引き分け・負け）。終わった試合は運営側が入れる。
+// まだ結果のない試合は、試作では日付から決まる仮の結果を使う。
+const resultOf=m=>({res:m.res||"",score:m.score||"",prov:false});
+const RES_JA={W:"勝ち",D:"引き分け",L:"負け"};
+let testDate=null;
+const today=()=>testDate||new Date();
+const matchToday=()=>schedule(S.me.club).find(m=>(m.isos||[m.iso]).includes(isoOf(today())));
+const doneKey=(m,iso)=>S.log.some(l=>l.key===iso||(m&&m.id&&l.key===m.id));
+function renderToday(){
+  const d=today(),iso=isoOf(d),m=matchToday(),done=doneKey(m,iso),mine=S.me.club;
+  const head='<span class="d">'+jp(d)+(testDate?'　試作用に日付を変更中':'')+'</span>';
+  if(m){
+    const home=m.ha==="H"?mine:m.opp,away=m.ha==="H"?m.opp:mine;
+    $("c-today").innerHTML='<div class="today">'+head+'<p class="m">'+esc(home)+' vs '+esc(away)+'</p><span class="d">'+m.label+'　'+(m.ha==="H"?"ホーム":"アウェイ")+(m.venue?'　'+esc(m.venue):'')+(m.time?'　'+m.time+'開始':'')+(m.tbd?'　開催日は未定（この日か前後の日）':'')+(m.wd?"　平日ナイター":"")+'</span></div>';
+  }else{
+    $("c-today").innerHTML='<div class="today off">'+head+'<p class="m">今日は'+esc(mine)+'の試合がありません</p><span class="d">チェックインは試合の日だけできます。</span></div>';
+  }
+  $("c-go").hidden=!m;
+  $("c-go").disabled=done;
+  $("c-go").textContent=done?"この試合はチェックイン済み":"スタジアムに着いた";
+  $("c-next").innerHTML=schedule(mine).filter(x=>(x.isos||[x.iso]).slice(-1)[0]>iso&&!(x.isos||[x.iso]).includes(iso)).slice(0,4).map(x=>'<li><span>'+jp(x.d)+(x.tbd?'か翌日':'')+'　'+(x.ha==="H"?"ホーム":"アウェイ")+' '+esc(x.opp)+'戦　'+x.label+(x.time?'　'+x.time:'')+'</span></li>').join("")||'<li><span>今季の残り試合はありません</span></li>';
+  $("c-note").textContent=schedule(mine).length?mine+"の日程は、クラブ公式サイトの発表を見て運営が手入力したものです。日時が未定の試合があり、変更や延期もありえます。":"いまは"+mine+"の試合日程がまだ入っていません。日程が入っているクラブから順に、チェックインできるようになります。";
+}
+// 未開封の名刺が残っているときの案内（チェックインの画面）
+function renderQueue(){
+  const n=S.queue.length,iso=isoOf(today()),m=matchToday(),inToday=!!(m&&doneKey(m,iso));
+  $("c-queue").innerHTML=(n?'<div class="result"><p class="big">未開封の名刺が <b>'+n+'</b> 枚</p><p class="note">1袋に入るのは'+PACK_SIZE+'枚まで。'+(S.free?'':'次の袋は、広告を見ると開けられます。')+'</p><div class="row"><button type="button" class="btn flood" id="q-open">'+(S.free?'袋を開ける':'広告を見て袋を開ける')+'</button></div></div>':'')
+    +(inToday?'<div class="row"><button type="button" class="btn ghost" id="q-sync">名刺が届いていないか確かめる</button></div><p class="note">あとからチェックインした人の名刺は、あとで届きます。</p>':'');
+  const b=$("q-open");if(b)b.addEventListener("click",()=>{if(S.free)nextPack();else openAd()});
+  const q=$("q-sync");if(q)q.addEventListener("click",async()=>{q.disabled=true;q.textContent="確かめています";await sync();if(S.queue.length&&S.free)nextPack()});
+}
+function renderAll(){renderMine();renderLog();renderBook();renderZukan();renderToday();renderQueue()}
+
+// 名刺フォーム
+$("f-club").innerHTML=clubOpts();
+$("f-style").innerHTML=STYLES.map(s=>'<option>'+s+'</option>').join("");
+function fillForm(){$("f-nick").value=S.me.nick;$("f-club").value=S.me.club;$("f-color").value=S.me.color;$("f-style").value=S.me.style;$("f-word").value=S.me.word;$("f-fav").value=S.me.fav||"";$("f-no").value=S.me.no||12;$("f-x").value=S.me.x?"@"+S.me.x:""}
+function xHandle(v){const m=v.trim().replace(/^https?:\/\/(www\.)?(x|twitter)\.com\//i,"").replace(/^@/,"").match(/^[A-Za-z0-9_]{1,15}/);return m?m[0]:""}
+function readForm(e){
+  const clubChanged=e&&e.target.id==="f-club";
+  if(clubChanged)$("f-color").value=colorOf($("f-club").value);
+  const title=S.me.title;
+  S.me={nick:$("f-nick").value.trim(),club:$("f-club").value,color:$("f-color").value,style:$("f-style").value,word:$("f-word").value.trim(),fav:$("f-fav").value.trim(),no:Math.min(99,Math.max(1,parseInt($("f-no").value,10)||S.me.no||12)),x:xHandle($("f-x").value),photo:S.me.photo||"",title,idn:S.me.idn};
+  save();renderMine();if(clubChanged){$("c-out").innerHTML="";renderToday()}
+}
+["f-nick","f-club","f-color","f-style","f-word","f-no","f-fav","f-x"].forEach(id=>$(id).addEventListener("input",readForm));
+
+$("f-plates").addEventListener("click",e=>{const b=e.target.closest("button.pick");if(!b)return;S.me.title=b.dataset.t;save();renderMine()});
+// 写真: 端末で160pxに縮めてから保存する
+$("f-photo").addEventListener("change",e=>{
+  const f=e.target.files&&e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{const im=new Image();im.onload=()=>{
+    const n=160,cv=document.createElement("canvas");cv.width=cv.height=n;
+    const m=Math.min(im.width,im.height);
+    cv.getContext("2d").drawImage(im,(im.width-m)/2,(im.height-m)/2,m,m,0,0,n,n);
+    let q=.82,u=cv.toDataURL("image/jpeg",q);while(u.length>39000&&q>.3){q-=.12;u=cv.toDataURL("image/jpeg",q)}if(u.length>39000){$("f-photo").value="";return}S.me.photo=u;save();renderMine();
+  };im.src=r.result};
+  r.readAsDataURL(f);
+});
+$("f-photo-x").addEventListener("click",()=>{S.me.photo="";$("f-photo").value="";save();renderMine()});
+
+// タブ
+const TABS=["card","checkin","book","zukan"];let curTab="card";
+document.querySelectorAll(".tabs button").forEach(b=>b.addEventListener("click",()=>{
+  document.querySelectorAll(".tabs button").forEach(x=>x.setAttribute("aria-selected",x===b));
+  curTab=b.dataset.tab;TABS.forEach(t=>$("p-"+t).hidden=t!==curTab);
+  if(b.dataset.tab==="book")renderBook();
+  if(b.dataset.tab==="zukan")renderZukan();
+}));
+
+// チェックイン（試合のある日だけ、1試合につき1回）
+function setDate(iso){
+  if(iso){const p=iso.split("-").map(Number);testDate=new Date(p[0],p[1]-1,p[2]);$("c-date").value=iso}else{testDate=null;$("c-date").value=""}
+  $("c-out").innerHTML="";renderToday();renderMine();
+}
+$("c-date").addEventListener("change",e=>setDate(e.target.value));
+$("c-date-x").addEventListener("click",()=>setDate(""));
+$("c-next").addEventListener("click",e=>{const b=e.target.closest("button");if(b)setDate(b.dataset.iso)});
+const CK_ERR={not_match_day:"今日はこの試合の日ではありません。",not_your_match:"名刺の推しクラブの試合ではありません。",need_location:"位置情報が必要です。スマホの設定で、このサイトに位置情報を許可してください。",too_far:"スタジアムから離れているようです。会場の近くでもう一度押してください。",already_checked_in:"この試合はチェックイン済みです。",no_profile:"名刺がまだ登録できていません。名刺の画面を開いてからもう一度お試しください。",not_signed_in:"通信できませんでした。ページを開き直してください。"};
+const errText=(e,map)=>{const t=String(e&&e.message||e||"");for(const k in map)if(t.includes(k))return map[k];return "通信できませんでした。電波のよいところで、もう一度お試しください。"};
+const getPos=()=>new Promise((ok,ng)=>{if(!navigator.geolocation){ng(new Error("need_location"));return}navigator.geolocation.getCurrentPosition(p=>ok({lat:p.coords.latitude,lng:p.coords.longitude}),()=>ng(new Error("need_location")),{enableHighAccuracy:true,timeout:15000,maximumAge:60000})});
+$("c-go").addEventListener("click",async()=>{
+  const m=matchToday(),d=today(),iso=isoOf(d);
+  if(!m||doneKey(m,iso))return;
+  const btn=$("c-go"),mine=S.me.club,ha=m.ha,home=ha==="H"?mine:m.opp,away=ha==="H"?m.opp:mine;
+  btn.disabled=true;
+  $("c-out").innerHTML='<p class="searching">同じスタジアムにいるサポーターを探しています</p>';
+  try{
+    if(!sb||!UID)throw new Error("not_signed_in");
+    await flushProfile();
+    let pos=null;if(m.lat!=null&&m.lng!=null)pos=await getPos();
+    const r=await sb.rpc("check_in",{p_match:m.id,p_lat:pos?pos.lat:null,p_lng:pos?pos.lng:null});
+    if(r.error)throw r.error;
+    const n=(r.data&&r.data.others)||0;
+    S.cnt[m.id]=n;S.free=true;save();
+    await sync();
+    const got=S.queue.map(id=>S.book.find(c=>c.id===id)).filter(Boolean),re=got.filter(c=>(c.met||1)>1).length;
+    $("c-out").innerHTML='<div class="result"><p class="big">いま <b>'+n+'</b> 人とすれちがいました</p><p class="note">'+esc(home)+' vs '+esc(away)+'。'+(n?'名刺は袋に入って届きます。':'まだ誰もチェックインしていません。')+'あとからチェックインした人の名刺は、あとで届きます。</p>'
+      +'<p class="note">試合結果は、試合が終わってから名刺の戦績に入ります。</p>'
+      +'<div class="row"><button class="btn" id="toBook">名刺帳を見る</button><button class="btn ghost" id="toShare">Xでシェアする</button></div><div id="c-share"></div></div>';
+    const line=home+" vs "+away+"　"+m.label,rare=got.filter(c=>rareOf(c).length).length;
+    $("toShare").addEventListener("click",()=>showShare($("c-share"),{kind:"match",n,re,rare,line}));
+    $("toBook").addEventListener("click",()=>$("tab-book").click());
+    if(S.queue.length)nextPack();
+  }catch(e){
+    $("c-out").innerHTML='<p class="xmsg">'+esc(errText(e,CK_ERR))+'</p>';
+    if(String(e&&e.message||"").includes("already_checked_in")){await sync()}else btn.disabled=false;
+  }
+});
+
+$("b-divs").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;if(b.dataset.rare){onlyRare=rareKind?false:!onlyRare;rareKind=""}else{fdiv=b.dataset.d;filter=""}renderBook()});
+// 図鑑から名刺帳へ: クラブを押すとそのクラブの名刺、レアの種類を押すとそのレアの名刺が並ぶ
+$("z-out").addEventListener("click",e=>{
+  const b=e.target.closest("button[data-club],button[data-kind]");if(!b)return;
+  onlyRare=false;rareKind=b.dataset.kind||"";fdiv=b.dataset.club?divOf(b.dataset.club):"";filter=b.dataset.club||"";
+  $("tab-book").click();try{window.scrollTo(0,0)}catch(err){}
+});
+$("b-chips").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;filter=b.dataset.c;renderBook()});
+// 名刺の表示と編集を切り替える
+function editMode(on){$("card-view").hidden=on;$("card-edit").hidden=!on;try{window.scrollTo(0,0)}catch(e){}}
+$("e-open").addEventListener("click",()=>editMode(true));
+$("e-done").addEventListener("click",()=>editMode(false));
+$("e-done2").addEventListener("click",()=>editMode(false));
+// 名刺を裏返す: 横にスワイプすると指についてきて回り、離すと表か裏に収まる。タップでも裏返る。
+// 角度が90度を越えたら表と裏の表示を切り替えるので、反対の面が透けて見えない。
+// 自分の名刺と、名刺帳から開いた相手の名刺の両方で使う。
+const calm=!!(window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+function flipper(stage,st){
+  let drag=null,raf=0;
+  const el=()=>stage.querySelector(".flip");
+  const show=a=>{st.cur=a;const f=el();if(!f)return;f.style.setProperty("--ang",a.toFixed(1)+"deg");f.classList.toggle("show-back",Math.cos(a*Math.PI/180)<0)};
+  const animateTo=to=>{
+    cancelAnimationFrame(raf);
+    if(calm){show(to);return}
+    const from=st.cur,t0=performance.now(),dist=Math.abs(to-from),dur=Math.max(260,Math.min(820,dist*4.6)),heavy=dist>150;
+    const step=t=>{const k=Math.min(1,(t-t0)/dur),e=heavy?(k<.5?4*k*k*k:1-Math.pow(-2*k+2,3)/2):1-Math.pow(1-k,3);show(from+(to-from)*e);if(k<1)raf=requestAnimationFrame(step)};
+    raf=requestAnimationFrame(step);
+  };
+  const onCard=t=>!!(t&&t.closest&&t.closest(".flip")&&stage.contains(t)&&!t.closest("a"));
+  stage.addEventListener("pointerdown",e=>{
+    const f=el();if(!f||!onCard(e.target))return;
+    cancelAnimationFrame(raf);show(st.ang);
+    drag={x:e.clientX,dx:0,w:f.getBoundingClientRect().width||340,moved:false};
+  });
+  stage.addEventListener("pointermove",e=>{
+    const f=el();if(!f)return;
+    if(!drag){const r=f.getBoundingClientRect();if(r.width)f.style.setProperty("--mx",Math.max(0,Math.min(100,(e.clientX-r.left)/r.width*100)).toFixed(0)+"%");return}
+    drag.dx=e.clientX-drag.x;
+    if(!drag.moved&&Math.abs(drag.dx)>6){drag.moved=true;f.classList.add("drag");try{f.setPointerCapture(e.pointerId)}catch(err){}}
+    if(drag.moved){const t=Math.max(-1,Math.min(1,drag.dx/drag.w));show(st.ang+t*180);f.style.setProperty("--mx",(50+t*50).toFixed(0)+"%")}
+  });
+  const end=e=>{
+    if(!drag)return;const f=el(),d=drag;drag=null;
+    if(f)f.classList.remove("drag");
+    if(e.type==="pointerup"){
+      if(d.moved){if(Math.abs(d.dx)>d.w*.2)st.ang+=d.dx>0?180:-180}
+      else if(onCard(e.target))st.ang+=180;
+    }
+    animateTo(st.ang);
+  };
+  document.addEventListener("pointerup",end);
+  document.addEventListener("pointercancel",end);
+  return {show,animateTo};
+}
+const HF=flipper($("stage"),HERO),VF=flipper($("viewer"),VIEW);
+
+// 直接交換: 名刺の中身を短いコードにして渡し合う。受け取ったコードは他人が作ったものなので、項目ごとに検査してから使う。
+const b64e=t=>btoa(unescape(encodeURIComponent(t))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+const b64d=t=>decodeURIComponent(escape(atob(t.replace(/-/g,"+").replace(/_/g,"/"))));
+// 今日の試合にチェックイン済みなら、その日付を返す（スタジアムにいる印）
+function stadiumDay(){const iso=isoOf(today()),m=matchToday();return m&&doneKey(m,iso)?iso:""}
+let XT=null; // {t:引換券, exp:切れる時刻}
+function xLink(){return XT&&XT.exp>Date.now()?location.origin+location.pathname+"#x="+XT.t:""}
+let xtBusy=false;
+async function refreshToken(){
+  if(xtBusy||!sb||!UID||!S.setup)return;xtBusy=true;
+  try{
+    const r=await sb.rpc("new_exchange_token");
+    if(!r.error&&r.data){XT={t:r.data,exp:Date.now()+50000};
+      const img=document.querySelector("#stage .b-qr");
+      if(img)img.src=qrURL(xLink());else renderMine();
+      if(!$("x-panel").hidden)$("x-code").value=xLink();}
+  }catch(e){}
+  xtBusy=false;
+}
+// 名刺の裏（QR）か交換の欄が出ているあいだだけ、引換券を新しくし続ける
+setInterval(()=>{
+  if(document.hidden||!S.setup||curTab!=="card")return;
+  const f=$("flip"),showing=(f&&f.classList.contains("show-back"))||!$("x-panel").hidden;
+  if(showing&&!xLink())refreshToken();
+},1000);
+const X_ERR={bad_token:"このリンクは使えません。相手にもう一度、名刺の裏のQRを出してもらってください。",expired_token:"QRの期限が切れています。相手にもう一度、名刺の裏のQRを出してもらってください。",own_token:"これは自分のリンクです。相手のQRを読むか、相手のリンクを貼り付けてください。",no_profile:"先に名刺を作ってください。"};
+async function redeem(token){
+  $("tab-card").click();editMode(false);$("x-panel").hidden=false;$("x-code").value=xLink();
+  $("x-out").innerHTML='<p class="note">交換しています</p>';
+  try{
+    if(!sb||!UID)throw new Error("not_signed_in");
+    await flushProfile();
+    const r=await sb.rpc("redeem_exchange",{p_token:token});
+    if(r.error)throw r.error;
+    await sync();
+    const c=S.book.find(b=>b.idn===r.data.member_no);
+    if(c){unseal(c);S.fresh=[c.id];save();renderAll();exchanged(c,false)}
+    else $("x-out").innerHTML='<p class="xmsg">'+esc(r.data.nick)+'さんと交換しました。</p>';
+  }catch(e){$("x-out").innerHTML='<p class="xmsg">'+esc(errText(e,X_ERR))+'</p>'}
+}
+// 名刺の裏に出す交換用QR。部品を読み込めないときは空を返し、裏は背番号だけになる。
+function qrURL(code){
+  try{
+    if(typeof qrcode!=="function")return "";
+    const q=qrcode(0,"L");q.addData(code);q.make();
+    const n=q.getModuleCount(),k=6,cv=document.createElement("canvas"),g=cv.getContext("2d");cv.width=cv.height=n*k;
+    g.fillStyle="#fff";g.fillRect(0,0,n*k,n*k);g.fillStyle="#000";
+    for(let y=0;y<n;y++)for(let x=0;x<n;x++)if(q.isDark(y,x))g.fillRect(x*k,y*k,k,k);
+    return cv.toDataURL("image/png");
+  }catch(e){return ""}
+}
+function openExchange(){
+  $("x-code").value=xLink();
+  $("x-panel").hidden=false;$("x-out").innerHTML="";
+  if(!xLink())refreshToken();
+}
+$("x-open").addEventListener("click",()=>{if($("x-panel").hidden)openExchange();else $("x-panel").hidden=true});
+$("x-copy").addEventListener("click",()=>{
+  const t=$("x-code"),ok=()=>{$("x-copy").textContent="コピーしました";setTimeout(()=>{$("x-copy").textContent="リンクをコピー"},1800)};
+  const fb=()=>{try{t.focus();t.select()}catch(e){}$("x-copy").textContent="選択しました。長押しでコピー"};
+  try{navigator.clipboard.writeText(t.value).then(ok,fb)}catch(e){fb()}
+});
+function exchanged(c,sample){
+  const where=c.place==="stadium"?'スタジアムで交換しました。特別な枠が付きます。':'街で交換しました。2人とも同じ日の試合にチェックインしてから交換すると「スタジアムで交換」になります。';
+  $("x-out").innerHTML='<p class="xmsg">'+esc(c.nick)+'さんと交換しました'+((c.met||1)>1?'（'+c.met+'回目）':'')+(sample?'　※サンプルの相手':'')+'</p><p class="note">'+where+'</p><div class="grid">'+cardHTML(c,{isNew:true})+'</div>';
+}
+$("x-go").addEventListener("click",()=>{
+  const m=$("x-in").value.match(/[0-9a-f]{32}/);
+  if(!m){$("x-out").innerHTML='<p class="xmsg">相手の交換リンクを貼り付けてください。</p>';return}
+  $("x-in").value="";redeem(m[0]);
+});
+
+// 名刺帳などに並ぶ名刺を押すと、その人の名刺を大きく開く
+let lastFocus=null;
+function openCard(id){
+  const raw=S.book.find(c=>c.id===id);if(!raw)return;
+  const c=statsOf(raw),rare=rareOf(raw),met=raw.met||1;VIEW.ang=0;VIEW.cur=0;
+  const where=raw.direct&&!raw.match?(raw.place==="stadium"?"スタジアムで交換":"街で交換"):esc(raw.match)+(raw.ha==="A"?"（アウェイ）":"")+" ですれちがい";
+  $("viewer").innerHTML='<div class="bar"><h2>'+esc(c.nick)+'さんの名刺</h2><button type="button" class="btn ghost" id="v-close">閉じる</button></div>'
+    +solid(c,0,frontHTML(c),otherBackHTML(c,raw))+'<p class="hint">スワイプで裏返す</p>'
+    +'<div class="info"><p><b>'+esc(raw.date)+'</b>　'+where+(met>1?'　'+met+'回目':'')+'</p>'
+    +(rare.length?'<p>'+rare.map(r=>'<span class="why">'+r+'</span>').join("")+(rare.length>1?'激レア':'レア')+'</p>':'')
+    +'</div>';
+  lastFocus=document.activeElement;$("viewer").hidden=false;$("viewer").scrollTop=0;
+  $("v-close").addEventListener("click",closeCard);try{$("v-close").focus()}catch(e){}
+}
+function closeCard(){$("viewer").hidden=true;$("viewer").innerHTML="";try{lastFocus&&lastFocus.focus()}catch(e){}}
+document.addEventListener("click",e=>{
+  if(e.target===$("viewer")){closeCard();return}
+  if(e.target.closest&&e.target.closest("#pack .gc"))return;
+  const m=e.target.closest&&e.target.closest(".meishi[data-id]");
+  if(m&&!e.target.closest("a"))openCard(m.dataset.id);
+});
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape"&&!$("viewer").hidden){closeCard();return}
+  if((e.key==="Enter"||e.key===" ")&&e.target.matches&&e.target.matches(".meishi[data-id]")){e.preventDefault();openCard(e.target.dataset.id)}
+});
+
+// 開封: チェックインのあと、届いた名刺の袋を横にスワイプして破る。中の名刺は表向きの束で出てきて、
+// いちばん上を横に払うと下の1枚が現れる（裏返す手順はない）。
+// 並びは普通→レア→激レア。袋を開けた瞬間の光の色で、中の一番いい名刺が分かる（白=普通、金=レア、虹=激レア）。
+let PK=null;
+function openPack(cards,info){PK={cards,info,i:-1,a:0,up:false,busy:false,auto:false,autoT:0,before:earned(),best:Math.max(0,...cards.map(c=>rareOf(c).length))};renderPack();$("pack").hidden=false;$("pack").scrollTop=0}
+// 順番待ちの先頭から5枚までを1袋にして開ける。袋の中は、普通→レア→激レアの順に並べる
+function nextPack(){
+  S.free=false;
+  const cards=S.queue.slice(0,PACK_SIZE).map(id=>S.book.find(c=>c.id===id)).filter(Boolean);
+  if(!cards.length){S.queue=[];save();renderQueue();return}
+  cards.sort((a,b)=>rareOf(a).length-rareOf(b).length||(a.met||1)-(b.met||1));
+  const ms=[...new Set(cards.map(c=>c.match))];
+  openPack(cards,{line:ms.length===1?ms[0]:"すれちがった名刺",label:cards[0].date||""});
+}
+// 名刺を開けたことにする（名刺帳に出るようになる）
+function unseal(c){if(!c)return;const cur=S.book.find(b=>b.id===c.id)||c,had=c.sealed||cur.sealed||S.queue.includes(c.id);c.sealed=false;cur.sealed=false;S.seen[c.id]=cur.met||c.met||1;S.queue=S.queue.filter(id=>id!==c.id);if(had)save()}
+// 2袋目からは広告を挟む。試作では広告の代わりに、5秒待つだけの画面を出す
+function openAd(){
+  const p=$("pack");PK={stage:"ad",cards:[],busy:false};let left=5;
+  const paint=()=>{p.innerHTML='<div class="ad"><span class="ad-tag">広告</span><div class="ad-box"><p>ここに動画広告が入ります</p><small>いまは広告の代わりに、この画面を出しています</small></div>'
+    +'<div class="row center">'+(left>0?'<span class="note">あと '+left+' 秒で袋を開けられます</span>':'<button type="button" class="btn flood" data-pk="adok">袋を開ける</button>')+'</div>'
+    +'</div>'};
+  paint();p.hidden=false;p.scrollTop=0;
+  const k=PK,tm=setInterval(()=>{if(PK!==k){clearInterval(tm);return}left--;paint();if(left<=0)clearInterval(tm)},1000);
+}
+function fx(level,sparks,soft){ // 0 白 / 1 金 / 2 虹。soft は名刺1枚ごとのレア用で、光を弱くして揺らさない
+  if(calm)return;const p=$("pack");
+  const f=document.createElement("div");f.className="pk-flash"+(level>1?" rb":"")+(soft?" soft":"");f.style.setProperty("--fc",level?"#ffd23f":"#ffffff");p.appendChild(f);setTimeout(()=>f.remove(),1050);
+  if(sparks){const b=document.createElement("div");b.className="sparks";const cols=level>1?["#ffd23f","#ff7ab6","#7ad7ff","#9dff9a"]:level?["#ffd23f","#fff3c4"]:["#ffffff","#d7e0e8"];
+    for(let n=0;n<sparks;n++){const i=document.createElement("i");i.style.setProperty("--a",Math.round(360/sparks*n+Math.random()*18)+"deg");i.style.setProperty("--d",Math.round(90+Math.random()*120)+"px");i.style.setProperty("--sc",cols[n%cols.length]);i.style.animationDelay=Math.round(Math.random()*90)+"ms";b.appendChild(i)}
+    p.appendChild(b);setTimeout(()=>b.remove(),1000)}
+  if(level&&!soft){p.classList.remove("shake");void p.offsetWidth;p.classList.add("shake");setTimeout(()=>p.classList.remove("shake"),360)}
+}
+function renderPack(pop){
+  const k=PK,p=$("pack");if(!k||k.stage==="ad")return;
+  if(k.i<0){
+    const col=S.me.color;
+    p.innerHTML='<h2>名刺が届きました</h2>'
+      +'<div class="pk-wrap"><div class="pk" id="pk" style="--club:'+esc(col)+';--on-club:'+onColor(col)+'"><span class="pk-in"></span><span class="pk-peek"></span><span class="pk-rip"></span><span class="pk-top a"><i></i></span><span class="pk-top b"><i></i></span><span class="pk-cut"></span><span class="pk-spark"></span><span class="pk-body"><span class="pk-main"><span class="pk-brand">サポ名刺<small>'+SEASON+'</small></span><span class="pk-n"><b>'+k.cards.length+'</b><span>枚入り</span></span><span class="pk-match">'+esc(k.info.line)+'<br>'+esc(k.info.label)+'</span></span><span class="pk-bot"></span></span></div></div>'
+      +'<p class="pk-hint">袋の上を、横にスワイプして開ける</p><div class="row center"><button type="button" class="btn ghost" data-pk="open">ボタンで開ける</button></div>';
+  }else if(k.i>=k.cards.length){
+    k.cards.forEach(unseal);renderAll();
+    const got=earned().filter(t=>!k.before.includes(t)),rest=S.queue.length,re=k.cards.filter(c=>(c.met||1)>1).length,rr=k.cards.filter(c=>rareOf(c).length).length;
+    p.innerHTML='<div class="done"><h2>'+k.cards.length+' 枚の名刺を開けました</h2><p class="note" style="text-align:center">はじめまして '+(k.cards.length-re)+' 人、再会 '+re+' 人、レア '+rr+' 枚'+(got.length?'。称号を獲得：'+got.map(esc).join("、"):'')+'</p>'
+      +'<div class="grid">'+k.cards.slice().reverse().map(c=>cardHTML(c,{isNew:true})).join("")+'</div>'
+      +(rest?'<p class="xmsg" style="text-align:center">未開封の名刺が、あと '+rest+' 枚あります</p><div class="row center"><button type="button" class="btn flood" data-pk="ad">広告を見て次の袋を開ける</button></div>'
+        :'<div class="row center"><button type="button" class="btn" data-pk="close">閉じる</button></div>')+'</div>';
+  }else{
+    const c=k.cards[k.i],r=rareOf(c).length,left=k.cards.length-1-k.i;
+    k.a=0;k.up=false;k.mv=false;
+    p.innerHTML='<p class="pk-count">'+(k.i+1)+' / '+k.cards.length+'</p>'
+      +'<div class="gc-area">'+(left>1?'<span class="gc-deck d2"></span>':'')+(left>0?'<span class="gc-deck d1"></span>':'')
+      +'<div class="gc'+(r>1?' super':r?' rare':'')+(pop==="first"?' first':' rise')+'" id="gc"><div class="gcf back"><span>?</span></div><div class="gcf front">'+cardHTML(c,{isNew:true})+'</div></div></div>'
+      +'<p class="pk-tag" id="pk-tag"></p><p class="pk-hint" id="pk-hint"></p>'
+      +'<div class="row center"><button type="button" class="btn" data-pk="card" id="pk-btn"></button><button type="button" class="btn ghost" data-pk="all" id="pk-all">全部開ける</button></div>';
+    pkMeta();
+  }
+}
+const pkWait=(ms,f)=>{const k=PK;if(calm){f();return}k.busy=true;setTimeout(()=>{if(PK!==k)return;k.busy=false;f()},ms)};
+function pkTear(){ // 袋が開く
+  const k=PK,pk=$("pk");if(!k||k.busy||k.i>=0)return;
+  if(pk){pk.classList.remove("drag");pk.style.setProperty("--t","100%");pk.style.setProperty("--tn","1");pk.classList.add("open")}
+  fx(k.best,k.best>1?26:k.best?18:12);
+  pkWait(760,()=>{k.i=0;renderPack("first")});
+}
+// レアのムービー。終わると（またはタップで飛ばすと）名刺がめくれる。
+function playMovie(level,cb){
+  const k=PK,D=level>1?1600:1100,m=document.createElement("div");
+  k.busy=true;m.className="mv lv"+level;m.id="mv";
+  m.innerHTML='<div class="mv-bg"></div><div class="mv-ring"></div><div class="mv-ring r2"></div><div class="mv-core"><div class="mv-card">?</div><div class="mv-text">'+(level>1?"激レア":"レア")+'</div></div><div class="mv-white"></div><span class="mv-skip">タップで飛ばす</span>';
+  $("pack").appendChild(m);
+  let over=false;const tm=setTimeout(()=>end(),D);
+  function end(){if(over)return;over=true;clearTimeout(tm);m.remove();if(PK===k){k.busy=false;cb()}}
+  m.addEventListener("click",e=>{e.stopPropagation();end()});
+}
+// 「全部開ける」: 普通の名刺は飛ばすが、レアと激レアは1枚ずつ、めくれるところを見せてから結果へ進む
+function pkAll(){
+  const k=PK;if(!k||k.busy)return;clearTimeout(k.autoT);cancelAnimationFrame(pkRaf);k.auto=true;
+  let j=k.up?k.i+1:k.i;while(j<k.cards.length&&!rareOf(k.cards[j]).length)j++;
+  if(j>=k.cards.length){k.i=k.cards.length;k.auto=false;renderPack();$("pack").scrollTop=0;return}
+  k.i=j;renderPack();pkFlipTo(180);
+}
+// 名刺の下の文字とボタンを、裏向きか表向きかに合わせる（名刺そのものは描き直さない）
+function pkMeta(){
+  const k=PK,c=k.cards[k.i],r=rareOf(c).length,last=k.i===k.cards.length-1,t=$("pk-tag");
+  t.textContent=k.up?(r>1?"激レア！":r?"レア！":(c.met||1)>1?"また会えた":""):(r>1?"この光は…":r?"なにか光っている":"");
+  t.classList.toggle("hit",k.up&&r>0);
+  $("pk-hint").textContent=k.up?(last?"タップかスワイプで結果へ":"タップかスワイプで次へ"):"タップかスワイプでめくる";
+  $("pk-btn").textContent=k.up?(last?"結果を見る":"次の名刺"):"めくる";
+  $("pk-all").hidden=(k.up&&last)||!!k.auto;
+  if(k.auto){$("pk-hint").textContent=k.up?"レアだけ順に開けています。タップで先へ":"";$("pk-btn").textContent="先へ"}
+}
+function pkAngle(a){const k=PK,g=$("gc");k.a=a;if(!g)return;g.style.setProperty("--a",a.toFixed(1)+"deg");g.classList.toggle("up",a>90)}
+let pkRaf=0;
+function pkFlipTo(to){ // 裏から表へ（または途中でやめて裏へ戻る）。途中の角度からそのまま続ける
+  const k=PK;cancelAnimationFrame(pkRaf);
+  const lv=rareOf(k.cards[k.i]).length;
+  if(to>=180&&!k.up&&lv&&!k.mv&&!calm){k.mv=true;pkAngle(0);playMovie(lv,()=>pkFlipTo(180));return}
+  const done=()=>{pkAngle(to);if(to>=180&&!k.up){k.up=true;unseal(k.cards[k.i]);const g=$("gc"),r=rareOf(k.cards[k.i]).length;
+      if(g&&r){const y=document.createElement("span");y.className="gc-rays";g.prepend(y)}
+      pkMeta();if(r)fx(r,r>1?22:12,r<2);
+      if(k.auto){clearTimeout(k.autoT);k.autoT=setTimeout(()=>{if(PK===k&&k.auto)pkAll()},1300)}}};
+  if(calm){done();return}
+  const from=k.a,t0=performance.now(),dur=90+Math.abs(to-from)*1.1;
+  const step=t=>{if(PK!==k)return;const x=Math.min(1,(t-t0)/dur),e=1-Math.pow(1-x,3);pkAngle(from+(to-from)*e);if(x<1)pkRaf=requestAnimationFrame(step);else done()};
+  pkRaf=requestAnimationFrame(step);
+}
+function pkAct(dir){ // 1回の操作: 裏向きならめくる、表向きなら次へ送る
+  const k=PK;if(!k||k.busy||k.i<0||k.i>=k.cards.length)return;
+  if(!k.up){pkFlipTo(180);return}
+  if(k.auto){pkAll();return}
+  const g=$("gc");if(g){g.classList.remove("drag","rise","first");g.style.setProperty("--dx",String((dir||1)*520));g.classList.add("out")}
+  pkWait(150,()=>{k.i++;renderPack();if(k.i>=k.cards.length)$("pack").scrollTop=0});
+}
+$("pack").addEventListener("click",e=>{
+  const t=e.target.closest("[data-pk]"),k=PK;if(!t||!k||k.busy)return;
+  const act=t.dataset.pk;
+  if(act==="open")pkTear();
+  else if(act==="card")pkAct(1);
+  else if(act==="all")pkAll();
+  else if(act==="ad")openAd();
+  else if(act==="adok")nextPack();
+  else if(act==="close"){clearTimeout(k.autoT);$("pack").hidden=true;$("pack").innerHTML="";PK=null;renderAll()}
+});
+// 操作: 袋は横になぞると切れ目が指についてくる。
+// 名刺は、裏向きなら横に動かした分だけ回り（離すとめくれる）、表向きなら指についてきて、離すと飛んでいく。
+// 名刺の外をタップしても同じ操作になる。速く払った場合は、短い距離でも成立する。
+let pkDrag=null;
+$("pack").addEventListener("pointerdown",e=>{
+  const k=PK;if(!k||k.busy||k.stage==="ad"||e.target.closest("button,a"))return;
+  const pk=e.target.closest("#pk"),g=$("gc");
+  if(pk&&k.i<0){const r=pk.getBoundingClientRect();pkDrag={kind:"tear",el:pk,x:e.clientX,w:r.width||300,t:0}}
+  else if(g&&k.i>=0&&k.i<k.cards.length){cancelAnimationFrame(pkRaf);pkDrag={kind:"card",el:g,x:e.clientX,y:e.clientY,dx:0,moved:false,w:g.getBoundingClientRect().width||340,px:e.clientX,pt:performance.now(),v:0,a0:k.a}}
+});
+document.addEventListener("pointermove",e=>{
+  const d=pkDrag,k=PK;if(!d||!k)return;
+  if(d.kind==="tear"){
+    d.t=Math.max(0,Math.min(1,Math.abs(e.clientX-d.x)/(d.w*.8)));
+    if(d.t>.03){d.el.classList.add("drag");try{d.el.setPointerCapture(e.pointerId)}catch(err){}}
+    d.el.style.setProperty("--t",(d.t*100).toFixed(1)+"%");d.el.style.setProperty("--tn",d.t.toFixed(3));
+    if(d.t>=1){pkDrag=null;pkTear()}
+    return;
+  }
+  const now=performance.now();if(now-d.pt>16){d.v=(e.clientX-d.px)/(now-d.pt);d.px=e.clientX;d.pt=now}
+  d.dx=e.clientX-d.x;
+  if(!d.moved&&Math.abs(d.dx)>6){d.moved=true;d.el.classList.remove("rise","first");d.el.classList.add("drag")}
+  if(!d.moved)return;
+  if(k.up)d.el.style.setProperty("--dx",d.dx.toFixed(0));
+  else{const hold=rareOf(k.cards[k.i]).length&&!k.mv&&!calm; // レアは、ムービーが入るまで半分より先へは回らない
+    pkAngle(Math.max(0,Math.min(hold?52:180,d.a0+Math.abs(d.dx)/(d.w*.55)*180)))}
+});
+function pkEnd(e){
+  const d=pkDrag,k=PK;if(!d)return;pkDrag=null;if(!k)return;
+  d.el.classList.remove("drag");
+  if(d.kind==="tear"){if(e.type==="pointerup"&&d.t>.5)pkTear();else{d.el.style.setProperty("--t","0%");d.el.style.setProperty("--tn","0")}return}
+  const flick=Math.abs(d.v)>.45&&Math.abs(d.dx)>16;
+  if(e.type!=="pointerup"){if(k.up)d.el.style.setProperty("--dx","0");else pkFlipTo(k.a>90?180:0);return}
+  if(!d.moved){pkAct(1);return}
+  if(k.up){if(Math.abs(d.dx)>50||flick)pkAct(d.dx>0?1:-1);else d.el.style.setProperty("--dx","0")}
+  else pkFlipTo(k.a>(rareOf(k.cards[k.i]).length&&!k.mv?32:60)||flick?180:0);
+}
+document.addEventListener("pointerup",pkEnd);
+document.addEventListener("pointercancel",pkEnd);
+
+// はじめての設定: 推しクラブを選ぶ
+let pickClub=S.me.club||"";
+function renderSetup(){
+  $("s-clubs-pick").innerHTML=DIVS.map(d=>'<h3>'+d+'</h3><div class="tiles">'+LEAGUE[d].map(c=>'<button type="button" class="tile pickc" data-club="'+c[0]+'" aria-pressed="'+(c[0]===pickClub)+'" style="--club:'+c[1]+';--on-club:'+onColor(c[1])+'"><i></i><span>'+c[0]+'</span></button>').join("")+'</div>').join("");
+  $("s-nick").value=$("s-nick").value||S.me.nick||"";
+  $("s-go").disabled=!pickClub;
+  $("s-go").textContent=pickClub?pickClub+"サポとして始める":"推しクラブを選ぶと始められます";
+}
+function applySetup(){
+  const need=!S.setup;
+  $("p-setup").hidden=!need;$("tabs").hidden=need;
+  TABS.forEach(t=>$("p-"+t).hidden=need||t!==curTab);
+}
+$("s-clubs-pick").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;pickClub=b.dataset.club;renderSetup()});
+$("s-go").addEventListener("click",async()=>{
+  if(!pickClub)return;
+  const btn=$("s-go");btn.disabled=true;btn.textContent="登録しています";
+  try{
+    if(!sb)throw new Error("offline");
+    if(!UID){const r=await sb.auth.signInAnonymously();if(r.error)throw r.error;UID=r.data.user.id}
+    const nick=[...($("s-nick").value.trim()||"名無しのサポ")].slice(0,14).join("");
+    let r=await sb.from("profiles").insert({id:UID,nick,club:pickClub,color:colorOf(pickClub),style:S.me.style||STYLES[2],word:"よろしくお願いします"}).select().single();
+    if(r.error&&String(r.error.code)==="23505")r=await sb.from("profiles").select("*").eq("id",UID).single();
+    if(r.error)throw r.error;
+    applyProfile(r.data);S.setup=true;save();fillForm();renderAll();applySetup();netMsg("");
+    await sync();
+    if(PENDING){const t=PENDING;PENDING="";redeem(t)}
+  }catch(e){
+    netMsg("登録できませんでした。電波のよいところで、もう一度お試しください。");renderSetup();
+  }
+});
+
+// Xでシェアする画像（1200×675）。色は画像として固定。
+const F={d:'"Dela Gothic One","Zen Kaku Gothic New",sans-serif',b:'"Zen Kaku Gothic New","Hiragino Sans",sans-serif',n:'"Barlow Condensed","Zen Kaku Gothic New",sans-serif'};
+async function shareImage(d){
+  const W=1200,H=675,cv=document.createElement("canvas");cv.width=W;cv.height=H;const g=cv.getContext("2d");
+  const me=S.me,games=S.log.filter(l=>(l.season||SEASON)===SEASON).length,title=myTitle();
+  const big=d.kind==="match"?String(d.n):String(games),tail=d.kind==="match"?"人とすれちがいました":"試合 現地でチェックイン";
+  const top=d.kind==="match"?d.line:SEASON+"シーズンのサポ名刺",sub=d.kind==="match"?"はじめまして "+(d.n-d.re)+"　再会 "+d.re+"　レア "+d.rare:"リーグ戦・ルヴァンカップ・天皇杯";
+  const who=(me.nick||"名無しのサポ"),line2=me.club+"サポ　今季の現地 "+games+"試合"+(title?"　称号 "+title:"");
+  try{await Promise.all([document.fonts.load("400 56px "+F.d,tail+who+"サポ名刺すれちがい"),document.fonts.load("700 30px "+F.b,top+sub+line2+"非公式のファンアプリ"),document.fonts.load("600 180px "+F.n,big)])}catch(e){}
+  g.fillStyle="#14202B";g.fillRect(0,0,W,H);
+  for(let y=0;y<H;y+=66){g.fillStyle=me.color;g.fillRect(0,y,44,48);g.globalAlpha=.45;g.fillRect(0,y+48,44,18);g.globalAlpha=1}
+  g.textBaseline="alphabetic";
+  g.fillStyle="#94A2AF";g.font="700 28px "+F.b;g.fillText("サポ名刺すれちがい",96,84);
+  g.fillStyle="#E9EEF2";g.font="700 34px "+F.b;g.fillText(top,96,150,W-150);
+  g.fillStyle="#FFD23F";g.font="600 190px "+F.n;g.fillText(big,96,330);
+  const bw=g.measureText(big).width;
+  g.fillStyle="#FFFFFF";g.font="400 54px "+F.d;g.fillText(tail,96+bw+20,330,W-96-bw-60);
+  g.fillStyle="#94A2AF";g.font="700 30px "+F.b;g.fillText(sub,96,392,W-150);
+  g.fillStyle="#19232D";g.fillRect(96,440,W-96-56,150);
+  const ax=120,ay=460,as=110;
+  let drew=false;
+  if(me.photo){try{const im=await new Promise((ok,ng)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=ng;i.src=me.photo});g.drawImage(im,ax,ay,as,as);drew=true}catch(e){}}
+  if(!drew){g.fillStyle=me.color;g.fillRect(ax,ay,as,as);g.fillStyle=onColor(me.color);g.font="400 60px "+F.d;g.textAlign="center";g.fillText([...who][0],ax+as/2,ay+78);g.textAlign="left"}
+  g.fillStyle="#FFFFFF";g.font="400 44px "+F.d;g.fillText(who,ax+as+28,ay+50,W-ax-as-120);
+  g.fillStyle="#C9D2DA";g.font="700 28px "+F.b;g.fillText(line2,ax+as+28,ay+98,W-ax-as-120);
+  g.fillStyle="#94A2AF";g.font="700 22px "+F.b;g.textAlign="right";g.fillText("非公式のファンアプリ",W-56,640);g.textAlign="left";
+  return cv.toDataURL("image/png");
+}
+function showShare(el,d){
+  el.innerHTML='<p class="note">画像を作っています</p>';
+  const text=(d.kind==="match"?"今日は"+d.n+"人とすれちがいました（"+d.line.split("　")[0]+"）":S.me.club+"サポの名刺を作りました")+"\n#サポ名刺すれちがい";
+  shareImage(d).then(url=>{
+    el.innerHTML='<div class="share"><img src="'+url+'" alt="Xでシェアする画像"><div class="row"><a class="btn" href="https://x.com/intent/post?text='+encodeURIComponent(text)+'" target="_blank" rel="noopener">Xの投稿画面を開く</a></div><p class="note">画像を長押し（パソコンは右クリック）で保存して、投稿に添付してください。</p></div>';
+  }).catch(()=>{el.innerHTML='<p class="note">画像を作れませんでした。もう一度押してください。</p>'});
+}
+$("m-share-go").addEventListener("click",()=>showShare($("m-share"),{kind:"card"}));
+
+// ===== サーバー（Supabase）=====
+const SB_URL="https://hwdpwgxwkcjldnebnizj.supabase.co",SB_KEY="sb_publishable_7Dd0WaUyYQ4sSqbhRnJgNg_sp8D_yWP";
+var sb=null,UID="",MATCHES=[],PENDING="";
+try{sb=supabase.createClient(SB_URL,SB_KEY)}catch(e){}
+try{MATCHES=JSON.parse(localStorage.getItem(KEY+"-matches"))||[]}catch(e){MATCHES=[]}
+function takeHash(){const m=location.hash.match(/x=([0-9a-f]{32})/);if(!m)return "";try{history.replaceState(null,"",location.pathname+location.search)}catch(e){}return m[1]}
+PENDING=takeHash();
+window.addEventListener("hashchange",()=>{const t=takeHash();if(!t)return;if(S.setup&&UID)redeem(t);else{PENDING=t;netMsg("名刺を作ると、そのまま交換できます。")}});
+function netMsg(t){const n=$("net");n.textContent=t;n.hidden=!t}
+function applyProfile(p){
+  S.me={nick:p.nick,club:p.club,color:p.color,style:p.style,word:p.word,fav:p.fav||"",no:p.back_no||12,x:p.x_handle||"",photo:p.photo||"",title:S.me&&S.me.title!==undefined?S.me.title:(p.title||undefined),idn:p.member_no};
+  pickClub=p.club;
+}
+// 自分の名刺の数字（相手の画面に出す用）
+function myStatsJSON(){const q=myStats();return {cards:q.cards,rare:q.rare,zukan:q.zukan[0],titles:q.titles[0],homeAll:q.home[1]}}
+function profilePayload(){const m=S.me;return {nick:m.nick,club:m.club,color:m.color,style:m.style||"",word:m.word||"",fav:m.fav||"",back_no:m.no||12,x_handle:m.x||"",title:myTitle()||"",photo:m.photo||null,stats:myStatsJSON()}}
+var pushT=0,pushed="";
+async function flushProfile(){
+  clearTimeout(pushT);
+  if(!sb||!UID||!S.setup||!S.me.nick||!S.me.club)return;
+  const p=profilePayload(),j=JSON.stringify(p);if(j===pushed)return;
+  const r=await sb.from("profiles").update(p).eq("id",UID);
+  if(!r.error){pushed=j;netMsg("")}else netMsg("名刺を保存できませんでした。電波のよいところで開き直してください。");
+}
+function pushProfile(){clearTimeout(pushT);pushT=setTimeout(()=>{flushProfile().catch(()=>{})},900)}
+async function loadMatches(){
+  const r=await sb.from("matches").select("*").order("day_from");
+  if(r.error)throw r.error;
+  MATCHES=r.data||[];try{localStorage.setItem(KEY+"-matches",JSON.stringify(MATCHES))}catch(e){}
+}
+// サーバーの名刺帳を、画面で使う形に直す。はじめての名刺と再会は袋に入れる。
+function buildBook(rows){
+  const num=(v,b)=>Math.min(b,Math.max(0,parseInt(v,10)||0)),names=TITLES.map(t=>t[0]),first=!S.synced;
+  const book=rows.map(r=>{
+    const st=r.stats&&typeof r.stats==="object"?r.stats:{},day=[r.last_day,r.last_exchange].filter(Boolean).sort().pop()||"";
+    return {id:r.id,nick:r.nick,club:r.club,color:/^#[0-9a-fA-F]{6}$/.test(r.color)?r.color:colorOf(r.club),style:r.style||"",word:r.word||"",fav:r.fav||"",no:r.back_no||12,x:xHandle(r.x_handle||""),title:names.includes(r.title)?r.title:"",photo:/^data:image\//.test(r.photo||"")?r.photo:"",idn:r.member_no,
+      games:r.games||0,rec:[r.wins||0,r.draws||0,r.losses||0],home:[r.home_games||0,Math.max(1,num(st.homeAll,40))],cards:num(st.cards,9999),rare:num(st.rare,9999),zukan:[num(st.zukan,CLUBS.length),CLUBS.length],titles:[num(st.titles,TITLES.length),TITLES.length],
+      met:r.met||1,day,date:day?fmt(dateOf(day)):"",match:r.last_match||"",ha:r.last_away?"A":"H",rain:!!r.any_rain,wd:!!r.any_weeknight,trav:!!r.any_trav,direct:!!r.direct,place:r.stadium?"stadium":"town",ex:r.last_exchange||""};
+  }).sort((a,b)=>a.day<b.day?-1:a.day>b.day?1:0);
+  const add=[];
+  book.forEach(c=>{
+    const seen=S.seen[c.id],exNew=c.ex&&S.ex[c.id]!==c.ex;
+    if(c.ex)S.ex[c.id]=c.ex;
+    if(seen==null){
+      if(!c.match||first||c.ex){S.seen[c.id]=c.met}            // 直接交換だけの相手（と、端末を入れ直したときの手持ち）はそのまま名刺帳へ
+      else{c.sealed=true;if(!S.queue.includes(c.id))add.push(c.id)}
+    }else if(c.met>seen){
+      if(exNew)S.seen[c.id]=c.met;                        // 直接交換で増えた分は袋に入れない
+      else if(!S.queue.includes(c.id))add.push(c.id);
+    }
+  });
+  for(let i=add.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[add[i],add[j]]=[add[j],add[i]]}
+  const ids=new Set(book.map(c=>c.id));
+  S.queue=S.queue.filter(id=>ids.has(id)).concat(add);
+  S.book=book;S.synced=true;
+  return add.length;
+}
+function buildLog(rows){
+  S.log=rows.map(r=>{
+    const m=MATCHES.find(x=>x.id===r.match_id);if(!m)return null;
+    const ha=m.home===r.club?"H":"A",done=m.score_home!=null&&m.score_away!=null,a=ha==="H"?m.score_home:m.score_away,b=ha==="H"?m.score_away:m.score_home;
+    return {key:m.id,at:r.created_at,season:m.season,comp:m.comp,res:done?(a>b?"W":a<b?"L":"D"):"",score:done?a+"-"+b:"",date:fmt(new Date(r.created_at)),match:m.home+" vs "+m.away,ha,n:S.cnt[m.id]==null?null:S.cnt[m.id],rain:!!m.rain,wd:!!m.weeknight};
+  }).filter(Boolean).sort((x,y)=>x.at<y.at?-1:1);
+}
+let syncing=false;
+async function sync(){
+  if(syncing||!sb||!UID||!S.setup)return 0;syncing=true;let added=0;
+  try{
+    const [a,b]=await Promise.all([sb.from("checkins").select("match_id,club,created_at"),sb.rpc("my_book"),loadMatches()]);
+    if(a.error)throw a.error;if(b.error)throw b.error;
+    buildLog(a.data||[]);added=buildBook(b.data||[]);
+    save();renderAll();netMsg("");
+  }catch(e){netMsg("通信できませんでした。電波のよいところで開き直してください。")}
+  syncing=false;return added;
+}
+async function boot(){
+  if(!sb){netMsg("読み込みに失敗しました。ページを開き直してください。");return}
+  try{
+    try{await loadMatches()}catch(e){}
+    const g=await sb.auth.getSession(),ses=g.data&&g.data.session;
+    if(ses){
+      UID=ses.user.id;
+      const r=await sb.from("profiles").select("*").eq("id",UID).maybeSingle();
+      if(r.error)throw r.error;
+      if(r.data){applyProfile(r.data);S.setup=true;pushed=""}
+      else S.setup=false;
+    }else{
+      if(S.setup){const keep=S.me;S=seed();S.seen={};S.ex={};S.cnt={};S.me.style=keep.style}
+      S.setup=false;
+    }
+    try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}
+    fillForm();renderAll();renderSetup();applySetup();
+    if(S.setup){await sync();if(PENDING){const t=PENDING;PENDING="";redeem(t)}}
+    else if(PENDING)netMsg("名刺を作ると、そのまま交換できます。");
+  }catch(e){netMsg("通信できませんでした。電波のよいところで開き直してください。")}
+}
+document.addEventListener("visibilitychange",()=>{if(!document.hidden&&S.setup&&UID)sync()});
+setInterval(()=>{if(!document.hidden&&S.setup&&UID&&!PK){const m=matchToday();if(m&&doneKey(m,isoOf(today())))sync()}},60000);
+
+fillForm();renderAll();renderSetup();applySetup();
+boot();
+</script>
+</body>
+</html>
