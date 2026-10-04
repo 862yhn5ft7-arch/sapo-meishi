@@ -161,6 +161,18 @@ body.tut #a2hs,body.tut #c-norm{display:none!important}
 #p-book.nm .stats{grid-template-columns:repeat(2,1fr)}
 #p-book.nm .stats div:nth-child(n+3),#p-book.nm #b-divs button[data-rare]{display:none}
 #b-kind,.z-kind{margin-bottom:12px}
+.pflip .face{border-radius:7px;text-shadow:none;background:linear-gradient(180deg,#faf7ee,#f1ecdf);box-shadow:inset 0 0 0 1px #d8d1bf,0 22px 34px -18px rgba(0,0,0,.55)}
+.pflip .face::after{display:none}
+.pflip .face::before{content:"";position:absolute;left:0;top:0;bottom:0;width:9px;background:var(--pc)}
+.pflip .face.back::before{left:auto;right:0}
+.pflip .slab,.pflip .edge{border-radius:7px;background:#cfc7b3}
+.pflip .p-tag{align-self:flex-start;border:1px solid #b9b19d;border-radius:3px;padding:1px 7px;font-size:11px;font-weight:700;color:#5b6370}
+.pflip .l-ava{background:var(--pc);color:var(--pon);box-shadow:none;border-radius:4px}
+.pflip .l-coin{box-shadow:none;border:2px solid #20242a}
+.pflip .pan{background:none;box-shadow:none;border:1px solid #d8d1bf}
+.pflip .p-got{margin:auto 0 0;padding-top:12px;border-top:1px dashed #cfc7b3;font-size:12px;color:#5b6370}
+.pflip .face{padding-left:26px}
+.pflip .face.back{padding-left:20px;padding-right:26px}
 #tut-ck{display:flex;flex-direction:column;gap:12px}
 body:not(.tut) #tut-ck,body.tut #c-today,body.tut #c-go,body.tut #c-other,body.tut #c-geo,body.tut #c-queue,body.tut #c-out{display:none!important}
 #coach{position:fixed;left:10px;right:10px;bottom:calc(72px + env(safe-area-inset-bottom,0px));z-index:45;display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:10px;border:2px solid var(--flood);background:var(--surface);color:var(--ink);box-shadow:0 12px 34px rgba(0,0,0,.55)}
@@ -819,9 +831,9 @@ const BOOK=()=>S.book.filter(c=>!c.sealed&&!(S.hidden&&S.hidden[c.id]));
 // ノーマル名刺（もらっただけの名刺）。スタジアム名刺とは別に集める
 const NORMALL=()=>Array.isArray(S.norm)?S.norm:[];
 const NORM=()=>NORMALL().filter(c=>!(S.hidden&&S.hidden[c.id]));
-let KIND="st";
+let KIND="n";
 const SRC=()=>KIND==="n"?NORM():BOOK();
-const kindSeg=()=>'<button type="button" data-k="st" aria-pressed="'+(KIND==="st")+'">スタジアム '+BOOK().length+'</button><button type="button" data-k="n" aria-pressed="'+(KIND==="n")+'">ノーマル '+NORM().length+'</button>';
+const kindSeg=()=>'<button type="button" data-k="n" aria-pressed="'+(KIND==="n")+'">ノーマル '+NORM().length+'</button><button type="button" data-k="st" aria-pressed="'+(KIND==="st")+'">スタジアム '+BOOK().length+'</button>';
 const PACK_SIZE=5,ADS=false,CONTACT=""; // ADS: 2袋目から広告を挟むか（Web版では切っておく）
 const packS=()=>JSON.stringify(Object.assign({},S,{book:S.book.map(c=>c.photo?Object.assign({},c,{photo:""}):c)}));
 function save(){try{localStorage.setItem(KEY,packS())}catch(e){}if(typeof pushProfile==="function")pushProfile()}
@@ -1193,7 +1205,7 @@ $("c-go").addEventListener("click",async()=>{
       +'<p class="note">試合結果は、試合が終わってから名刺の戦績に入ります。</p>'
       +'<div class="row"><button class="btn" id="toBook">名刺帳を見る</button></div></div>';
     const line=home+" vs "+away+"　"+m.label,rare=got.filter(c=>rareOf(c).length).length;
-    $("toBook").addEventListener("click",()=>$("tab-book").click());
+    $("toBook").addEventListener("click",()=>{KIND="st";$("tab-book").click()});
     if(S.queue.length)nextPack();
   }catch(e){
     $("c-out").innerHTML='<p class="xmsg">'+esc(errText(e,CK_ERR))+'</p>'+(String(e&&e.message||"").includes("need_location")?GEO_HELP:'');
@@ -1205,6 +1217,7 @@ $("b-divs").addEventListener("click",e=>{const b=e.target.closest("button");if(!
 // 図鑑から名刺帳へ: クラブを押すとそのクラブの名刺、レアの種類を押すとそのレアの名刺が並ぶ
 $("z-out").addEventListener("click",e=>{
   const b=e.target.closest("button[data-club],button[data-kind]");if(!b)return;
+  if(b.dataset.kind)KIND="st";
   onlyRare=false;rareKind=b.dataset.kind||"";fdiv=b.dataset.club?divOf(b.dataset.club):"";filter=b.dataset.club||"";
   $("tab-book").click();try{window.scrollTo(0,0)}catch(err){}
 });
@@ -1357,10 +1370,28 @@ function openCard(id){
   lastFocus=document.activeElement;$("viewer").hidden=false;$("viewer").scrollTop=0;
   $("v-close").addEventListener("click",closeCard);try{$("v-close").focus()}catch(e){}
 }
+// ノーマル名刺の大きい表示: スタジアム名刺と同じ縦長の形で、紙の質感にする
+function paperFront(c){
+  const n=[...(c.nick||"")],hsize=n.length<=6?34:n.length<=9?27:n.length<=12?21:18,d=esc(divOf(c.club)||"J");
+  return '<div class="l-plate"><span class="p-tag">ノーマル</span></div>'
+    +'<div class="c-nick l-nick" style="font-size:'+hsize+'px">'+esc(n.join(""))+'</div>'
+    +'<div class="l-sub"><span>'+esc(c.club)+'サポーター　'+d+'</span><span class="f-no">'+idText(c.idn)+'</span></div>'
+    +'<div class="l-cols"><div class="l-left">'+(c.photo?'<img class="l-ava" src="'+esc(c.photo)+'" alt="" draggable="false">':'<span class="l-ava">'+esc(n[0]||"?")+'</span>')
+    +'<div class="l-coin"><span class="lb">現地</span><b>'+c.games+'</b><span class="lb">試合</span></div></div>'
+    +'<dl class="pan st-rows"><div><dt class="lb">戦績</dt><dd><b>'+c.rec[0]+'</b>勝<b>'+c.rec[1]+'</b>分<b>'+c.rec[2]+'</b>敗</dd></div>'
+    +'<div><dt class="lb">背番号</dt><dd><b>'+(c.no||12)+'</b></dd></div>'
+    +(c.style?'<div><dt class="lb">スタイル</dt><dd>'+esc(c.style)+'</dd></div>':'')
+    +(c.fav?'<div><dt class="lb">推し</dt><dd>'+esc(c.fav)+'</dd></div>':'')+'</dl></div>'
+    +(c.word?'<p class="l-word">「'+esc(c.word)+'」</p>':'')
+    +'<p class="p-got">'+esc(c.date)+' にもらった名刺</p>';
+}
+function paperBack(c){
+  return '<div class="k-club">'+esc(c.club)+'</div><div class="k-name"><div class="c-nick" style="font-size:22px">'+esc(c.nick)+'</div></div><div class="k-big">'+(c.no||12)+'</div><p class="p-got">スタジアムで会うと、この人のスタジアム名刺が手に入ります</p>';
+}
 function openPaper(id){
-  const c=NORMALL().find(x=>x.id===id);if(!c)return;
+  const c=NORMALL().find(x=>x.id===id);if(!c)return;VIEW.ang=0;VIEW.cur=0;
   $("viewer").innerHTML='<div class="bar"><h2>'+esc(c.nick)+'さんの名刺</h2><button type="button" class="btn ghost" id="v-close">閉じる</button></div>'
-    +paperHTML(c,true)
+    +'<div class="pflip" style="--pc:'+esc(c.color)+';--pon:'+onColor(c.color)+'">'+solid(Object.assign({},c,{color:"#F6F2E7",skin:""}),0,paperFront(c),paperBack(c))+'</div><p class="hint">スワイプで裏返す</p>'
     +'<div class="info"><p><b>ノーマル名刺</b>　'+esc(c.date)+' にもらいました</p><p class="note">スタジアムで同じ試合にチェックインすると、この人のスタジアム名刺が別に手に入ります。</p>'
     +'<div class="row"><button type="button" class="btn ghost" id="v-rep">この名刺を通報する</button></div><div id="v-rep-out"></div></div>';
   $("v-rep").addEventListener("click",()=>{
@@ -1409,7 +1440,7 @@ function nextPack(){
   openPack(cards,{line:ms.length===1?(ms[0]||"はじめの1枚"):"すれちがった名刺",label:cards[0].date||""});
 }
 // 名刺を開けたことにする（名刺帳に出るようになる）
-function unseal(c){if(!c)return;const cur=S.book.find(b=>b.id===c.id)||c,had=c.sealed||cur.sealed||S.queue.includes(c.id);c.sealed=false;cur.sealed=false;S.seen[c.id]=cur.met||c.met||1;S.queue=S.queue.filter(id=>id!==c.id);if(had)save()}
+function unseal(c){if(!c)return;KIND=c.kind==="n"?"n":"st";const cur=S.book.find(b=>b.id===c.id)||c,had=c.sealed||cur.sealed||S.queue.includes(c.id);c.sealed=false;cur.sealed=false;S.seen[c.id]=cur.met||c.met||1;S.queue=S.queue.filter(id=>id!==c.id);if(had)save()}
 // 2袋目からは広告を挟む。試作では広告の代わりに、5秒待つだけの画面を出す
 function openAd(){
   const p=$("pack");PK={stage:"ad",cards:[],busy:false};let left=5;
@@ -1603,13 +1634,13 @@ function coach(text,opt){
 }
 function hl(sel){if(tutHl)tutHl.classList.remove("tut-hl");tutHl=sel?document.querySelector(sel):null;if(tutHl)tutHl.classList.add("tut-hl")}
 function tutStep(n){
-  S.tut=n;save();document.body.classList.toggle("tut",n<TUT_END);$("tutpop").hidden=n!==1;
+  S.tut=n;save();document.body.classList.toggle("tut",n<TUT_END);if(n>=5&&n<=8)KIND="st";$("tutpop").hidden=n!==1;
   if(n===1){$("tab-card").click();coach("");hl("")}
   else if(n===2){coach("まずはチェックインの練習です。下の「チェックイン」を押してください。");hl("#tab-checkin")}
   else if(n===3){coach("試合の日にスタジアムに着いたら、このボタンを押します。押してみましょう。");hl("#tut-ck-go")}
   else if(n===4){coach("");hl("")}
   else if(n===5){coach("もらった名刺は「名刺帳」に入ります。下の「名刺帳」を押してください。");hl("#tab-book")}
-  else if(n===6){coach("集めた名刺がここに並びます。名刺を押すと大きく見られて、裏返すこともできます。",{next:()=>tutStep(7)});hl("")}
+  else if(n===6){coach("集めた名刺がここに並びます。上の切り替えで、ノーマル名刺とスタジアム名刺を分けて見られます。名刺を押すと大きく見られます。",{next:()=>tutStep(7)});hl("")}
   else if(n===7){coach("次は「図鑑」です。下の「図鑑」を押してください。");hl("#tab-zukan")}
   else if(n===8){coach("名刺を集めたクラブに色が付きます。全60クラブを目指しましょう。下には、レアの種類と称号の一覧もあります。",{next:()=>tutStep(9)});hl("")}
   else if(n===9){coach("練習はここまでです。試合の日に、スタジアムでチェックインしてください。試合のない日も、チェックインの画面で「ノーマル名刺」を1日3枚までもらえます。",{next:()=>tutStep(TUT_END),label:"はじめる",last:true});hl("")}
@@ -1993,7 +2024,7 @@ $("about-top").addEventListener("click",()=>$("about-open").click());
 
 
 // 新しい版が公開されていたら、自動で読み込み直す（ホーム画面から開くと更新ボタンがないため）
-const APP_VER="20261004170337";
+const APP_VER="20261004171637";
 async function checkUpdate(){
   try{
     const r=await fetch("version.txt?t="+Date.now(),{cache:"no-store"});if(!r.ok)return;
