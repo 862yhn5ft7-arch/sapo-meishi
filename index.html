@@ -709,7 +709,7 @@ const TITLES=[
 ["全国に知り合い","10クラブのサポ名刺を集める",()=>new Set(BOOK().map(c=>c.club)).size>=10],
 ["レアハンター","レア名刺を10枚集める",()=>BOOK().filter(c=>rareOf(c).length).length>=10],
 ["顔が広い","名刺を50枚集める",()=>BOOK().length>=50],
-["はじめまして","直接交換を1回する",()=>BOOK().some(c=>c.direct&&c.idn!==1)],
+["はじめまして","直接交換を1回する",()=>BOOK().some(c=>c.direct&&c.idn!==0)],
 ["現地で名刺交換","スタジアムで直接交換を1回する",()=>BOOK().some(c=>c.direct&&c.place==="stadium")],
 ["最初の5人","推しクラブで最初に名刺を作った5人に入る",()=>FIRST5.has(+S.me.idn)],
 ["傷心旅行","アウェイで負けを見る",()=>ownLog().some(l=>l.ha==="A"&&l.res==="L")],
@@ -750,6 +750,7 @@ const earned=()=>TITLES.filter(t=>t[2]()).map(t=>t[0]);
 function myTitle(){const e=earned();if(S.me.title===undefined)return e[e.length-1]||"";return e.includes(S.me.title)?S.me.title:""}
 
 function rareOf(c){
+  if(c.idn===0)return [];   // 運営の名刺（はじめの1枚）は、レアには数えない
   const trav=c.trav!==undefined?c.trav:(String(c.match||"").split(" vs ")[1]===c.club);
   const r=[];if(trav)r.push("遠征組");if(c.games>=20)r.push("常連");if(c.rain)r.push("雨の日");if(c.wd)r.push("平日ナイター");if(c.op)r.push("開幕戦");if(c.fin)r.push("最終節");if(c.idn>0&&c.idn<=100)r.push("初期メンバー");if(FIRST5.has(+c.idn))r.push("最初の5人");if(c.direct&&c.place==="stadium")r.push("スタジアムで交換");return r;
 }
@@ -798,12 +799,12 @@ function cardHTML(c,opt){
   const rare=opt.mine?[]:rareOf(c),met=c.met||1;
   let tags=opt.mine?'<span class="tag">MY CARD</span>':'';
   if(!opt.mine){
-    if(c.direct)tags+=c.place==="stadium"?'<span class="tag dx">スタジアムで交換</span>':c.idn===1&&!c.match?'<span class="tag">はじめの1枚</span>':'<span class="tag">街で交換</span>';
+    if(c.direct)tags+=c.place==="stadium"?'<span class="tag dx">スタジアムで交換</span>':c.idn===0&&!c.match?'<span class="tag">はじめの1枚</span>':'<span class="tag">街で交換</span>';
     if(opt.isNew)tags+='<span class="tag new">'+(met>1?"再会":"NEW")+'</span>';
     if(rare.length)tags+='<span class="tag rr">'+(rare.length>1?"激レア":"レア")+'</span>';
   }
   const links=(c.idn?'<span class="idn">'+idText(c.idn)+'</span>':'')+(c.fav?'<span>推し <b>'+esc(c.fav)+'</b></span>':'')+(c.x?'<a href="https://x.com/'+esc(c.x)+'" target="_blank" rel="noopener">X @'+esc(c.x)+'</a>':'')+rare.map(r=>'<span class="why">'+r+'</span>').join("");
-  const foot=opt.mine?'':'<div class="met">'+esc(c.date)+'　'+(c.direct&&!c.match?(c.place==="stadium"?'スタジアムで交換':c.idn===1?'はじめの1枚':'街で交換'):esc(c.match)+(c.ha==="A"?"（アウェイ）":"")+' ですれちがい')+(met>1?'　<b>'+met+'回目</b>':'')+'</div>';
+  const foot=opt.mine?'':'<div class="met">'+esc(c.date)+'　'+(c.direct&&!c.match?(c.place==="stadium"?'スタジアムで交換':c.idn===0?'はじめの1枚':'街で交換'):esc(c.match)+(c.ha==="A"?"（アウェイ）":"")+' ですれちがい')+(met>1?'　<b>'+met+'回目</b>':'')+'</div>';
   return '<article class="meishi'+(rare.length>1?" super":rare.length?" rare":"")+(c.direct&&c.place==="stadium"?" direct":"")+'"'+(opt.mine||!c.id?'':' data-id="'+esc(c.id)+'" tabindex="0" role="button" aria-label="'+esc(c.nick)+'さんの名刺を開く"')+' style="--club:'+esc(c.color)+';--on-club:'+onColor(c.color)+'"><div class="muffler"></div><div class="in">'
     +'<div class="top"><span class="lg"><span class="div">'+esc(divOf(c.club)||"J")+'</span><span class="club">'+esc(c.club)+'サポ</span></span><span class="tags">'+tags+'</span></div>'
     +'<div class="who">'+(c.photo?'<img class="ava" src="'+esc(c.photo)+'" alt="">':'<span class="ava">'+esc([...(c.nick||"?")][0])+'</span>')+'<div><div class="nick">'+(esc(c.nick)||"ニックネーム")+'</div>'+(c.title?'<div>'+plateHTML(c.title,true)+'</div>':'')+'</div></div>'
@@ -854,7 +855,7 @@ function heroHTML(c){
 // 相手の名刺の裏: ユニフォームの背中のように名前と背番号。下に、その人とのすれちがいの記録。
 function otherBackHTML(c,raw){
   const h=backHead(c),rare=rareOf(raw),met=raw.met||1;
-  const where=raw.direct&&!raw.match?(raw.place==="stadium"?"スタジアムで交換":raw.idn===1?"はじめの1枚":"街で交換"):esc(raw.match)+(raw.ha==="A"?"（アウェイ）":"");
+  const where=raw.direct&&!raw.match?(raw.place==="stadium"?"スタジアムで交換":raw.idn===0?"はじめの1枚":"街で交換"):esc(raw.match)+(raw.ha==="A"?"（アウェイ）":"");
   return h.top+'<div class="k-name">'+h.nick+'</div><div class="k-big chrome">'+(c.no||12)+'</div>'
     +'<dl class="k-dl"><div class="wide"><dt class="lb">'+(raw.direct&&!raw.match?"交換した日":"最後にすれちがった試合")+'</dt><dd>'+esc(raw.date)+'　'+where+'</dd></div>'
     +'<div><dt class="lb">会った回数</dt><dd>'+met+' 回</dd></div><div><dt class="lb">レア</dt><dd>'+(rare.length?rare.join("、"):"なし")+'</dd></div></dl>';
@@ -1266,7 +1267,7 @@ let lastFocus=null;
 function openCard(id){
   const raw=S.book.find(c=>c.id===id);if(!raw)return;
   const c=statsOf(raw),rare=rareOf(raw),met=raw.met||1;VIEW.ang=0;VIEW.cur=0;
-  const where=raw.direct&&!raw.match?(raw.place==="stadium"?"スタジアムで交換":raw.idn===1?"はじめの1枚":"街で交換"):esc(raw.match)+(raw.ha==="A"?"（アウェイ）":"")+" ですれちがい";
+  const where=raw.direct&&!raw.match?(raw.place==="stadium"?"スタジアムで交換":raw.idn===0?"はじめの1枚":"街で交換"):esc(raw.match)+(raw.ha==="A"?"（アウェイ）":"")+" ですれちがい";
   $("viewer").innerHTML='<div class="bar"><h2>'+esc(c.nick)+'さんの名刺</h2><button type="button" class="btn ghost" id="v-close">閉じる</button></div>'
     +solid(c,0,frontHTML(c),otherBackHTML(c,raw))+'<p class="hint">スワイプで裏返す</p>'
     +'<div class="info"><p><b>'+esc(raw.date)+'</b>　'+where+(met>1?'　'+met+'回目':'')+'</p>'
@@ -1546,11 +1547,11 @@ $("tut-ck-go").addEventListener("click",async()=>{
     o.innerHTML="";b.disabled=false;tutStep(4);S.free=true;nextPack();
   }catch(e){
     o.innerHTML="";b.disabled=false;
-    if(BOOK().some(c=>c.idn===1))tutStep(5);else tutStep(TUT_END);   // 1番の名刺がないとき（自分が1番など）は練習を終える
+    if(BOOK().some(c=>c.idn===0))tutStep(5);else tutStep(TUT_END);   // 1番の名刺がないとき（自分が1番など）は練習を終える
   }
 });
 // 途中で閉じたときは、開き直したところから続ける
-setTimeout(()=>{if(S.setup&&S.tut&&S.tut<TUT_END&&!document.body.classList.contains("tut"))tutStep(BOOK().some(c=>c.idn===1)?5:1)},2600);
+setTimeout(()=>{if(S.setup&&S.tut&&S.tut<TUT_END&&!document.body.classList.contains("tut"))tutStep(BOOK().some(c=>c.idn===0)?5:1)},2600);
 // Xでシェアする画像（1200×675）。色は画像として固定。
 const F={d:'"Dela Gothic One","Zen Kaku Gothic New",sans-serif',b:'"Zen Kaku Gothic New","Hiragino Sans",sans-serif',n:'"Barlow Condensed","Zen Kaku Gothic New",sans-serif'};
 function seasonLine(){
@@ -1692,7 +1693,7 @@ function buildBook(rows){
     const seen=S.seen[c.id],exNew=c.ex&&S.ex[c.id]!==c.ex;
     if(c.ex)S.ex[c.id]=c.ex;
     if(seen==null){
-      if(S.tut&&S.tut<10&&c.idn===1&&!c.match){c.sealed=true;if(!S.queue.includes(c.id))add.push(c.id)}   // はじめの1枚は袋に入れて渡す
+      if(S.tut&&S.tut<10&&c.idn===0&&!c.match){c.sealed=true;if(!S.queue.includes(c.id))add.push(c.id)}   // はじめの1枚は袋に入れて渡す
       else if(!c.match||first||c.ex){S.seen[c.id]=c.met}            // 直接交換だけの相手（と、端末を入れ直したときの手持ち）はそのまま名刺帳へ
       else{c.sealed=true;if(!S.queue.includes(c.id))add.push(c.id)}
     }else if(c.met>seen){
@@ -1893,7 +1894,7 @@ $("about-top").addEventListener("click",()=>$("about-open").click());
 
 
 // 新しい版が公開されていたら、自動で読み込み直す（ホーム画面から開くと更新ボタンがないため）
-const APP_VER="20261004164225";
+const APP_VER="20261004165310";
 async function checkUpdate(){
   try{
     const r=await fetch("version.txt?t="+Date.now(),{cache:"no-store"});if(!r.ok)return;
