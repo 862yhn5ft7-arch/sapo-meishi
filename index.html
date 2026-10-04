@@ -10,9 +10,39 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="サポ名刺">
 <title>サポ名刺すれちがい</title>
+<link rel="icon" href="icon.png">
+<link rel="apple-touch-icon" href="icon.png">
+<meta property="og:image" content="https://sapo-meishi.com/og.png">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Barlow+Condensed:wght@500;600&display=swap">
 <style>
 [hidden]{display:none!important}
+.foot{margin:28px 0 8px;padding-top:14px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+.foot button{font:inherit;font-size:13px;font-weight:700;color:var(--ink);background:none;border:0;padding:6px 0;text-decoration:underline;cursor:pointer}
+.about{position:fixed;inset:0;z-index:70;overflow-y:auto;background:var(--bg);padding:calc(16px + env(safe-area-inset-top,0px)) 16px calc(32px + env(safe-area-inset-bottom,0px))}
+.about .in{max-width:640px;margin:0 auto;display:flex;flex-direction:column;gap:10px}
+.about h3{font-size:15px;margin:14px 0 0}
+.about p,.about li{font-size:14px;margin:0}
+.about ul{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:4px}
+.about .danger{margin-top:8px;border:1px solid var(--line);border-radius:5px;padding:12px;display:flex;flex-direction:column;gap:8px}
+.steps{list-style:none;margin:0 0 6px;padding:0;display:grid;gap:8px}
+.steps li{display:grid;grid-template-columns:34px 1fr;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:6px;background:var(--surface)}
+.steps b{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--flood);color:var(--on-flood);font:600 18px/1 var(--num)}
+.steps span{font-size:14px;font-weight:700}.steps small{display:block;font-size:12px;font-weight:400;color:var(--muted)}
+.xfer{margin-top:18px;border-top:1px solid var(--line);padding-top:12px}
+.xfer summary{font-size:13px;font-weight:700;cursor:pointer;padding:6px 0}
+.xfer[open]{display:flex;flex-direction:column;gap:10px}
+.tip{display:flex;gap:10px;align-items:flex-start;justify-content:space-between;margin:0 0 12px;padding:10px 12px;border:1px solid var(--line);border-radius:6px;background:var(--surface);font-size:13px}
+.tip button{flex:none;font:inherit;font-size:12px;font-weight:700;background:none;border:1px solid var(--line);border-radius:4px;color:var(--ink);padding:4px 8px;cursor:pointer}
+.today .now{display:block;margin-top:6px;font-size:13px;font-weight:700;color:var(--ink)}
+.today .cd{display:block;margin:4px 0;font-size:15px;font-weight:700;color:var(--ink)}.today .cd b{font:600 30px/1 var(--num);margin:0 4px}
+.rank{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+.rank li{display:grid;grid-template-columns:28px 1fr auto;gap:8px;align-items:center;padding:8px 10px;border:1px solid var(--line);border-radius:5px;font-size:14px}
+.rank li.me{border-color:var(--ink);font-weight:700}.rank li b{font:600 16px/1 var(--num)}.rank li small{color:var(--muted);font-size:12px}
+.flip.sk .face{outline:3px solid var(--clubc);outline-offset:-3px}
+.code{font:600 22px/1.3 var(--num);letter-spacing:.08em;padding:10px 12px;border:1px dashed var(--line);border-radius:5px;background:var(--surface);user-select:all;-webkit-user-select:all;overflow-wrap:anywhere}
+.reasons{display:flex;flex-wrap:wrap;gap:6px}
 #net{margin:8px 0;padding:8px 10px;border:1px solid var(--line);border-radius:5px;font-size:13px;color:var(--muted);background:var(--surface)}
 /* Layout: one narrow column like a phone app. Three tabs. The 91:55 名刺 is the only "object" on the page; everything else stays flat. */
 :root{
@@ -397,11 +427,22 @@ button.pick{cursor:pointer}
   </header>
 
   <section id="p-setup" hidden>
+    <ol class="steps">
+      <li><b>1</b><span>試合の日、スタジアムでチェックイン<small>チェックインできるのは、推しクラブの試合の日だけ</small></span></li>
+      <li><b>2</b><span>同じ試合にいたサポの名刺が、袋で届く<small>めくるまで、誰の名刺かはわからない</small></span></li>
+      <li><b>3</b><span>集めて、名刺帳とクラブ図鑑をうめる<small>通うほど、あなたの名刺もレアになる</small></span></li>
+    </ol>
     <h2>推しクラブを選んでください</h2>
     <p class="note">あとから名刺の画面で変えられます。</p>
     <div id="s-clubs-pick" class="group"></div>
     <label>ニックネーム<input type="text" id="s-nick" maxlength="14" placeholder="名刺に出る名前"></label>
     <button class="btn flood" id="s-go" disabled>推しクラブを選ぶと始められます</button>
+    <details class="xfer">
+      <summary>機種変更などで、引き継ぎコードを持っている方</summary>
+      <label>引き継ぎコード<input type="text" id="t-code" maxlength="24" placeholder="XXXX-XXXX-XXXX-XXXX" autocapitalize="characters" autocomplete="off" spellcheck="false"></label>
+      <button type="button" class="btn" id="t-go">この端末に引き継ぐ</button>
+      <p class="note" id="t-out">前の端末の名刺・会員番号・名刺帳が、この端末に移ります。前の端末では使えなくなります。</p>
+    </details>
   </section>
 
   <div class="tabs" role="tablist" id="tabs">
@@ -413,11 +454,13 @@ button.pick{cursor:pointer}
 
   <section id="p-card">
     <div id="card-view">
+      <div class="tip" id="a2hs" hidden><span id="a2hs-t"></span><button type="button" id="a2hs-x">閉じる</button></div>
       <div class="stage" id="stage"></div>
       <div class="row center">
         <button type="button" class="btn" id="e-open">名刺を編集する</button>
         <button type="button" class="btn ghost" id="x-open">リンクで交換</button>
         <button type="button" class="btn ghost" id="m-share-go">Xでシェアする</button>
+        <button type="button" class="btn ghost" id="m-season-go">今季のまとめ</button>
       </div>
       <div id="m-share"></div>
       <div class="xpanel" id="x-panel" hidden>
@@ -446,6 +489,7 @@ button.pick{cursor:pointer}
       <label>推し選手<input type="text" id="f-fav" maxlength="16" placeholder="例：背番号14のあの人"></label>
       <label>Xのアカウント<input type="text" id="f-x" maxlength="40" placeholder="@なしでもOK" autocapitalize="off" autocomplete="off" spellcheck="false"></label>
       <div class="full"><span class="lab">名刺に付けるプレート</span><div class="plates" id="f-plates"></div></div>
+      <div class="full"><span class="lab">名刺のデザイン</span><div class="plates" id="f-skins"></div></div>
       <div class="photo full">
         <span>写真（自分で撮ったものや自分のアイコン）</span>
         <div class="row"><input type="file" id="f-photo" accept="image/*" aria-label="名刺の写真を選ぶ"><button type="button" class="btn ghost" id="f-photo-x">写真を外す</button></div>
@@ -486,6 +530,49 @@ button.pick{cursor:pointer}
   <section id="p-zukan" hidden>
     <div id="z-out"></div>
   </section>
+  <footer class="foot">
+    <button type="button" id="about-open">このアプリについて・利用上の注意</button>
+    <span class="note">非公式のファンアプリです。Jリーグ・各クラブとは関係ありません。</span>
+  </footer>
+</div>
+
+<div class="about" id="about" hidden role="dialog" aria-modal="true" aria-label="このアプリについて">
+  <div class="in">
+    <div class="row between"><h2>このアプリについて</h2><button type="button" class="btn ghost" id="about-close">閉じる</button></div>
+    <p>「サポ名刺すれちがい」は、同じ試合にチェックインしたサポーターどうしで、名刺が自動で交換されるアプリです。</p>
+    <h3>非公式のアプリです</h3>
+    <p>個人が作っているファンアプリで、Jリーグや各クラブとは関係がありません。クラブのエンブレムや選手の写真は使っていません。試合日程は、Jリーグと各クラブの発表をもとに運営が入れています。</p>
+    <h3>預かる情報</h3>
+    <ul>
+      <li>名刺に書いた内容（ニックネーム、推しクラブ、ひとこと、観戦スタイル、推し選手、背番号、Xのアカウント名、写真）</li>
+      <li>チェックインした試合と日時</li>
+      <li>直接交換した相手と日付</li>
+    </ul>
+    <p>メールアドレスや本名、電話番号は預かりません。位置情報は、チェックインのときに「スタジアムの近くにいるか」を確かめるためだけに使い、保存しません。</p>
+    <h3>名刺が見える相手</h3>
+    <p>あなたの名刺が見えるのは、同じ試合にチェックインした人と、直接交換した人だけです。それ以外の人や、インターネット上には公開されません。</p>
+    <h3>お願い</h3>
+    <ul>
+      <li>ニックネームやひとことに、本名や連絡先など、知られて困ることを書かないでください。</li>
+      <li>写真は、自分で撮ったものや自分のアイコンを使ってください。選手やほかの人の写真、クラブのエンブレムは使わないでください。</li>
+      <li>ほかの人をいやな気持ちにさせる内容は書かないでください。見つけた場合は、運営が名刺を消すことがあります。</li>
+    </ul>
+    <h3>引き継ぎについて</h3>
+    <p>登録なしで使えるかわりに、名刺はこのブラウザに結びついています。機種変更や、ブラウザのデータが消えたときのために、引き継ぎコードを控えておいてください。新しい端末の最初の画面でコードを入れると、名刺・会員番号・名刺帳がそのまま移ります。</p>
+    <div class="danger">
+      <p>コードは合言葉です。人に見せたり、Xに載せたりしないでください。知られると、名刺を乗っ取られます。1回使うと、新しいコードに変わります。</p>
+      <div class="row"><button type="button" class="btn ghost" id="a-code-go">引き継ぎコードを表示する</button></div>
+      <div id="a-code-out"></div>
+    </div>
+    <h3>お問い合わせ</h3>
+    <p id="about-contact"></p>
+    <h3>名刺を消す</h3>
+    <div class="danger">
+      <p>自分の名刺と、チェックインや交換の記録をすべて消します。相手の名刺帳からもあなたの名刺が消えます。元には戻せず、会員番号も失われます。</p>
+      <div class="row"><button type="button" class="btn ghost" id="del-go">名刺と記録をすべて消す</button></div>
+      <p class="note" id="del-out"></p>
+    </div>
+  </div>
 </div>
 
 <div class="viewer pack" id="pack" hidden role="dialog" aria-modal="true" aria-label="すれちがった名刺を開ける"></div>
@@ -504,7 +591,7 @@ const clubOpts=ex=>DIVS.map(d=>'<optgroup label="'+d+'">'+LEAGUE[d].filter(c=>c[
 const STYLES=["ゴール裏で跳ぶ","ゴール裏で声出し","バクスタでじっくり","メインで戦術を見る","家族でのんびり","スタグル優先"];
 const NICKS=["ゴール裏の住人","遠征は寝台派","雨男サポ","スタグル番長","太鼓のとなり","年チケ12年目","バクスタの主","声枯れ担当","ゲーフラ職人","平日は社畜","子連れ参戦","アウェイ皆勤","終電ダッシュ","タオマフ収集家","逆転信者","PK見れない人","前泊の達人","コンコース徘徊","選手バス待ち","開門3時間前","ビール片手に","今日も最前列"];
 const WORDS=["勝っても負けても唐揚げ","アウェイ全通が今年の目標","後半40分からが本番","雨の日ほど燃える","まずは残留、話はそれから","遠征先の銭湯を巡ってます","スタメン発表が一番緊張する","引き分けは勝ちに数えない派","ユニは毎年買う派","セットプレーで祈る係","帰りの電車で反省会","選手入場で毎回泣く"];
-const RARES=[["遠征組","アウェイから来ていたサポ"],["常連","今季20試合以上チェックインしている人"],["雨の日","雨の試合で会った"],["平日ナイター","平日の夜に会った"],["スタジアムで交換","2人とも同じ日にチェックインして、その場で直接交換した"]];
+const RARES=[["遠征組","アウェイから来ていたサポ"],["常連","今季20試合以上チェックインしている人"],["雨の日","雨の試合で会った"],["平日ナイター","平日の夜に会った"],["開幕戦","開幕戦で会った"],["最終節","最終節で会った"],["初期メンバー","会員番号が100番以内の人"],["スタジアムで交換","2人とも同じ日にチェックインして、その場で直接交換した"]];
 const SEASON="2026/27",COMPS=["リーグ","ルヴァンカップ","天皇杯"];
 const KEY="sapo-meishi-live-1",OLD_KEY="sapo-meishi-none";
 const $=id=>document.getElementById(id);
@@ -541,7 +628,7 @@ function myTitle(){const e=earned();if(S.me.title===undefined)return e[e.length-
 
 function rareOf(c){
   const trav=c.trav!==undefined?c.trav:(String(c.match||"").split(" vs ")[1]===c.club);
-  const r=[];if(trav)r.push("遠征組");if(c.games>=20)r.push("常連");if(c.rain)r.push("雨の日");if(c.wd)r.push("平日ナイター");if(c.direct&&c.place==="stadium")r.push("スタジアムで交換");return r;
+  const r=[];if(trav)r.push("遠征組");if(c.games>=20)r.push("常連");if(c.rain)r.push("雨の日");if(c.wd)r.push("平日ナイター");if(c.op)r.push("開幕戦");if(c.fin)r.push("最終節");if(c.idn>0&&c.idn<=100)r.push("初期メンバー");if(c.direct&&c.place==="stadium")r.push("スタジアムで交換");return r;
 }
 // 同じ試合の人を book に足す。すでに持っている人とは再会として回数を増やす。
 function meet(book,n,home,away,date,ha,rain,wd){
@@ -569,7 +656,7 @@ function seed(){
 }
 try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
 if(!S||!S.me||!S.book||!S.log)S=seed();
-if(!S.seen)S.seen={};if(!S.ex)S.ex={};if(!S.cnt)S.cnt={};
+if(!S.seen)S.seen={};if(!S.ex)S.ex={};if(!S.cnt)S.cnt={};if(!S.hidden)S.hidden={};
 // クラブ名の表記を変えたときの読み替え（保存済みの名刺や履歴にも当てる）
 const RENAMED={"\u6803\u6728\u30b7\u30c6\u30a3":"栃木C"};
 (()=>{const fix=v=>typeof v==="string"?Object.keys(RENAMED).reduce((t,k)=>t.split(k).join(RENAMED[k]),v):v;
@@ -578,9 +665,10 @@ const RENAMED={"\u6803\u6728\u30b7\u30c6\u30a3":"栃木C"};
   S.log.forEach(l=>{l.match=fix(l.match)});})();
 if(!Array.isArray(S.queue))S.queue=[];
 // 名刺帳に見えるのは開封済みの名刺だけ。未開封の名刺は袋の中（S.queue に順番待ち）にある。
-const BOOK=()=>S.book.filter(c=>!c.sealed);
-const PACK_SIZE=5;
-function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}if(typeof pushProfile==="function")pushProfile()}
+const BOOK=()=>S.book.filter(c=>!c.sealed&&!(S.hidden&&S.hidden[c.id]));
+const PACK_SIZE=5,ADS=false,CONTACT=""; // ADS: 2袋目から広告を挟むか（Web版では切っておく）
+const packS=()=>JSON.stringify(Object.assign({},S,{book:S.book.map(c=>c.photo?Object.assign({},c,{photo:""}):c)}));
+function save(){try{localStorage.setItem(KEY,packS())}catch(e){}if(typeof pushProfile==="function")pushProfile()}
 
 function cardHTML(c,opt){
   opt=opt||{};
@@ -619,8 +707,8 @@ function frontHTML(c){
 }
 // 厚みのある1枚の板として、表と裏を組み立てる
 function solid(c,a,front,back,id){
-  const on=onColor(c.color);
-  return '<div class="flip '+(on==="#FFFFFF"?"on-dark":"on-light")+(Math.cos(a*Math.PI/180)<0?" show-back":"")+'"'+(id?' id="'+id+'"':'')+' style="--club:'+esc(c.color)+';--on-club:'+on+';--ang:'+a+'deg">'
+  const sk=c.skin==="gold"?"#C9A63B":c.skin==="black"?"#17191D":"",col=sk||c.color,on=onColor(col);
+  return '<div class="flip '+(on==="#FFFFFF"?"on-dark":"on-light")+(sk?" sk":"")+(Math.cos(a*Math.PI/180)<0?" show-back":"")+'"'+(id?' id="'+id+'"':'')+' style="--club:'+esc(col)+';--clubc:'+esc(c.color)+';--on-club:'+on+';--ang:'+a+'deg">'
     +[-3,-2,-1,0,1,2,3].map(z=>'<i class="slab" style="--z:'+z+'px"></i>').join("")+'<i class="edge l"></i><i class="edge r"></i>'
     +'<article class="face front">'+front+'</article><article class="face back">'+back+'</article></div>';
 }
@@ -648,9 +736,11 @@ function otherBackHTML(c,raw){
     +'<dl class="k-dl"><div class="wide"><dt class="lb">'+(raw.direct&&!raw.match?"交換した日":"最後にすれちがった試合")+'</dt><dd>'+esc(raw.date)+'　'+where+'</dd></div>'
     +'<div><dt class="lb">会った回数</dt><dd>'+met+' 回</dd></div><div><dt class="lb">レア</dt><dd>'+(rare.length?rare.join("、"):"なし")+'</dd></div></dl>';
 }
+const SKINS=[["","クラブカラー","最初から使えます",()=>true],["gold","ゴールド","今季10試合チェックインすると使えます",()=>S.log.filter(l=>(l.season||SEASON)===SEASON).length>=10],["black","ブラック","称号を5つ集めると使えます",()=>earned().length>=5]];
+const skinOK=s=>{const k=SKINS.find(x=>x[0]===(s||""));return !!k&&k[3]()};
 function myStats(){
   const e=earned(),mine=S.log.filter(l=>(l.season||SEASON)===SEASON),n=k=>mine.filter(l=>(l.comp||"リーグ")===k).length;
-  return Object.assign({},S.me,{games:mine.length,by:"リーグ "+n("リーグ")+"・ルヴァン "+n("ルヴァンカップ")+"・天皇杯 "+n("天皇杯"),rec:["W","D","L"].map(k=>mine.filter(l=>l.res===k).length),title:myTitle(),
+  return Object.assign({},S.me,{games:mine.length,by:"リーグ "+n("リーグ")+"・ルヴァン "+n("ルヴァンカップ")+"・天皇杯 "+n("天皇杯"),rec:["W","D","L"].map(k=>mine.filter(l=>l.res===k).length),title:myTitle(),skin:skinOK(S.me.skin)?S.me.skin||"":"",
     cards:BOOK().length,rare:BOOK().filter(c=>rareOf(c).length).length,
     home:[mine.filter(l=>(l.comp||"リーグ")==="リーグ"&&l.ha==="H").length,schedule(S.me.club).filter(m=>m.comp==="リーグ"&&m.ha==="H").length],
     zukan:[new Set(BOOK().map(c=>c.club).filter(divOf)).size,CLUBS.length],titles:[e.length,TITLES.length]});
@@ -668,6 +758,8 @@ function renderMine(){
     +TITLES.slice().sort((a,b)=>(TIER[a[0]]||1)-(TIER[b[0]]||1)).map(t=>e.includes(t[0])
       ?'<button type="button" class="pick" data-t="'+esc(t[0])+'" aria-pressed="'+(cur===t[0])+'">'+plateHTML(t[0])+'<small>'+TIER_NAME[TIER[t[0]]||1]+'　'+t[1]+'</small></button>'
       :'<div class="pick locked">'+plateHTML(t[0])+'<small>'+TIER_NAME[TIER[t[0]]||1]+'　未獲得：'+t[1]+'</small></div>').join("");
+  const curS=skinOK(S.me.skin)?S.me.skin||"":"";
+  $("f-skins").innerHTML=SKINS.map(k=>k[3]()?'<button type="button" class="pick" data-s="'+k[0]+'" aria-pressed="'+(curS===k[0])+'"><span class="none">'+k[1]+'</span><small>'+k[2]+'</small></button>':'<div class="pick locked"><span class="none">'+k[1]+'</span><small>未解放：'+k[2]+'</small></div>').join("");
   const my=myStats();
   $("myCard").innerHTML=cardHTML(my,{mine:true});$("stage").innerHTML=heroHTML(my);
 }
@@ -702,6 +794,11 @@ function renderZukan(){
   h+='<div class="group"><h2>レア図鑑<span>'+rc.filter(Boolean).length+' / '+RARES.length+'</span></h2><p class="note">条件が1つでレア、2つ以上重なると激レアです。</p><ul class="rows">'+RARES.map((r,i)=>'<li class="'+(rc[i]?'got':'')+'"><strong>'+r[0]+'</strong><small>'+r[1]+'</small>'+(rc[i]?'<button type="button" class="btn ghost st" data-kind="'+r[0]+'">'+rc[i]+' 枚を見る</button>':'<span class="st">未発見</span>')+'</li>').join("")+'</ul></div>';
   const e=earned();
   h+='<div class="group"><h2>称号<span>'+e.length+' / '+TITLES.length+'</span></h2><ul class="rows">'+TITLES.map(t=>'<li class="'+(e.includes(t[0])?'got':'locked')+'"><strong>'+plateHTML(t[0])+'</strong><small>'+t[1]+'</small><span class="st">'+(e.includes(t[0])?'獲得':'未獲得')+'</span></li>').join("")+'</ul></div>';
+  if(RANK.rows.length){
+    const mine=S.me.club,top=RANK.rows.slice(0,10),mi=RANK.rows.findIndex(r=>r.club===mine);
+    const row=(r,i)=>'<li class="'+(r.club===mine?'me':'')+'"><b>'+(i+1)+'</b><span>'+esc(r.club)+'<small>　サポ '+r.fans+' 人・アウェイ '+r.away+' 回</small></span><span><b>'+r.checkins+'</b> 回</span></li>';
+    h+='<div class="group"><h2>クラブ別チェックイン<span>今季</span></h2><p class="note">このアプリでチェックインされた回数の多い順です。</p><ol class="rank">'+top.map(row).join("")+(mi>=10?row(RANK.rows[mi],mi):"")+'</ol></div>';
+  }
   $("z-out").innerHTML=h;
 }
 function renderLog(){
@@ -753,6 +850,7 @@ const resultOf=m=>({res:m.res||"",score:m.score||"",prov:false});
 const RES_JA={W:"勝ち",D:"引き分け",L:"負け"};
 let testDate=null;
 const today=()=>testDate||new Date();
+let NOW={id:"",n:0},RANK={at:0,rows:[]};
 const matchToday=()=>schedule(S.me.club).find(m=>(m.isos||[m.iso]).includes(isoOf(today())));
 const doneKey=(m,iso)=>S.log.some(l=>l.key===iso||(m&&m.id&&l.key===m.id));
 function renderToday(){
@@ -762,21 +860,26 @@ function renderToday(){
     const home=m.ha==="H"?mine:m.opp,away=m.ha==="H"?m.opp:mine;
     $("c-today").innerHTML='<div class="today">'+head+'<p class="m">'+esc(home)+' vs '+esc(away)+'</p><span class="d">'+m.label+'　'+(m.ha==="H"?"ホーム":"アウェイ")+(m.venue?'　'+esc(m.venue):'')+(m.time?'　'+m.time+'開始':'')+(m.tbd?'　開催日は未定（この日か前後の日）':'')+(m.wd?"　平日ナイター":"")+'</span></div>';
   }else{
-    $("c-today").innerHTML='<div class="today off">'+head+'<p class="m">今日は'+esc(mine)+'の試合がありません</p><span class="d">チェックインは試合の日だけできます。</span></div>';
+    const nx=schedule(mine).find(x=>x.iso>iso),last=S.log[S.log.length-1],t0=dateOf(iso);
+    $("c-today").innerHTML='<div class="today off">'+head+'<p class="m">今日は'+esc(mine)+'の試合がありません</p>'
+      +(nx?'<span class="cd">次の試合まで あと<b>'+Math.max(1,Math.round((nx.d-t0)/86400000))+'</b>日</span><span class="d">'+jp(nx.d)+(nx.tbd?'か翌日':'')+'　'+(nx.ha==="H"?"ホーム":"アウェイ")+' '+esc(nx.opp)+'戦'+(nx.venue?'　'+esc(nx.venue):'')+'</span>':'<span class="d">チェックインは試合の日だけできます。</span>')
+      +(last?'<span class="d">前回のチェックイン：'+esc(last.date)+'　'+esc(last.match)+(last.n!=null?'　'+last.n+'人とすれちがい':'')+(last.res?'　'+RES_JA[last.res]:'')+'</span>':'<span class="d">試合の日にスタジアムでチェックインすると、同じ試合にいたサポの名刺が届きます。</span>')
+      +'</div>';
   }
+  if(m&&NOW.id===m.id&&NOW.n>0){const s=document.createElement("span");s.className="now";s.textContent="いま、この試合に "+NOW.n+" 人がチェックインしています";$("c-today").firstChild.appendChild(s)}
   $("c-go").hidden=!m;
   $("c-go").disabled=done;
   $("c-go").textContent=done?"この試合はチェックイン済み":"スタジアムに着いた";
   $("c-next").innerHTML=schedule(mine).filter(x=>(x.isos||[x.iso]).slice(-1)[0]>iso&&!(x.isos||[x.iso]).includes(iso)).slice(0,4).map(x=>'<li><span>'+jp(x.d)+(x.tbd?'か翌日':'')+'　'+(x.ha==="H"?"ホーム":"アウェイ")+' '+esc(x.opp)+'戦　'+x.label+(x.time?'　'+x.time:'')+'</span></li>').join("")||'<li><span>今季の残り試合はありません</span></li>';
-  $("c-note").textContent=schedule(mine).length?mine+"の日程は、クラブ公式サイトの発表を見て運営が手入力したものです。日時が未定の試合があり、変更や延期もありえます。":"いまは"+mine+"の試合日程がまだ入っていません。日程が入っているクラブから順に、チェックインできるようになります。";
+  $("c-note").textContent=schedule(mine).length?mine+"の日程は、Jリーグと各クラブの発表をもとに運営が入れたものです。日時が未定の試合があり、変更や延期もありえます。カップ戦は、まだ入っていない試合があります。":"いまは"+mine+"の試合日程を読み込めていません。電波のよいところで開き直してください。";
 }
 // 未開封の名刺が残っているときの案内（チェックインの画面）
 function renderQueue(){
   const n=S.queue.length,iso=isoOf(today()),m=matchToday(),inToday=!!(m&&doneKey(m,iso));
-  $("c-queue").innerHTML=(n?'<div class="result"><p class="big">未開封の名刺が <b>'+n+'</b> 枚</p><p class="note">1袋に入るのは'+PACK_SIZE+'枚まで。'+(S.free?'':'次の袋は、広告を見ると開けられます。')+'</p><div class="row"><button type="button" class="btn flood" id="q-open">'+(S.free?'袋を開ける':'広告を見て袋を開ける')+'</button></div></div>':'')
+  $("c-queue").innerHTML=(n?'<div class="result"><p class="big">未開封の名刺が <b>'+n+'</b> 枚</p><p class="note">1袋に入るのは'+PACK_SIZE+'枚まで。'+(S.free||!ADS?'':'次の袋は、広告を見ると開けられます。')+'</p><div class="row"><button type="button" class="btn flood" id="q-open">'+(S.free||!ADS?'袋を開ける':'広告を見て袋を開ける')+'</button></div></div>':'')
     +(inToday?'<div class="row"><button type="button" class="btn ghost" id="q-sync">名刺が届いていないか確かめる</button></div><p class="note">あとからチェックインした人の名刺は、あとで届きます。</p>':'');
-  const b=$("q-open");if(b)b.addEventListener("click",()=>{if(S.free)nextPack();else openAd()});
-  const q=$("q-sync");if(q)q.addEventListener("click",async()=>{q.disabled=true;q.textContent="確かめています";await sync();if(S.queue.length&&S.free)nextPack()});
+  const b=$("q-open");if(b)b.addEventListener("click",()=>{if(S.free||!ADS)nextPack();else openAd()});
+  const q=$("q-sync");if(q)q.addEventListener("click",async()=>{q.disabled=true;q.textContent="確かめています";await sync();if(S.queue.length&&(S.free||!ADS))nextPack()});
 }
 function renderAll(){renderMine();renderLog();renderBook();renderZukan();renderToday();renderQueue()}
 
@@ -789,11 +892,12 @@ function readForm(e){
   const clubChanged=e&&e.target.id==="f-club";
   if(clubChanged)$("f-color").value=colorOf($("f-club").value);
   const title=S.me.title;
-  S.me={nick:$("f-nick").value.trim(),club:$("f-club").value,color:$("f-color").value,style:$("f-style").value,word:$("f-word").value.trim(),fav:$("f-fav").value.trim(),no:Math.min(99,Math.max(1,parseInt($("f-no").value,10)||S.me.no||12)),x:xHandle($("f-x").value),photo:S.me.photo||"",title,idn:S.me.idn};
-  save();renderMine();if(clubChanged){$("c-out").innerHTML="";renderToday()}
+  S.me={nick:$("f-nick").value.trim(),club:$("f-club").value,color:$("f-color").value,style:$("f-style").value,word:$("f-word").value.trim(),fav:$("f-fav").value.trim(),no:Math.min(99,Math.max(1,parseInt($("f-no").value,10)||S.me.no||12)),x:xHandle($("f-x").value),photo:S.me.photo||"",title,idn:S.me.idn,skin:S.me.skin||""};
+  save();renderMine();if(clubChanged){$("c-out").innerHTML="";MATCHES=[];renderToday();if(sb&&UID)loadMatches().then(()=>{renderAll()}).catch(()=>{})}
 }
 ["f-nick","f-club","f-color","f-style","f-word","f-no","f-fav","f-x"].forEach(id=>$(id).addEventListener("input",readForm));
 
+$("f-skins").addEventListener("click",e=>{const b=e.target.closest("button.pick");if(!b)return;S.me.skin=b.dataset.s;save();renderMine()});
 $("f-plates").addEventListener("click",e=>{const b=e.target.closest("button.pick");if(!b)return;S.me.title=b.dataset.t;save();renderMine()});
 // 写真: 端末で160pxに縮めてから保存する
 $("f-photo").addEventListener("change",e=>{
@@ -815,7 +919,7 @@ document.querySelectorAll(".tabs button").forEach(b=>b.addEventListener("click",
   document.querySelectorAll(".tabs button").forEach(x=>x.setAttribute("aria-selected",x===b));
   curTab=b.dataset.tab;TABS.forEach(t=>$("p-"+t).hidden=t!==curTab);
   if(b.dataset.tab==="book")renderBook();
-  if(b.dataset.tab==="zukan")renderZukan();
+  if(b.dataset.tab==="zukan"){renderZukan();loadRank()}
 }));
 
 // チェックイン（試合のある日だけ、1試合につき1回）
@@ -828,7 +932,18 @@ $("c-date-x").addEventListener("click",()=>setDate(""));
 $("c-next").addEventListener("click",e=>{const b=e.target.closest("button");if(b)setDate(b.dataset.iso)});
 const CK_ERR={not_match_day:"今日はこの試合の日ではありません。",not_your_match:"名刺の推しクラブの試合ではありません。",need_location:"位置情報が必要です。スマホの設定で、このサイトに位置情報を許可してください。",too_far:"スタジアムから離れているようです。会場の近くでもう一度押してください。",already_checked_in:"この試合はチェックイン済みです。",no_profile:"名刺がまだ登録できていません。名刺の画面を開いてからもう一度お試しください。",not_signed_in:"通信できませんでした。ページを開き直してください。"};
 const errText=(e,map)=>{const t=String(e&&e.message||e||"");for(const k in map)if(t.includes(k))return map[k];return "通信できませんでした。電波のよいところで、もう一度お試しください。"};
-const getPos=()=>new Promise((ok,ng)=>{if(!navigator.geolocation){ng(new Error("need_location"));return}navigator.geolocation.getCurrentPosition(p=>ok({lat:p.coords.latitude,lng:p.coords.longitude}),()=>ng(new Error("need_location")),{enableHighAccuracy:true,timeout:15000,maximumAge:60000})});
+// 会場の位置のいまの天気（Open-Meteo）。雨なら true、調べられなければ null。
+async function rainNow(m){
+  if(m.lat==null||m.lng==null)return null;
+  try{
+    const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),4000);
+    const r=await fetch("https://api.open-meteo.com/v1/forecast?latitude="+m.lat+"&longitude="+m.lng+"&current=precipitation,weather_code",{signal:ac.signal});
+    clearTimeout(tm);if(!r.ok)return null;
+    const c=(await r.json()).current;if(!c)return null;
+    return (c.precipitation||0)>0||[51,53,55,56,57,61,63,65,66,67,80,81,82,95,96,99].includes(c.weather_code);
+  }catch(e){return null}
+}
+const getPos=()=>new Promise((ok,ng)=>{if(!navigator.geolocation){ng(new Error("need_location"));return}navigator.geolocation.getCurrentPosition(p=>ok({lat:p.coords.latitude,lng:p.coords.longitude}),()=>ng(new Error("need_location")),{enableHighAccuracy:true,timeout:20000,maximumAge:0})});
 $("c-go").addEventListener("click",async()=>{
   const m=matchToday(),d=today(),iso=isoOf(d);
   if(!m||doneKey(m,iso))return;
@@ -838,12 +953,15 @@ $("c-go").addEventListener("click",async()=>{
   try{
     if(!sb||!UID)throw new Error("not_signed_in");
     await flushProfile();
-    let pos=null;if(m.lat!=null&&m.lng!=null)pos=await getPos();
-    const r=await sb.rpc("check_in",{p_match:m.id,p_lat:pos?pos.lat:null,p_lng:pos?pos.lng:null});
+    try{await loadMatches()}catch(e){}
+    const mm=matchToday()||m;m.lat=mm.lat;m.lng=mm.lng; // 会場の位置は、押した時点の最新を使う
+    let pos=null;if(m.lat!=null&&m.lng!=null){$("c-out").innerHTML='<p class="searching">位置情報で、スタジアムの近くにいるか確かめています</p>';pos=await getPos();$("c-out").innerHTML='<p class="searching">同じスタジアムにいるサポーターを探しています</p>'}
+    const wet=await rainNow(m);
+    const r=await sb.rpc("check_in",{p_match:m.id,p_lat:pos?pos.lat:null,p_lng:pos?pos.lng:null,p_rain:wet});
     if(r.error)throw r.error;
     const n=(r.data&&r.data.others)||0;
     S.cnt[m.id]=n;S.free=true;save();
-    await sync();
+    await sync(true);
     const got=S.queue.map(id=>S.book.find(c=>c.id===id)).filter(Boolean),re=got.filter(c=>(c.met||1)>1).length;
     $("c-out").innerHTML='<div class="result"><p class="big">いま <b>'+n+'</b> 人とすれちがいました</p><p class="note">'+esc(home)+' vs '+esc(away)+'。'+(n?'名刺は袋に入って届きます。':'まだ誰もチェックインしていません。')+'あとからチェックインした人の名刺は、あとで届きます。</p>'
       +'<p class="note">試合結果は、試合が終わってから名刺の戦績に入ります。</p>'
@@ -996,7 +1114,19 @@ function openCard(id){
     +solid(c,0,frontHTML(c),otherBackHTML(c,raw))+'<p class="hint">スワイプで裏返す</p>'
     +'<div class="info"><p><b>'+esc(raw.date)+'</b>　'+where+(met>1?'　'+met+'回目':'')+'</p>'
     +(rare.length?'<p>'+rare.map(r=>'<span class="why">'+r+'</span>').join("")+(rare.length>1?'激レア':'レア')+'</p>':'')
-    +'</div>';
+    +'<div class="row"><button type="button" class="btn ghost" id="v-rep">この名刺を通報する</button></div><div id="v-rep-out"></div></div>';
+  $("v-rep").addEventListener("click",()=>{
+    $("v-rep-out").innerHTML='<p class="note">理由を選ぶと、運営に届きます。この名刺は、あなたの名刺帳から見えなくなります。</p><div class="reasons">'+["不適切な写真","不適切な言葉","なりすまし","そのほか"].map(x=>'<button type="button" class="btn ghost" data-why="'+x+'">'+x+'</button>').join("")+'</div>';
+  });
+  $("v-rep-out").addEventListener("click",async e=>{
+    const b=e.target.closest("button[data-why]");if(!b)return;
+    $("v-rep-out").innerHTML='<p class="note">送っています</p>';
+    try{
+      if(!sb||!UID)throw new Error("not_signed_in");
+      const r=await sb.rpc("report_card",{p_target:id,p_reason:b.dataset.why});if(r.error)throw r.error;
+      S.hidden[id]=1;S.queue=S.queue.filter(q=>q!==id);save();closeCard();renderAll();netMsg("通報を受け付けました。ありがとうございます。");
+    }catch(err){$("v-rep-out").innerHTML='<p class="xmsg">送れませんでした。電波のよいところで、もう一度お試しください。</p>'}
+  });
   lastFocus=document.activeElement;$("viewer").hidden=false;$("viewer").scrollTop=0;
   $("v-close").addEventListener("click",closeCard);try{$("v-close").focus()}catch(e){}
 }
@@ -1057,7 +1187,7 @@ function renderPack(pop){
     const got=earned().filter(t=>!k.before.includes(t)),rest=S.queue.length,re=k.cards.filter(c=>(c.met||1)>1).length,rr=k.cards.filter(c=>rareOf(c).length).length;
     p.innerHTML='<div class="done"><h2>'+k.cards.length+' 枚の名刺を開けました</h2><p class="note" style="text-align:center">はじめまして '+(k.cards.length-re)+' 人、再会 '+re+' 人、レア '+rr+' 枚'+(got.length?'。称号を獲得：'+got.map(esc).join("、"):'')+'</p>'
       +'<div class="grid">'+k.cards.slice().reverse().map(c=>cardHTML(c,{isNew:true})).join("")+'</div>'
-      +(rest?'<p class="xmsg" style="text-align:center">未開封の名刺が、あと '+rest+' 枚あります</p><div class="row center"><button type="button" class="btn flood" data-pk="ad">広告を見て次の袋を開ける</button></div>'
+      +(rest?'<p class="xmsg" style="text-align:center">未開封の名刺が、あと '+rest+' 枚あります</p><div class="row center"><button type="button" class="btn flood" data-pk="ad">'+(ADS?"広告を見て次の袋を開ける":"次の袋を開ける")+'</button></div>'
         :'<div class="row center"><button type="button" class="btn" data-pk="close">閉じる</button></div>')+'</div>';
   }else{
     const c=k.cards[k.i],r=rareOf(c).length,left=k.cards.length-1-k.i;
@@ -1132,7 +1262,7 @@ $("pack").addEventListener("click",e=>{
   if(act==="open")pkTear();
   else if(act==="card")pkAct(1);
   else if(act==="all")pkAll();
-  else if(act==="ad")openAd();
+  else if(act==="ad"){if(ADS)openAd();else nextPack()}
   else if(act==="adok")nextPack();
   else if(act==="close"){clearTimeout(k.autoT);$("pack").hidden=true;$("pack").innerHTML="";PK=null;renderAll()}
 });
@@ -1210,11 +1340,15 @@ $("s-go").addEventListener("click",async()=>{
 
 // Xでシェアする画像（1200×675）。色は画像として固定。
 const F={d:'"Dela Gothic One","Zen Kaku Gothic New",sans-serif',b:'"Zen Kaku Gothic New","Hiragino Sans",sans-serif',n:'"Barlow Condensed","Zen Kaku Gothic New",sans-serif'};
+function seasonLine(){
+  const b=BOOK(),best=b.slice().sort((x,y)=>(y.met||1)-(x.met||1))[0];
+  return "すれちがい "+b.length+"人　レア "+b.filter(c=>rareOf(c).length).length+"枚　称号 "+earned().length+"個"+(best&&(best.met||1)>1?"　いちばん会った人 "+best.nick+"（"+best.met+"回）":"");
+}
 async function shareImage(d){
   const W=1200,H=675,cv=document.createElement("canvas");cv.width=W;cv.height=H;const g=cv.getContext("2d");
   const me=S.me,games=S.log.filter(l=>(l.season||SEASON)===SEASON).length,title=myTitle();
   const big=d.kind==="match"?String(d.n):String(games),tail=d.kind==="match"?"人とすれちがいました":"試合 現地でチェックイン";
-  const top=d.kind==="match"?d.line:SEASON+"シーズンのサポ名刺",sub=d.kind==="match"?"はじめまして "+(d.n-d.re)+"　再会 "+d.re+"　レア "+d.rare:"リーグ戦・ルヴァンカップ・天皇杯";
+  const top=d.kind==="match"?d.line:d.kind==="season"?SEASON+"シーズンのまとめ":SEASON+"シーズンのサポ名刺",sub=d.kind==="match"?"はじめまして "+(d.n-d.re)+"　再会 "+d.re+"　レア "+d.rare:d.kind==="season"?seasonLine():"リーグ戦・ルヴァンカップ・天皇杯";
   const who=(me.nick||"名無しのサポ"),line2=me.club+"サポ　今季の現地 "+games+"試合"+(title?"　称号 "+title:"");
   try{await Promise.all([document.fonts.load("400 56px "+F.d,tail+who+"サポ名刺すれちがい"),document.fonts.load("700 30px "+F.b,top+sub+line2+"非公式のファンアプリ"),document.fonts.load("600 180px "+F.n,big)])}catch(e){}
   g.fillStyle="#14202B";g.fillRect(0,0,W,H);
@@ -1238,7 +1372,7 @@ async function shareImage(d){
 }
 function showShare(el,d){
   el.innerHTML='<p class="note">画像を作っています</p>';
-  const text=(d.kind==="match"?"今日は"+d.n+"人とすれちがいました（"+d.line.split("　")[0]+"）":S.me.club+"サポの名刺を作りました")+"\n#サポ名刺すれちがい";
+  const text=(d.kind==="match"?"今日は"+d.n+"人とすれちがいました（"+d.line.split("　")[0]+"）":d.kind==="season"?"今季は"+S.log.filter(l=>(l.season||SEASON)===SEASON).length+"試合に行って、"+BOOK().length+"人とすれちがいました":S.me.club+"サポの名刺を作りました")+"\n#サポ名刺すれちがい";
   shareImage(d).then(url=>{
     el.innerHTML='<div class="share"><img src="'+url+'" alt="Xでシェアする画像"><div class="row"><a class="btn" href="https://x.com/intent/post?text='+encodeURIComponent(text)+'" target="_blank" rel="noopener">Xの投稿画面を開く</a></div><p class="note">画像を長押し（パソコンは右クリック）で保存して、投稿に添付してください。</p></div>';
   }).catch(()=>{el.innerHTML='<p class="note">画像を作れませんでした。もう一度押してください。</p>'});
@@ -1249,18 +1383,19 @@ $("m-share-go").addEventListener("click",()=>showShare($("m-share"),{kind:"card"
 const SB_URL="https://hwdpwgxwkcjldnebnizj.supabase.co",SB_KEY="sb_publishable_7Dd0WaUyYQ4sSqbhRnJgNg_sp8D_yWP";
 var sb=null,UID="",MATCHES=[],PENDING="";
 try{sb=supabase.createClient(SB_URL,SB_KEY)}catch(e){}
-try{MATCHES=JSON.parse(localStorage.getItem(KEY+"-matches"))||[]}catch(e){MATCHES=[]}
+var matchesClub="";
+try{const mc=JSON.parse(localStorage.getItem(KEY+"-matches"));if(mc&&mc.club&&mc.club===S.me.club&&Array.isArray(mc.rows)){MATCHES=mc.rows;matchesClub=mc.club}}catch(e){MATCHES=[]}
 function takeHash(){const m=location.hash.match(/x=([0-9a-f]{32})/);if(!m)return "";try{history.replaceState(null,"",location.pathname+location.search)}catch(e){}return m[1]}
 PENDING=takeHash();
 window.addEventListener("hashchange",()=>{const t=takeHash();if(!t)return;if(S.setup&&UID)redeem(t);else{PENDING=t;netMsg("名刺を作ると、そのまま交換できます。")}});
 function netMsg(t){const n=$("net");n.textContent=t;n.hidden=!t}
 function applyProfile(p){
-  S.me={nick:p.nick,club:p.club,color:p.color,style:p.style,word:p.word,fav:p.fav||"",no:p.back_no||12,x:p.x_handle||"",photo:p.photo||"",title:S.me&&S.me.title!==undefined?S.me.title:(p.title||undefined),idn:p.member_no};
+  S.me={nick:p.nick,club:p.club,color:p.color,style:p.style,word:p.word,fav:p.fav||"",no:p.back_no||12,x:p.x_handle||"",photo:p.photo||"",title:S.me&&S.me.title!==undefined?S.me.title:(p.title||undefined),idn:p.member_no,skin:p.skin||""};
   pickClub=p.club;
 }
 // 自分の名刺の数字（相手の画面に出す用）
 function myStatsJSON(){const q=myStats();return {cards:q.cards,rare:q.rare,zukan:q.zukan[0],titles:q.titles[0],homeAll:q.home[1]}}
-function profilePayload(){const m=S.me;return {nick:m.nick,club:m.club,color:m.color,style:m.style||"",word:m.word||"",fav:m.fav||"",back_no:m.no||12,x_handle:m.x||"",title:myTitle()||"",photo:m.photo||null,stats:myStatsJSON()}}
+function profilePayload(){const m=S.me;return {nick:m.nick,club:m.club,color:m.color,style:m.style||"",word:m.word||"",fav:m.fav||"",back_no:m.no||12,x_handle:m.x||"",title:myTitle()||"",photo:m.photo||null,stats:myStatsJSON(),skin:skinOK(m.skin)?m.skin||"":""}}
 var pushT=0,pushed="";
 async function flushProfile(){
   clearTimeout(pushT);
@@ -1271,21 +1406,23 @@ async function flushProfile(){
 }
 function pushProfile(){clearTimeout(pushT);pushT=setTimeout(()=>{flushProfile().catch(()=>{})},900)}
 async function loadMatches(){
-  const r=await sb.from("matches").select("*").order("day_from");
+  const c=S.me.club;if(!c||!divOf(c))return;
+  const r=await sb.from("matches").select("*").or("home.eq."+c+",away.eq."+c).order("day_from");
   if(r.error)throw r.error;
-  MATCHES=r.data||[];try{localStorage.setItem(KEY+"-matches",JSON.stringify(MATCHES))}catch(e){}
+  MATCHES=r.data||[];matchesClub=c;matchesAt=Date.now();try{localStorage.setItem(KEY+"-matches",JSON.stringify({club:c,rows:MATCHES}))}catch(e){}
 }
 // サーバーの名刺帳を、画面で使う形に直す。はじめての名刺と再会は袋に入れる。
 function buildBook(rows){
   const num=(v,b)=>Math.min(b,Math.max(0,parseInt(v,10)||0)),names=TITLES.map(t=>t[0]),first=!S.synced;
   const book=rows.map(r=>{
     const st=r.stats&&typeof r.stats==="object"?r.stats:{},day=[r.last_day,r.last_exchange].filter(Boolean).sort().pop()||"";
-    return {id:r.id,nick:r.nick,club:r.club,color:/^#[0-9a-fA-F]{6}$/.test(r.color)?r.color:colorOf(r.club),style:r.style||"",word:r.word||"",fav:r.fav||"",no:r.back_no||12,x:xHandle(r.x_handle||""),title:names.includes(r.title)?r.title:"",photo:/^data:image\//.test(r.photo||"")?r.photo:"",idn:r.member_no,
+    return {id:r.id,nick:r.nick,club:r.club,color:/^#[0-9a-fA-F]{6}$/.test(r.color)?r.color:colorOf(r.club),style:r.style||"",word:r.word||"",fav:r.fav||"",no:r.back_no||12,x:xHandle(r.x_handle||""),title:names.includes(r.title)?r.title:"",pk:r.photo_key||"",photo:photoOf(r.id,r.photo_key),idn:r.member_no,
       games:r.games||0,rec:[r.wins||0,r.draws||0,r.losses||0],home:[r.home_games||0,Math.max(1,num(st.homeAll,40))],cards:num(st.cards,9999),rare:num(st.rare,9999),zukan:[num(st.zukan,CLUBS.length),CLUBS.length],titles:[num(st.titles,TITLES.length),TITLES.length],
-      met:r.met||1,day,date:day?fmt(dateOf(day)):"",match:r.last_match||"",ha:r.last_away?"A":"H",rain:!!r.any_rain,wd:!!r.any_weeknight,trav:!!r.any_trav,direct:!!r.direct,place:r.stadium?"stadium":"town",ex:r.last_exchange||""};
+      met:r.met||1,day,date:day?fmt(dateOf(day)):"",match:r.last_match||"",ha:r.last_away?"A":"H",rain:!!r.any_rain,wd:!!r.any_weeknight,trav:!!r.any_trav,op:!!r.any_opening,fin:!!r.any_final,skin:["gold","black"].includes(r.skin)?r.skin:"",direct:!!r.direct,place:r.stadium?"stadium":"town",ex:r.last_exchange||""};
   }).sort((a,b)=>a.day<b.day?-1:a.day>b.day?1:0);
   const add=[];
   book.forEach(c=>{
+    if(S.hidden&&S.hidden[c.id]){S.seen[c.id]=c.met;return}
     const seen=S.seen[c.id],exNew=c.ex&&S.ex[c.id]!==c.ex;
     if(c.ex)S.ex[c.id]=c.ex;
     if(seen==null){
@@ -1304,19 +1441,45 @@ function buildBook(rows){
 }
 function buildLog(rows){
   S.log=rows.map(r=>{
-    const m=MATCHES.find(x=>x.id===r.match_id);if(!m)return null;
+    const m=r.matches||MATCHES.find(x=>x.id===r.match_id);if(!m)return null;
     const ha=m.home===r.club?"H":"A",done=m.score_home!=null&&m.score_away!=null,a=ha==="H"?m.score_home:m.score_away,b=ha==="H"?m.score_away:m.score_home;
-    return {key:m.id,at:r.created_at,season:m.season,comp:m.comp,res:done?(a>b?"W":a<b?"L":"D"):"",score:done?a+"-"+b:"",date:fmt(new Date(r.created_at)),match:m.home+" vs "+m.away,ha,n:S.cnt[m.id]==null?null:S.cnt[m.id],rain:!!m.rain,wd:!!m.weeknight};
+    return {key:m.id,at:r.created_at,season:m.season,comp:m.comp,res:done?(a>b?"W":a<b?"L":"D"):"",score:done?a+"-"+b:"",date:fmt(new Date(r.created_at)),match:m.home+" vs "+m.away,ha,n:S.cnt[m.id]==null?null:S.cnt[m.id],rain:!!m.rain||!!r.rain,wd:!!m.weeknight};
   }).filter(Boolean).sort((x,y)=>x.at<y.at?-1:1);
 }
-let syncing=false;
-async function sync(){
+let syncing=false,lastSync=0,matchesAt=0;
+// 写真の置き場（端末の中）。名刺帳には写真の「印」だけが届くので、持っていない写真だけ取りに行く。
+const PH={};let phDB=null;
+const phOpen=()=>new Promise(ok=>{try{const q=indexedDB.open("sapo-meishi",1);q.onupgradeneeded=()=>q.result.createObjectStore("photos",{keyPath:"id"});q.onsuccess=()=>ok(q.result);q.onerror=()=>ok(null)}catch(e){ok(null)}});
+async function phLoad(){
+  phDB=await phOpen();if(!phDB)return;
+  await new Promise(ok=>{try{const q=phDB.transaction("photos").objectStore("photos").getAll();q.onsuccess=()=>{(q.result||[]).forEach(r=>{PH[r.id]=r});ok()};q.onerror=()=>ok()}catch(e){ok()}});
+  let hit=false;S.book.forEach(c=>{const d=photoOf(c.id,c.pk);if(d&&!c.photo){c.photo=d;hit=true}});
+  if(hit&&!PK)renderAll();
+}
+function photoOf(id,key){const r=PH[id];return key&&r&&r.k===key?r.d:""}
+function phPut(rows){rows.forEach(r=>{PH[r.id]=r});if(!phDB)return;try{const st=phDB.transaction("photos","readwrite").objectStore("photos");rows.forEach(r=>st.put(r))}catch(e){}}
+let phBusy=false;
+async function fetchPhotos(){
+  if(phBusy||!sb||!UID)return;phBusy=true;
+  try{
+    const need=S.book.filter(c=>c.pk&&!photoOf(c.id,c.pk)).map(c=>c.id);
+    for(let i=0;i<need.length;i+=40){
+      const r=await sb.rpc("book_photos",{p_ids:need.slice(i,i+40)});if(r.error)break;
+      const rows=(r.data||[]).filter(x=>/^data:image\//.test(x.photo||"")).map(x=>({id:x.id,k:(S.book.find(c=>c.id===x.id)||{}).pk||"",d:x.photo}));
+      phPut(rows);rows.forEach(x=>{const c=S.book.find(b=>b.id===x.id);if(c)c.photo=x.d});
+      if(rows.length&&!PK)renderAll();
+    }
+  }catch(e){}
+  phBusy=false;
+}
+async function sync(force){
   if(syncing||!sb||!UID||!S.setup)return 0;syncing=true;let added=0;
   try{
-    const [a,b]=await Promise.all([sb.from("checkins").select("match_id,club,created_at"),sb.rpc("my_book"),loadMatches()]);
+    const [a,b]=await Promise.all([sb.from("checkins").select("match_id,club,created_at,rain,matches(*)"),sb.rpc("my_book"),(force||!MATCHES.length||matchesClub!==S.me.club||Date.now()-matchesAt>600000)?loadMatches():null]);
     if(a.error)throw a.error;if(b.error)throw b.error;
     buildLog(a.data||[]);added=buildBook(b.data||[]);
-    save();renderAll();netMsg("");
+    try{const mt=matchToday();if(mt){const c=await sb.rpc("match_count",{p_match:mt.id});if(!c.error)NOW={id:mt.id,n:c.data||0}}}catch(e){}
+    save();renderAll();netMsg("");lastSync=Date.now();fetchPhotos();
   }catch(e){netMsg("通信できませんでした。電波のよいところで開き直してください。")}
   syncing=false;return added;
 }
@@ -1332,17 +1495,75 @@ async function boot(){
       if(r.data){applyProfile(r.data);S.setup=true;pushed=""}
       else S.setup=false;
     }else{
-      if(S.setup){const keep=S.me;S=seed();S.seen={};S.ex={};S.cnt={};S.me.style=keep.style}
+      if(S.setup){const keep=S.me;S=seed();S.seen={};S.ex={};S.cnt={};S.hidden={};S.me.style=keep.style}
       S.setup=false;
     }
-    try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}
-    fillForm();renderAll();renderSetup();applySetup();
+    try{localStorage.setItem(KEY,packS())}catch(e){}
+    fillForm();renderAll();renderSetup();applySetup();await phLoad();
     if(S.setup){await sync();if(PENDING){const t=PENDING;PENDING="";redeem(t)}}
     else if(PENDING)netMsg("名刺を作ると、そのまま交換できます。");
   }catch(e){netMsg("通信できませんでした。電波のよいところで開き直してください。")}
 }
-document.addEventListener("visibilitychange",()=>{if(!document.hidden&&S.setup&&UID)sync()});
-setInterval(()=>{if(!document.hidden&&S.setup&&UID&&!PK){const m=matchToday();if(m&&doneKey(m,isoOf(today())))sync()}},60000);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden&&S.setup&&UID&&Date.now()-lastSync>30000)sync()});
+setInterval(()=>{if(!document.hidden&&S.setup&&UID&&!PK){const m=matchToday();if(m&&doneKey(m,isoOf(today())))sync()}},180000);
+
+
+// クラブ別の集計を取りに行く（5分に1回まで）
+async function loadRank(){
+  if(!sb||!UID||Date.now()-RANK.at<300000)return;
+  try{const r=await sb.rpc("club_ranking");if(!r.error){RANK={at:Date.now(),rows:r.data||[]};if(curTab==="zukan")renderZukan()}}catch(e){}
+}
+$("m-season-go").addEventListener("click",()=>showShare($("m-share"),{kind:"season"}));
+// ホーム画面に追加の案内
+(()=>{
+  let seen=false;try{seen=!!localStorage.getItem(KEY+"-a2hs")}catch(e){}
+  const alone=(window.matchMedia&&window.matchMedia("(display-mode: standalone)").matches)||window.navigator.standalone===true;
+  if(seen||alone)return;
+  const ios=/iPhone|iPad|iPod/.test(navigator.userAgent);
+  $("a2hs-t").textContent=ios?"ホーム画面に追加すると、アプリのように開けます。下の共有ボタン（四角から矢印）→「ホーム画面に追加」。":"ホーム画面に追加すると、アプリのように開けます。ブラウザのメニュー →「ホーム画面に追加」。";
+  $("a2hs").hidden=false;
+  $("a2hs-x").addEventListener("click",()=>{$("a2hs").hidden=true;try{localStorage.setItem(KEY+"-a2hs","1")}catch(e){}});
+})();
+// 引き継ぎ
+const codeFmt=c=>String(c||"").replace(/(.{4})(?=.)/g,"$1-");
+$("a-code-go").addEventListener("click",async()=>{
+  const o=$("a-code-out");o.innerHTML='<p class="note">取得しています</p>';
+  try{
+    if(!sb||!UID||!S.setup)throw new Error("no_profile");
+    const r=await sb.rpc("my_transfer_code");if(r.error)throw r.error;
+    o.innerHTML='<p class="code">'+esc(codeFmt(r.data))+'</p><p class="note">紙に書くか、自分だけが見られるメモに控えてください。</p>';
+  }catch(e){o.innerHTML='<p class="xmsg">'+(S.setup?"表示できませんでした。電波のよいところで、もう一度お試しください。":"先に名刺を作ってください。")+'</p>'}
+});
+const T_ERR={bad_code:"コードが違います。もう一度確かめてください。",same_device:"この端末の名刺のコードです。新しい端末で入力してください。",already_has_profile:"この端末にはすでに名刺があります。引き継ぐ場合は、説明ページの「名刺を消す」で今の名刺を消してから、もう一度お試しください。"};
+$("t-go").addEventListener("click",async()=>{
+  const b=$("t-go"),o=$("t-out"),code=$("t-code").value.replace(/[^0-9A-Fa-f]/g,"").toUpperCase();
+  if(code.length!==16){o.textContent="コードは16文字です。もう一度確かめてください。";return}
+  b.disabled=true;o.textContent="引き継いでいます";
+  try{
+    if(!sb)throw new Error("offline");
+    if(!UID){const r=await sb.auth.signInAnonymously();if(r.error)throw r.error;UID=r.data.user.id}
+    const r=await sb.rpc("redeem_transfer",{p_code:code});if(r.error)throw r.error;
+    const p=await sb.from("profiles").select("*").eq("id",UID).single();if(p.error)throw p.error;
+    S=seed();S.seen={};S.ex={};S.cnt={};S.hidden={};applyProfile(p.data);S.setup=true;S.synced=false;pushed="";
+    save();fillForm();renderAll();applySetup();await sync(true);netMsg("引き継ぎました。会員番号は "+idText(S.me.idn)+" のままです。");
+  }catch(e){o.textContent=errText(e,T_ERR);b.disabled=false}
+});
+
+// このアプリについて
+$("about-contact").innerHTML=CONTACT?'不具合や、不適切な名刺の連絡は、Xの <a href="https://x.com/'+esc(CONTACT)+'" target="_blank" rel="noopener">@'+esc(CONTACT)+'</a> までお願いします。':'お問い合わせ先は準備中です。';
+$("about-open").addEventListener("click",()=>{$("about").hidden=false;$("about").scrollTop=0});
+$("about-close").addEventListener("click",()=>{$("about").hidden=true});
+let delArmed=false;
+$("del-go").addEventListener("click",async()=>{
+  const b=$("del-go");
+  if(!delArmed){delArmed=true;b.textContent="本当に消す（もう一度押す）";setTimeout(()=>{delArmed=false;b.textContent="名刺と記録をすべて消す"},5000);return}
+  delArmed=false;b.disabled=true;$("del-out").textContent="消しています";
+  try{
+    if(sb&&UID){const r=await sb.rpc("delete_my_account");if(r.error)throw r.error;try{await sb.auth.signOut()}catch(e){}}
+    try{localStorage.removeItem(KEY);if(phDB)phDB.transaction("photos","readwrite").objectStore("photos").clear()}catch(e){}
+    location.reload();
+  }catch(e){b.disabled=false;b.textContent="名刺と記録をすべて消す";$("del-out").textContent="消せませんでした。電波のよいところで、もう一度お試しください。"}
+});
 
 fillForm();renderAll();renderSetup();applySetup();
 boot();
