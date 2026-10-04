@@ -137,6 +137,14 @@ button,.btn{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 .geo-help ol{margin:0;padding-left:1.4em;display:flex;flex-direction:column;gap:4px}
 .geo-help small{color:var(--muted)}
 body.tut #a2hs{display:none!important}
+#tut-ck{display:flex;flex-direction:column;gap:12px}
+body:not(.tut) #tut-ck,body.tut #c-today,body.tut #c-go,body.tut #c-other,body.tut #c-geo,body.tut #c-queue,body.tut #c-out{display:none!important}
+#coach{position:fixed;left:10px;right:10px;bottom:calc(72px + env(safe-area-inset-bottom,0px));z-index:45;display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:10px;border:2px solid var(--flood);background:var(--surface);color:var(--ink);box-shadow:0 12px 34px rgba(0,0,0,.55)}
+#coach p{margin:0;font-size:14px;font-weight:700;line-height:1.6}
+#coach .row{justify-content:flex-end}
+.tut-hl{position:relative;outline:3px solid var(--flood)!important;outline-offset:2px;border-radius:8px;animation:tuthl 1.1s ease-in-out infinite}
+@keyframes tuthl{0%,100%{box-shadow:0 0 0 0 rgba(245,196,0,.0)}50%{box-shadow:0 0 0 7px rgba(245,196,0,.45)}}
+@media (prefers-reduced-motion:reduce){.tut-hl{animation:none}}
 .gotcard{align-items:center;text-align:center;animation:gotin .32s cubic-bezier(.2,1.4,.4,1)}
 .gotcard .got-k{font-size:13px;font-weight:700;letter-spacing:.2em;color:var(--flood)}
 .got-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px;align-items:center}
@@ -511,7 +519,7 @@ button.pick{cursor:pointer}
     </div>
   </div>
   <div class="a2pop" id="tutpop" hidden role="dialog" aria-modal="true" aria-label="はじめの1枚">
-    <div class="a2card"><b>名刺ができました</b><span>さっそく、はじめの1枚が届いています。会員番号 No.000001、このアプリを作った人の名刺です。</span><span>スタジアムでチェックインすると、同じ試合にいたサポの名刺がこうやって袋で届きます。まずは開けてみましょう。</span><div class="row"><button type="button" class="btn flood" id="tut-go">袋を開ける</button></div></div>
+    <div class="a2card"><b>名刺ができました</b><span>使い方を1分で練習しましょう。チェックインして、名刺を1枚もらうところまでやってみます。</span><div class="row"><button type="button" class="btn flood" id="tut-go">練習をはじめる</button><button type="button" class="btn ghost" id="tut-skip0">とばす</button></div></div>
   </div>
   <div class="a2pop" id="gotpop" hidden role="dialog" aria-modal="true" aria-label="称号を獲得">
     <div class="a2card gotcard"><span class="got-k">称号を獲得</span><ul class="got-list" id="got-list"></ul><div class="row"><button type="button" class="btn flood" id="got-use">名刺に付ける</button><button type="button" class="btn ghost" id="got-x">閉じる</button></div></div>
@@ -522,6 +530,7 @@ button.pick{cursor:pointer}
   <div class="a2pop" id="pickpop" hidden role="dialog" aria-modal="true" aria-label="試合を選ぶ">
     <div class="a2card"><b>今日の試合</b><span>見に来ている試合を選んでください。</span><ul class="pick-list" id="pick-list"></ul><div class="row"><button type="button" class="btn ghost" id="pick-x">やめる</button></div></div>
   </div>
+  <div id="coach" hidden><p id="coach-t"></p><div class="row"><button type="button" class="btn flood" id="coach-n" hidden>次へ</button><button type="button" class="btn ghost" id="coach-skip">とばす</button></div></div>
   <div class="tabs" role="tablist" id="tabs">
     <button role="tab" id="tab-card" data-tab="card" aria-selected="true">名刺</button>
     <button role="tab" id="tab-checkin" data-tab="checkin" aria-selected="false">チェックイン</button>
@@ -580,6 +589,7 @@ button.pick{cursor:pointer}
 
   <section id="p-checkin" hidden>
     <h2>今日の試合にチェックイン</h2>
+    <div id="tut-ck"><div class="today"><span class="d">練習</span><p class="m">はじめの1枚をもらおう</p><span class="d">試合の日は、ここにその日の試合が出ます。スタジアムに着いたら、下のボタンを押すだけです。</span></div><button type="button" class="btn flood" id="tut-ck-go">スタジアムに着いた（練習）</button><div id="tut-ck-out"></div></div>
     <div id="c-today"></div>
     <button class="btn flood" id="c-go">スタジアムに着いた</button>
     <p class="note" id="c-geo" hidden>押すと、スマホが位置情報の確認を出します。「許可」を選んでください。位置はスタジアムの近くにいるかの確認だけに使い、保存しません。</p>
@@ -1411,7 +1421,7 @@ $("pack").addEventListener("click",e=>{
   else if(act==="all")pkAll();
   else if(act==="ad"){if(ADS)openAd();else nextPack()}
   else if(act==="adok")nextPack();
-  else if(act==="close"){clearTimeout(k.autoT);$("pack").hidden=true;$("pack").innerHTML="";PK=null;document.body.classList.remove("tut");renderAll()}
+  else if(act==="close"){clearTimeout(k.autoT);$("pack").hidden=true;$("pack").innerHTML="";PK=null;renderAll();if(S.tut&&S.tut<10)tutStep(5)}
 });
 // 操作: 袋は横になぞると切れ目が指についてくる。
 // 名刺は、裏向きなら横に動かした分だけ回り（離すとめくれる）、表向きなら指についてきて、離すと飛んでいく。
@@ -1481,25 +1491,66 @@ $("s-go").addEventListener("click",async()=>{
     if(r.error)throw r.error;
     applyProfile(r.data);S.setup=true;save();fillForm();renderAll();applySetup();netMsg("");
     await sync();ensureKey();
-    if(PENDING){const t=PENDING;PENDING="";document.body.classList.remove("tut");redeem(t)}
-    else if(isNew)await tutorial();
+    if(PENDING){const t=PENDING;PENDING="";document.body.classList.remove("tut");S.tut=10;save();redeem(t)}
+    else if(isNew)tutStep(1);
   }catch(e){
     document.body.classList.remove("tut");
     netMsg("登録できませんでした。電波のよいところで、もう一度お試しください。");renderSetup();
   }
 });
 
-// はじめの1枚: 会員番号1番の名刺を受け取り、袋を開ける練習をする
-async function tutorial(){
-  try{
-    const r=await sb.rpc("tutorial_card");
-    if(r.error||!r.data)throw new Error("none");
-    S.tut=1;save();await sync(true);
-    if(!S.queue.length)throw new Error("none");
-    $("tab-card").click();$("tutpop").hidden=false;
-  }catch(e){document.body.classList.remove("tut")}
+// チュートリアル。S.tut は今の段階: 1 はじめの案内 / 2 チェックインのタブへ / 3 練習のボタン / 4 袋 / 5 名刺帳へ / 6 名刺帳の説明 / 7 図鑑へ / 8 図鑑の説明 / 9 おわりの案内 / 10 済み
+const TUT_END=10;let tutHl=null,coachNext=null;
+function coach(text,opt){
+  const el=$("coach");if(!text){el.hidden=true;return}
+  $("coach-t").textContent=text;coachNext=opt&&opt.next||null;
+  $("coach-n").hidden=!coachNext;$("coach-n").textContent=opt&&opt.label||"次へ";$("coach-skip").hidden=!!(opt&&opt.last);el.hidden=false;
 }
-$("tut-go").addEventListener("click",()=>{$("tutpop").hidden=true;S.free=true;nextPack()});
+function hl(sel){if(tutHl)tutHl.classList.remove("tut-hl");tutHl=sel?document.querySelector(sel):null;if(tutHl)tutHl.classList.add("tut-hl")}
+function tutStep(n){
+  S.tut=n;save();document.body.classList.toggle("tut",n<TUT_END);$("tutpop").hidden=n!==1;
+  if(n===1){$("tab-card").click();coach("");hl("")}
+  else if(n===2){coach("まずはチェックインの練習です。下の「チェックイン」を押してください。");hl("#tab-checkin")}
+  else if(n===3){coach("試合の日にスタジアムに着いたら、このボタンを押します。押してみましょう。");hl("#tut-ck-go")}
+  else if(n===4){coach("");hl("")}
+  else if(n===5){coach("もらった名刺は「名刺帳」に入ります。下の「名刺帳」を押してください。");hl("#tab-book")}
+  else if(n===6){coach("集めた名刺がここに並びます。名刺を押すと大きく見られて、裏返すこともできます。",{next:()=>tutStep(7)});hl("")}
+  else if(n===7){coach("次は「図鑑」です。下の「図鑑」を押してください。");hl("#tab-zukan")}
+  else if(n===8){coach("名刺を集めたクラブに色が付きます。全60クラブを目指しましょう。下には、レアの種類と称号の一覧もあります。",{next:()=>tutStep(9)});hl("")}
+  else if(n===9){coach("練習はここまでです。試合の日に、スタジアムでチェックインしてください。",{next:()=>tutStep(TUT_END),label:"はじめる",last:true});hl("")}
+  else{coach("");hl("");renderAll();$("tab-card").click()}
+}
+// とばしても、はじめの1枚は名刺帳に入れておく
+async function tutSkip(){
+  tutStep(TUT_END);
+  try{const r=await sb.rpc("tutorial_card");if(!r.error&&r.data){while(syncing)await new Promise(ok=>setTimeout(ok,150));await sync(true)}}catch(e){}
+}
+$("tut-go").addEventListener("click",()=>tutStep(2));
+$("tut-skip0").addEventListener("click",tutSkip);
+$("coach-skip").addEventListener("click",tutSkip);
+$("coach-n").addEventListener("click",()=>{const f=coachNext;if(f)f()});
+$("tabs").addEventListener("click",e=>{
+  const b=e.target.closest("button[data-tab]");if(!b||!S.tut||S.tut>=TUT_END)return;
+  const t=b.dataset.tab;
+  if(S.tut===2&&t==="checkin")tutStep(3);else if(S.tut===5&&t==="book")tutStep(6);else if(S.tut===7&&t==="zukan")tutStep(8);
+});
+$("tut-ck-go").addEventListener("click",async()=>{
+  const b=$("tut-ck-go"),o=$("tut-ck-out");b.disabled=true;hl("");coach("");
+  o.innerHTML='<p class="searching">同じスタジアムにいるサポーターを探しています</p>';
+  try{
+    const r=await sb.rpc("tutorial_card");if(r.error||!r.data)throw new Error("none");
+    while(syncing)await new Promise(ok=>setTimeout(ok,150));
+    await sync(true);
+    if(!S.queue.length)throw new Error("none");
+    await new Promise(ok=>setTimeout(ok,900));
+    o.innerHTML="";b.disabled=false;tutStep(4);S.free=true;nextPack();
+  }catch(e){
+    o.innerHTML="";b.disabled=false;
+    if(BOOK().some(c=>c.idn===1))tutStep(5);else tutStep(TUT_END);   // 1番の名刺がないとき（自分が1番など）は練習を終える
+  }
+});
+// 途中で閉じたときは、開き直したところから続ける
+setTimeout(()=>{if(S.setup&&S.tut&&S.tut<TUT_END&&!document.body.classList.contains("tut"))tutStep(BOOK().some(c=>c.idn===1)?5:1)},2600);
 // Xでシェアする画像（1200×675）。色は画像として固定。
 const F={d:'"Dela Gothic One","Zen Kaku Gothic New",sans-serif',b:'"Zen Kaku Gothic New","Hiragino Sans",sans-serif',n:'"Barlow Condensed","Zen Kaku Gothic New",sans-serif'};
 function seasonLine(){
@@ -1641,7 +1692,7 @@ function buildBook(rows){
     const seen=S.seen[c.id],exNew=c.ex&&S.ex[c.id]!==c.ex;
     if(c.ex)S.ex[c.id]=c.ex;
     if(seen==null){
-      if(S.tut&&c.idn===1&&!c.match){c.sealed=true;if(!S.queue.includes(c.id))add.push(c.id)}   // はじめの1枚は袋に入れて渡す
+      if(S.tut&&S.tut<10&&c.idn===1&&!c.match){c.sealed=true;if(!S.queue.includes(c.id))add.push(c.id)}   // はじめの1枚は袋に入れて渡す
       else if(!c.match||first||c.ex){S.seen[c.id]=c.met}            // 直接交換だけの相手（と、端末を入れ直したときの手持ち）はそのまま名刺帳へ
       else{c.sealed=true;if(!S.queue.includes(c.id))add.push(c.id)}
     }else if(c.met>seen){
@@ -1736,7 +1787,7 @@ $("m-season-go").addEventListener("click",()=>{$("sumpop").hidden=false;showShar
 // 新しくとれた称号を1回だけ知らせる。S.got は「もう知らせた称号」。
 let gotNew=[];
 function checkTitles(){
-  if(!S.setup||PK||document.hidden)return;
+  if(!S.setup||PK||document.hidden||document.body.classList.contains("tut"))return;
   if([...document.querySelectorAll(".a2pop")].some(p=>!p.hidden&&getComputedStyle(p).display!=="none"))return;
   const e=earned(),seen=Array.isArray(S.got)?S.got:[],fresh=e.filter(t=>!seen.includes(t));
   if(!fresh.length)return;
@@ -1842,7 +1893,7 @@ $("about-top").addEventListener("click",()=>$("about-open").click());
 
 
 // 新しい版が公開されていたら、自動で読み込み直す（ホーム画面から開くと更新ボタンがないため）
-const APP_VER="20261004163346";
+const APP_VER="20261004164225";
 async function checkUpdate(){
   try{
     const r=await fetch("version.txt?t="+Date.now(),{cache:"no-store"});if(!r.ok)return;
