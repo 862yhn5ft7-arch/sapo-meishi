@@ -133,6 +133,13 @@ button,.btn{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 .pick-list button:active{background:var(--line)}
 #c-other{display:flex;flex-direction:column;gap:6px}
 #c-other:empty{display:none}
+.gotcard{align-items:center;text-align:center;animation:gotin .32s cubic-bezier(.2,1.4,.4,1)}
+.gotcard .got-k{font-size:13px;font-weight:700;letter-spacing:.2em;color:var(--flood)}
+.got-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px;align-items:center}
+.got-list li{display:flex;flex-direction:column;gap:5px;align-items:center}
+.got-list small{font-size:12px;color:var(--muted)}
+@keyframes gotin{from{transform:scale(.8);opacity:0}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.gotcard{animation:none}}
 .seg{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line);border-radius:4px;overflow:hidden}
 .seg button{font:inherit;font-weight:700;font-size:14px;padding:10px;border:0;background:var(--surface);color:var(--muted);cursor:pointer}
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
@@ -499,6 +506,9 @@ button.pick{cursor:pointer}
       <div class="row"><button type="button" class="btn flood" id="a2hs-go">追加する</button><button type="button" class="btn ghost" id="a2hs-x">あとで</button></div>
     </div>
   </div>
+  <div class="a2pop" id="gotpop" hidden role="dialog" aria-modal="true" aria-label="称号を獲得">
+    <div class="a2card gotcard"><span class="got-k">称号を獲得</span><ul class="got-list" id="got-list"></ul><div class="row"><button type="button" class="btn flood" id="got-use">名刺に付ける</button><button type="button" class="btn ghost" id="got-x">閉じる</button></div></div>
+  </div>
   <div class="a2pop" id="sumpop" hidden role="dialog" aria-modal="true" aria-label="今季のまとめ">
     <div class="a2card"><b>今季のまとめ</b><div id="sum-out"></div><div class="row"><button type="button" class="btn ghost" id="sum-x">閉じる</button></div></div>
   </div>
@@ -683,12 +693,39 @@ const TITLES=[
 ["顔が広い","名刺を50枚集める",()=>BOOK().length>=50],
 ["はじめまして","直接交換を1回する",()=>BOOK().some(c=>c.direct)],
 ["現地で名刺交換","スタジアムで直接交換を1回する",()=>BOOK().some(c=>c.direct&&c.place==="stadium")],
-["最初の5人","推しクラブで最初に名刺を作った5人に入る",()=>FIRST5.has(+S.me.idn)]];
+["最初の5人","推しクラブで最初に名刺を作った5人に入る",()=>FIRST5.has(+S.me.idn)],
+["傷心旅行","アウェイで負けを見る",()=>ownLog().some(l=>l.ha==="A"&&l.res==="L")],
+["泣きっ面に雨","雨の試合で負けを見る",()=>ownLog().some(l=>l.rain&&l.res==="L")],
+["ハシゴ観戦","同じ日に2試合チェックインする",()=>S.log.some((l,i)=>S.log.some((k,j)=>j>i&&k.date===l.date))],
+["疫病神","現地で3連敗する",()=>streak(l=>l.res==="L")>=3],
+["ゴールを知らない","現地で3試合つづけて無得点",()=>streak(l=>gf(l)===0)>=3],
+["修行僧","3点差以上の負けを見る",()=>ownLog().some(l=>l.res==="L"&&ga(l)-gf(l)>=3)],
+["ドロー沼","引き分けを3回見る",()=>ownLog().filter(l=>l.res==="D").length>=3],
+["持ってる人","現地で3連勝する",()=>streak(l=>l.res==="W")>=3],
+["お祭り騒ぎ","3点差以上の勝ちを見る",()=>ownLog().some(l=>l.res==="W"&&gf(l)-ga(l)>=3)],
+["浮気性","ほかのクラブの試合に3回チェックインする",()=>S.log.filter(l=>l.ha==="N").length>=3],
+["有給の使い手","平日ナイターに3回チェックインする",()=>S.log.filter(l=>l.wd).length>=3],
+["雨男・雨女","雨の試合に3回チェックインする",()=>S.log.filter(l=>l.rain).length>=3],
+["新体制の目撃者","新しい監督の初戦に立ち会う",()=>tagged("new")],
+["それでも来る人","現地で5連敗する",()=>streak(l=>l.res==="L")>=5],
+["不敗神話","現地で5試合つづけて負けなし",()=>streak(l=>l.res==="W"||l.res==="D")>=5],
+["ウノゼロ職人","1-0の勝ちを3回見る",()=>ownLog().filter(l=>l.res==="W"&&gf(l)===1&&ga(l)===0).length>=3],
+["解任立会人","監督が解任される前の最後の試合に立ち会う",()=>tagged("sack")],
+["歴史の証人","昇格が決まった試合に立ち会う",()=>tagged("promo")],
+["地獄まで一緒","推しクラブの降格が決まった試合に立ち会う",()=>tagged("down",true)],
+["戴冠式の参列者","優勝が決まった試合に立ち会う",()=>tagged("champ")],
+["住んでる","今季のホームのリーグ戦に全部チェックインする",()=>{const all=schedule(S.me.club).filter(m=>m.comp==="リーグ"&&m.ha==="H").length;return all>0&&S.log.filter(l=>(l.season||SEASON)===SEASON&&(l.comp||"リーグ")==="リーグ"&&l.ha==="H").length>=all}]];
+// 面白い称号の材料: 推しクラブの試合で結果が出ているもの（古い順）、得点・失点、続いた回数、試合に付いた印
+const ownLog=()=>S.log.filter(l=>l.ha!=="N"&&l.res);
+const gf=l=>{const v=parseInt(String(l.score||"").split("-")[0],10);return isNaN(v)?-1:v},ga=l=>{const v=parseInt(String(l.score||"").split("-")[1],10);return isNaN(v)?-1:v};
+const streak=f=>{let best=0,cur=0;ownLog().forEach(l=>{cur=f(l)?cur+1:0;if(cur>best)best=cur});return best};
+// 印は「種類:クラブ」をカンマ区切りで試合に付ける（例 sack:徳島）。運営が週1の更新で入れる。
+const tagged=(kind,mineOnly)=>S.log.some(l=>String(l.tags||"").split(",").some(t=>{const [k,c]=t.trim().split(":");return k===kind&&(!mineOnly||(c===S.me.club&&l.ha!=="N"))}));
 // 会員番号。本番ではサーバーが登録順に振る。試作ではサーバーがないので、始めた時刻が早いほど小さい番号にしている。
 const ID_EPOCH=Date.UTC(2026,9,3,15,0),idText=n=>"No."+String(n||0).padStart(6,"0");
 const newId=()=>Math.max(1,Math.floor((Date.now()-ID_EPOCH)/60000)+1);
 // プレートの格: 1 銅、2 銀、3 金、4 黒金
-const TIER={"はじめの一歩":1,"遠征デビュー":1,"はじめまして":1,"雨天決行":2,"平日休みの達人":2,"通い慣れ":2,"顔なじみ":2,"現地で名刺交換":2,"三階級制覇":3,"全国に知り合い":3,"レアハンター":3,"アウェイの鬼":4,"顔が広い":4,"最初の5人":4};
+const TIER={"はじめの一歩":1,"遠征デビュー":1,"はじめまして":1,"雨天決行":2,"平日休みの達人":2,"通い慣れ":2,"顔なじみ":2,"現地で名刺交換":2,"三階級制覇":3,"全国に知り合い":3,"レアハンター":3,"アウェイの鬼":4,"顔が広い":4,"最初の5人":4,"傷心旅行":1,"泣きっ面に雨":1,"ハシゴ観戦":1,"疫病神":2,"ゴールを知らない":2,"修行僧":2,"ドロー沼":2,"持ってる人":2,"お祭り騒ぎ":2,"浮気性":2,"有給の使い手":2,"雨男・雨女":2,"新体制の目撃者":2,"それでも来る人":3,"不敗神話":3,"ウノゼロ職人":3,"解任立会人":3,"歴史の証人":4,"地獄まで一緒":4,"戴冠式の参列者":4,"住んでる":4};
 const TIER_NAME=["","銅","銀","金","黒金"];
 const plateHTML=(name,sm)=>'<span class="plate t'+(TIER[name]||1)+(sm?' sm':'')+'"><i></i><b>'+esc(name)+'</b><i></i></span>';
 const earned=()=>TITLES.filter(t=>t[2]()).map(t=>t[0]);
@@ -1593,7 +1630,7 @@ function buildLog(rows){
   S.log=rows.map(r=>{
     const m=r.matches||MATCHES.find(x=>x.id===r.match_id);if(!m)return null;
     const ha=m.home===r.club?"H":m.away===r.club?"A":"N",done=m.score_home!=null&&m.score_away!=null,a=ha!=="A"?m.score_home:m.score_away,b=ha!=="A"?m.score_away:m.score_home;
-    return {key:m.id,at:r.created_at,season:m.season,comp:m.comp,res:done&&ha!=="N"?(a>b?"W":a<b?"L":"D"):"",score:done?a+"-"+b:"",date:fmt(new Date(r.created_at)),match:m.home+" vs "+m.away,ha,n:S.cnt[m.id]==null?null:S.cnt[m.id],rain:!!m.rain||!!r.rain,wd:!!m.weeknight};
+    return {key:m.id,at:r.created_at,season:m.season,comp:m.comp,res:done&&ha!=="N"?(a>b?"W":a<b?"L":"D"):"",score:done?a+"-"+b:"",date:fmt(new Date(r.created_at)),match:m.home+" vs "+m.away,ha,n:S.cnt[m.id]==null?null:S.cnt[m.id],rain:!!m.rain||!!r.rain,wd:!!m.weeknight,tags:m.tags||""};
   }).filter(Boolean).sort((x,y)=>x.at<y.at?-1:1);
 }
 let syncing=false,lastSync=0,matchesAt=0;
@@ -1667,6 +1704,23 @@ async function loadRank(){
   try{const r=await sb.rpc("club_ranking");if(!r.error){RANK={at:Date.now(),rows:r.data||[]};if(curTab==="zukan")renderZukan()}}catch(e){}
 }
 $("m-season-go").addEventListener("click",()=>{$("sumpop").hidden=false;showShare($("sum-out"),{kind:"season"})});
+// 新しくとれた称号を1回だけ知らせる。S.got は「もう知らせた称号」。
+let gotNew=[];
+function checkTitles(){
+  if(!S.setup||PK||document.hidden)return;
+  if([...document.querySelectorAll(".a2pop")].some(p=>!p.hidden&&getComputedStyle(p).display!=="none"))return;
+  const e=earned(),seen=Array.isArray(S.got)?S.got:[],fresh=e.filter(t=>!seen.includes(t));
+  if(!fresh.length)return;
+  if(S.me.title===undefined)S.me.title=(Array.isArray(S.got)?e.filter(t=>seen.includes(t)).pop():e[e.length-1])||""; // これまで自動で付いていた称号はそのままにする
+  S.got=seen.concat(fresh);save();
+  gotNew=fresh.slice().sort((a,b)=>(TIER[a]||1)-(TIER[b]||1));
+  $("got-list").innerHTML=gotNew.slice().reverse().map(t=>{const d=TITLES.find(x=>x[0]===t);return '<li>'+plateHTML(t)+'<small>'+esc(d?d[1]:"")+'</small></li>'}).join("");
+  $("got-use").textContent=gotNew.length>1?"「"+gotNew[gotNew.length-1]+"」を名刺に付ける":"名刺に付ける";
+  $("gotpop").hidden=false;try{if(navigator.vibrate)navigator.vibrate([30,60,30])}catch(err){}
+}
+$("got-x").addEventListener("click",()=>{$("gotpop").hidden=true;renderMine()});
+$("got-use").addEventListener("click",()=>{const t=gotNew[gotNew.length-1];if(t){S.me.title=t;save()}$("gotpop").hidden=true;renderMine();fillForm&&fillForm()});
+setInterval(checkTitles,1500);
 $("sum-x").addEventListener("click",()=>{$("sumpop").hidden=true;$("sum-out").innerHTML=""});
 $("sumpop").addEventListener("click",e=>{if(e.target===$("sumpop"))$("sum-x").click()});
 // 押した感: 押した瞬間に少し沈む（iPhoneは指を離すのが速いと見えないので、少しのあいだ残す）
@@ -1759,7 +1813,7 @@ $("about-top").addEventListener("click",()=>$("about-open").click());
 
 
 // 新しい版が公開されていたら、自動で読み込み直す（ホーム画面から開くと更新ボタンがないため）
-const APP_VER="20261004152811";
+const APP_VER="20261004160136";
 async function checkUpdate(){
   try{
     const r=await fetch("version.txt?t="+Date.now(),{cache:"no-store"});if(!r.ok)return;
