@@ -507,14 +507,16 @@ button.pick{cursor:pointer}
       </div>
       <div id="m-share"></div>
       <div class="xpanel" id="x-panel" hidden>
-        <h2>直接交換</h2>
-        <p class="note">名刺を裏返すと、交換用のQRが出ます。相手のスマホのカメラで読んでもらうと、2人の名刺帳にお互いの名刺が入ります。2人とも今日の試合にチェックイン済みなら「スタジアムで交換」、それ以外は「街で交換」です。QRは1分ごとに新しくなります。</p>
+        <h2 hidden>QRで交換</h2>
+        <p class="note" hidden>名刺の裏に交換用のQRが出ています。相手のスマホのカメラで読んでもらうと、2人の名刺帳にお互いの名刺が入ります。2人とも今日の試合にチェックイン済みなら「スタジアムで交換」、それ以外は「街で交換」です。QRは1分ごとに新しくなります。</p>
+        <div hidden>
         <label for="x-code">自分の交換リンク（1分で切れます）</label>
         <textarea id="x-code" rows="3" readonly></textarea>
         <div class="row"><button type="button" class="btn ghost" id="x-copy">リンクをコピー</button></div>
         <label for="x-in">相手の交換リンク</label>
         <textarea id="x-in" rows="3" placeholder="QRが読めないときは、相手のリンクをここに貼り付け" autocapitalize="off" autocomplete="off" spellcheck="false"></textarea>
         <div class="row"><button type="button" class="btn" id="x-go">交換する</button></div>
+        </div>
         <div id="x-out"></div>
       </div>
     </div>
@@ -1103,7 +1105,7 @@ setInterval(()=>{
   const f=$("flip"),showing=(f&&f.classList.contains("show-back"))||!$("x-panel").hidden;
   if(showing&&!xLink())refreshToken();
 },1000);
-const X_ERR={bad_token:"このリンクは使えません。相手にもう一度、名刺の裏のQRを出してもらってください。",expired_token:"QRの期限が切れています。相手にもう一度、名刺の裏のQRを出してもらってください。",own_token:"これは自分のリンクです。相手のQRを読むか、相手のリンクを貼り付けてください。",no_profile:"先に名刺を作ってください。"};
+const X_ERR={bad_token:"このQRは使えません。相手にもう一度、名刺の裏のQRを出してもらってください。",expired_token:"QRの期限が切れています。相手にもう一度、名刺の裏のQRを出してもらってください。",own_token:"これは自分のQRです。相手のQRを読んでください。",no_profile:"先に名刺を作ってください。"};
 async function redeem(token){
   $("tab-card").click();editMode(false);$("x-panel").hidden=false;$("x-code").value=xLink();
   $("x-out").innerHTML='<p class="note">交換しています</p>';
@@ -1134,7 +1136,7 @@ function openExchange(){
   $("x-panel").hidden=false;$("x-out").innerHTML="";
   if(!xLink())refreshToken();
 }
-$("x-open").addEventListener("click",()=>{if($("x-panel").hidden)openExchange();else $("x-panel").hidden=true});
+$("x-open").addEventListener("click",()=>{$("x-panel").hidden=true;$("x-out").innerHTML="";HERO.ang+=180;HF.animateTo(HERO.ang);if(!xLink())refreshToken()});
 $("x-copy").addEventListener("click",()=>{
   const t=$("x-code"),ok=()=>{$("x-copy").textContent="コピーしました";setTimeout(()=>{$("x-copy").textContent="リンクをコピー"},1800)};
   const fb=()=>{try{t.focus();t.select()}catch(e){}$("x-copy").textContent="選択しました。長押しでコピー"};
@@ -1695,7 +1697,7 @@ $("about-top").addEventListener("click",()=>$("about-open").click());
 
 
 // 新しい版が公開されていたら、自動で読み込み直す（ホーム画面から開くと更新ボタンがないため）
-const APP_VER="20261004150434";
+const APP_VER="20261004151907";
 async function checkUpdate(){
   try{
     const r=await fetch("version.txt?t="+Date.now(),{cache:"no-store"});if(!r.ok)return;
