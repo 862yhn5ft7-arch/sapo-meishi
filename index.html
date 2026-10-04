@@ -34,6 +34,13 @@
 .xfer summary{font-size:13px;font-weight:700;cursor:pointer;padding:6px 0}
 .xfer[open]{display:flex;flex-direction:column;gap:10px}
 .tip{display:flex;gap:10px;align-items:flex-start;justify-content:space-between;margin:0 0 12px;padding:10px 12px;border:1px solid var(--line);border-radius:6px;background:var(--surface);font-size:13px}
+#p-setup:not([hidden])~#a2hs{display:none!important}
+.tip.a2{border-color:var(--flood);border-width:2px}
+.tip .a2b{display:flex;flex-direction:column;gap:4px}
+.tip .a2b b{font-size:14px}
+.tip ol{margin:4px 0 0;padding-left:1.4em;display:flex;flex-direction:column;gap:3px}
+.tip ol li.on{font-weight:700}
+.tip button.go{background:var(--flood);color:var(--on-flood);border-color:var(--flood)}
 .tip .tipb{display:flex;flex-direction:column;gap:6px;flex:none}
 .tip button{flex:none;font:inherit;font-size:12px;font-weight:700;background:none;border:1px solid var(--line);border-radius:4px;color:var(--ink);padding:4px 8px;cursor:pointer}
 .today .now{display:block;margin-top:6px;font-size:13px;font-weight:700;color:var(--ink)}
@@ -446,6 +453,7 @@ button.pick{cursor:pointer}
     </details>
   </section>
 
+  <div class="tip a2" id="a2hs" hidden><div class="a2b"><b>ホーム画面に追加してください</b><span id="a2hs-t"></span><ol id="a2hs-steps"></ol></div><span class="tipb"><button type="button" class="go" id="a2hs-go">追加する</button><button type="button" id="a2hs-x">あとで</button></span></div>
   <div class="tabs" role="tablist" id="tabs">
     <button role="tab" id="tab-card" data-tab="card" aria-selected="true">名刺</button>
     <button role="tab" id="tab-checkin" data-tab="checkin" aria-selected="false">チェックイン</button>
@@ -455,7 +463,6 @@ button.pick{cursor:pointer}
 
   <section id="p-card">
     <div id="card-view">
-      <div class="tip" id="a2hs" hidden><span id="a2hs-t"></span><span class="tipb"><button type="button" id="a2hs-go">追加する</button><button type="button" id="a2hs-x">閉じる</button></span></div>
       <div class="stage" id="stage"></div>
       <div class="row center">
         <button type="button" class="btn" id="e-open">名刺を編集する</button>
@@ -1553,7 +1560,7 @@ async function boot(){
     }
     try{localStorage.setItem(KEY,packS())}catch(e){}
     fillForm();renderAll();renderSetup();applySetup();await phLoad();
-    if(S.setup){const keepMsg=$("net").textContent;await sync();if(keepMsg&&keepMsg.includes("呼び戻"))setTimeout(()=>netMsg(keepMsg),1600);ensureKey();if(PENDING){const t=PENDING;PENDING="";redeem(t)}}
+    if(S.setup){const keepMsg=$("net").textContent;await sync();if(!PENDING&&matchToday())$("tab-checkin").click();if(keepMsg&&keepMsg.includes("呼び戻"))setTimeout(()=>netMsg(keepMsg),1600);ensureKey();if(PENDING){const t=PENDING;PENDING="";redeem(t)}}
     else if(PENDING)netMsg("名刺を作ると、そのまま交換できます。");
   }catch(e){netMsg("通信できませんでした。電波のよいところで開き直してください。")}
 }
@@ -1569,21 +1576,28 @@ async function loadRank(){
 $("m-season-go").addEventListener("click",()=>showShare($("m-share"),{kind:"season"}));
 // ホーム画面に追加の案内
 (()=>{
-  let seen=false;try{seen=!!localStorage.getItem(KEY+"-a2hs")}catch(e){}
+  const day=isoOf(new Date());let seen=false;try{seen=localStorage.getItem(KEY+"-a2hs")===day}catch(e){}
   const alone=(window.matchMedia&&window.matchMedia("(display-mode: standalone)").matches)||window.navigator.standalone===true;
   if(seen||alone)return;
   const ios=/iPhone|iPad|iPod/.test(navigator.userAgent);
-  const how=ios?"下の共有ボタン（四角から矢印）→「ホーム画面に追加」":"ブラウザのメニュー →「ホーム画面に追加」";
-  $("a2hs-t").textContent="ホーム画面に追加しておくと、名刺が消えにくくなり、消えてもアイコンから開くだけで元に戻ります。";
+  // XやLINEなどのアプリの中で開いている場合は、ホーム画面に追加できないので、先にSafariやChromeで開いてもらう
+  const inApp=/Twitter|Line\/|Instagram|FBAN|FBAV|FB_IAB/.test(navigator.userAgent);
+  const steps=inApp?["右上か右下のメニュー（… や 共有のマーク）を押す",(ios?"「Safariで開く」":"「ブラウザで開く」")+"を選ぶ","開いた先で、もう一度この案内の「追加する」を押す"]
+    :ios?["右の「追加する」を押す","画面の下にある共有ボタン（四角から上向きの矢印）を押す","「ホーム画面に追加」を選ぶ","右上の「追加」を押す"]
+    :["右の「追加する」を押す","ブラウザの右上のメニュー（︙）を押す","「ホーム画面に追加」を選ぶ"];
+  $("a2hs-t").textContent=inApp?"いまはXやLINEなどのアプリの中で開いています。このままだと名刺が消えやすいので、先にブラウザで開いてください。":"名刺が消えにくくなり、消えてもアイコンから開くだけで元に戻ります。アプリのように開けます。";
+  $("a2hs-steps").innerHTML=steps.map(x=>"<li>"+x+"</li>").join("");
+  if(inApp)$("a2hs-go").hidden=true;
   $("a2hs-go").addEventListener("click",async()=>{
     const k=await ensureKey();
     if(!k){$("a2hs-t").textContent="準備できませんでした。電波のよいところで、もう一度押してください。";return}
     try{history.replaceState(null,"",location.pathname+"?k="+k)}catch(e){}
-    $("a2hs-t").textContent="準備できました。このまま "+how+" を押してください。終わったら「閉じる」。この画面のアドレスは合鍵なので、人には送らないでください。";
-    $("a2hs-go").hidden=true;
+    $("a2hs-t").textContent="準備できました。続けて、下の2番からの手順で追加してください。いまの画面のアドレスは合鍵なので、人には送らないでください。";
+    const li=$("a2hs-steps").children;if(li[0])li[0].style.textDecoration="line-through";if(li[1])li[1].className="on";
+    $("a2hs-go").hidden=true;$("a2hs-x").textContent="終わった";
   });
   $("a2hs").hidden=false;
-  $("a2hs-x").addEventListener("click",()=>{$("a2hs").hidden=true;try{history.replaceState(null,"",location.pathname)}catch(e){};try{localStorage.setItem(KEY+"-a2hs","1")}catch(e){}});
+  $("a2hs-x").addEventListener("click",()=>{$("a2hs").hidden=true;try{history.replaceState(null,"",location.pathname)}catch(e){};try{localStorage.setItem(KEY+"-a2hs",day)}catch(e){}});
 })();
 // 引き継ぎ
 const codeFmt=c=>String(c||"").replace(/(.{4})(?=.)/g,"$1-");
