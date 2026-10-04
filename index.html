@@ -5,11 +5,11 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#14202B">
 <meta name="description" content="同じ試合にいたサポーターと、名刺が自動で交換される。非公式のファンアプリ。">
-<meta property="og:title" content="サポ名刺すれちがい">
+<meta property="og:title" content="サポ名刺">
 <meta property="og:description" content="スタジアムに行くと、名刺が増える。">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="サポ名刺">
-<title>サポ名刺すれちがい</title>
+<title>サポ名刺</title>
 <link rel="icon" href="icon.png">
 <link rel="apple-touch-icon" href="icon.png">
 <meta property="og:image" content="https://sapo-meishi.com/og.png">
@@ -474,7 +474,7 @@ button.pick{cursor:pointer}
 <body>
 <div class="wrap">
   <header>
-    <div class="hbar"><h1>サポ名刺すれちがい</h1><button type="button" class="ibtn" id="about-top" aria-label="このアプリについて・利用上の注意">i</button></div>
+    <div class="hbar"><h1>サポ名刺</h1><button type="button" class="ibtn" id="about-top" aria-label="このアプリについて・利用上の注意">i</button></div>
     <p class="lede">同じ試合にいたサポーターと、名刺が自動で交換される。チェックインできるのは試合の日だけ。非公式のファンアプリです。</p>
     <p id="net" hidden></p>
   </header>
@@ -611,7 +611,7 @@ button.pick{cursor:pointer}
 <div class="about" id="about" hidden role="dialog" aria-modal="true" aria-label="このアプリについて">
   <div class="in">
     <div class="row between"><h2>このアプリについて</h2><button type="button" class="btn ghost" id="about-close">閉じる</button></div>
-    <p>「サポ名刺すれちがい」は、同じ試合にチェックインしたサポーターどうしで、名刺が自動で交換されるアプリです。</p>
+    <p>「サポ名刺」は、同じ試合にチェックインしたサポーターどうしで、名刺が自動で交換されるアプリです。</p>
     <h3>非公式のアプリです</h3>
     <p>個人が作っているファンアプリで、Jリーグや各クラブとは関係がありません。クラブのエンブレムや選手の写真は使っていません。試合日程は、Jリーグと各クラブの発表をもとに運営が入れています。</p>
     <h3>預かる情報</h3>
@@ -1484,11 +1484,11 @@ async function shareImage(d){
   const big=d.kind==="match"?String(d.n):String(games),tail=d.kind==="match"?"人とすれちがいました":"試合 現地でチェックイン";
   const top=d.kind==="match"?d.line:d.kind==="season"?SEASON+"シーズンのまとめ":SEASON+"シーズンのサポ名刺",sub=d.kind==="match"?"はじめまして "+(d.n-d.re)+"　再会 "+d.re+"　レア "+d.rare:d.kind==="season"?seasonLine():"リーグ戦・ルヴァンカップ・天皇杯";
   const who=(me.nick||"名無しのサポ"),line2=me.club+"サポ　今季の現地 "+games+"試合"+(title?"　称号 "+title:"");
-  try{await Promise.all([document.fonts.load("400 56px "+F.d,tail+who+"サポ名刺すれちがい"),document.fonts.load("700 30px "+F.b,top+sub+line2+"非公式のファンアプリ"),document.fonts.load("600 180px "+F.n,big)])}catch(e){}
+  try{await Promise.all([document.fonts.load("400 56px "+F.d,tail+who+"サポ名刺"),document.fonts.load("700 30px "+F.b,top+sub+line2+"非公式のファンアプリ"),document.fonts.load("600 180px "+F.n,big)])}catch(e){}
   g.fillStyle="#14202B";g.fillRect(0,0,W,H);
   for(let y=0;y<H;y+=66){g.fillStyle=me.color;g.fillRect(0,y,44,48);g.globalAlpha=.45;g.fillRect(0,y+48,44,18);g.globalAlpha=1}
   g.textBaseline="alphabetic";
-  g.fillStyle="#94A2AF";g.font="700 28px "+F.b;g.fillText("サポ名刺すれちがい",96,84);
+  g.fillStyle="#94A2AF";g.font="700 28px "+F.b;g.fillText("サポ名刺",96,84);
   g.fillStyle="#E9EEF2";g.font="700 34px "+F.b;g.fillText(top,96,150,W-150);
   g.fillStyle="#FFD23F";g.font="600 190px "+F.n;g.fillText(big,96,330);
   const bw=g.measureText(big).width;
@@ -1506,7 +1506,7 @@ async function shareImage(d){
 }
 function showShare(el,d){
   el.innerHTML='<p class="note">画像を作っています</p>';
-  const text=(d.kind==="match"?"今日は"+d.n+"人とすれちがいました（"+d.line.split("　")[0]+"）":d.kind==="season"?"今季は"+S.log.filter(l=>(l.season||SEASON)===SEASON).length+"試合に行って、"+BOOK().length+"人とすれちがいました":S.me.club+"サポの名刺を作りました")+"\n#サポ名刺すれちがい";
+  const text=(d.kind==="match"?"今日は"+d.n+"人とすれちがいました（"+d.line.split("　")[0]+"）":d.kind==="season"?"今季は"+S.log.filter(l=>(l.season||SEASON)===SEASON).length+"試合に行って、"+BOOK().length+"人とすれちがいました":S.me.club+"サポの名刺を作りました")+"\n#サポ名刺";
   shareImage(d).then(url=>{
     el.innerHTML='<div class="share"><img src="'+url+'" alt="今季のまとめ"><p class="note">画像を長押し（パソコンは右クリック）すると保存できます。</p></div>';
   }).catch(()=>{el.innerHTML='<p class="note">画像を作れませんでした。もう一度押してください。</p>'});
@@ -1764,8 +1764,8 @@ $("a-code-go").addEventListener("click",async()=>{
 $("a-link-go").addEventListener("click",async()=>{
   const o=$("a-code-out"),k=await ensureKey();
   if(!k){o.innerHTML='<p class="xmsg">'+(S.setup?"用意できませんでした。電波のよいところで、もう一度お試しください。":"先に名刺を作ってください。")+'</p>';return}
-  const url=location.origin+location.pathname+"?k="+k,text="サポ名刺すれちがい 復元リンク（自分用。人に送らない）";
-  try{if(navigator.share){await navigator.share({title:"サポ名刺すれちがい",text,url});o.innerHTML='<p class="note">送った先のリンクを開くと、名刺が戻ります。</p>';return}}catch(e){if(e&&e.name==="AbortError")return}
+  const url=location.origin+location.pathname+"?k="+k,text="サポ名刺 復元リンク（自分用。人に送らない）";
+  try{if(navigator.share){await navigator.share({title:"サポ名刺",text,url});o.innerHTML='<p class="note">送った先のリンクを開くと、名刺が戻ります。</p>';return}}catch(e){if(e&&e.name==="AbortError")return}
   try{await navigator.clipboard.writeText(url);o.innerHTML='<p class="note">復元リンクをコピーしました。自分あてのメモなどに貼って残してください。</p>'}
   catch(e){o.innerHTML='<p class="note">このリンクを、自分あてのメモなどに残してください。</p><p class="code" style="font-size:13px">'+esc(url)+'</p>'}
 });
@@ -1813,7 +1813,7 @@ $("about-top").addEventListener("click",()=>$("about-open").click());
 
 
 // 新しい版が公開されていたら、自動で読み込み直す（ホーム画面から開くと更新ボタンがないため）
-const APP_VER="20261004160136";
+const APP_VER="20261004161021";
 async function checkUpdate(){
   try{
     const r=await fetch("version.txt?t="+Date.now(),{cache:"no-store"});if(!r.ok)return;
