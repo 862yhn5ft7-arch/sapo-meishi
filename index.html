@@ -123,6 +123,16 @@ input[type=color]{width:100%;height:42px;border:1px solid var(--line);border-rad
 .btn.flood{background:var(--flood);color:var(--on-flood)}
 .btn.ghost{background:none;color:var(--muted);border:1px solid var(--line);font-size:13px;padding:8px 12px}
 .btn:disabled{opacity:.55;cursor:default}
+button,.btn{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.btn{transition:transform .09s ease,filter .09s ease,background-color .09s ease}
+.btn:active:not(:disabled),.btn.tap:not(:disabled){transform:scale(.93);filter:brightness(.82)}
+.btn.ghost:active:not(:disabled),.btn.ghost.tap:not(:disabled){background:var(--line);color:var(--ink);filter:none}
+.pick-list{display:flex;flex-direction:column;gap:6px;margin:0;padding:0;list-style:none}
+.pick-list button{width:100%;text-align:left;font:inherit;font-size:14px;font-weight:700;color:var(--ink);background:none;border:1px solid var(--line);border-radius:6px;padding:10px 12px;cursor:pointer;display:flex;flex-direction:column;gap:2px}
+.pick-list button small{font-size:12px;font-weight:400;color:var(--muted)}
+.pick-list button:active{background:var(--line)}
+#c-other{display:flex;flex-direction:column;gap:6px}
+#c-other:empty{display:none}
 .seg{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line);border-radius:4px;overflow:hidden}
 .seg button{font:inherit;font-weight:700;font-size:14px;padding:10px;border:0;background:var(--surface);color:var(--muted);cursor:pointer}
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
@@ -489,6 +499,12 @@ button.pick{cursor:pointer}
       <div class="row"><button type="button" class="btn flood" id="a2hs-go">追加する</button><button type="button" class="btn ghost" id="a2hs-x">あとで</button></div>
     </div>
   </div>
+  <div class="a2pop" id="sumpop" hidden role="dialog" aria-modal="true" aria-label="今季のまとめ">
+    <div class="a2card"><b>今季のまとめ</b><div id="sum-out"></div><div class="row"><button type="button" class="btn ghost" id="sum-x">閉じる</button></div></div>
+  </div>
+  <div class="a2pop" id="pickpop" hidden role="dialog" aria-modal="true" aria-label="試合を選ぶ">
+    <div class="a2card"><b>今日の試合</b><span>見に来ている試合を選んでください。</span><ul class="pick-list" id="pick-list"></ul><div class="row"><button type="button" class="btn ghost" id="pick-x">やめる</button></div></div>
+  </div>
   <div class="tabs" role="tablist" id="tabs">
     <button role="tab" id="tab-card" data-tab="card" aria-selected="true">名刺</button>
     <button role="tab" id="tab-checkin" data-tab="checkin" aria-selected="false">チェックイン</button>
@@ -549,6 +565,7 @@ button.pick{cursor:pointer}
     <h2>今日の試合にチェックイン</h2>
     <div id="c-today"></div>
     <button class="btn flood" id="c-go">スタジアムに着いた</button>
+    <div id="c-other"></div>
     <div id="c-queue"></div>
     <div id="c-out"></div>
     <h2>次の試合</h2>
@@ -640,7 +657,7 @@ const clubOpts=ex=>DIVS.map(d=>'<optgroup label="'+d+'">'+LEAGUE[d].filter(c=>c[
 const STYLES=["ゴール裏で跳ぶ","ゴール裏で声出し","バクスタでじっくり","メインで戦術を見る","家族でのんびり","スタグル優先"];
 const NICKS=["ゴール裏の住人","遠征は寝台派","雨男サポ","スタグル番長","太鼓のとなり","年チケ12年目","バクスタの主","声枯れ担当","ゲーフラ職人","平日は社畜","子連れ参戦","アウェイ皆勤","終電ダッシュ","タオマフ収集家","逆転信者","PK見れない人","前泊の達人","コンコース徘徊","選手バス待ち","開門3時間前","ビール片手に","今日も最前列"];
 const WORDS=["勝っても負けても唐揚げ","アウェイ全通が今年の目標","後半40分からが本番","雨の日ほど燃える","まずは残留、話はそれから","遠征先の銭湯を巡ってます","スタメン発表が一番緊張する","引き分けは勝ちに数えない派","ユニは毎年買う派","セットプレーで祈る係","帰りの電車で反省会","選手入場で毎回泣く"];
-const RARES=[["遠征組","アウェイから来ていたサポ"],["常連","今季20試合以上チェックインしている人"],["雨の日","雨の試合で会った"],["平日ナイター","平日の夜に会った"],["開幕戦","開幕戦で会った"],["最終節","最終節で会った"],["初期メンバー","会員番号が100番以内の人"],["スタジアムで交換","2人とも同じ日にチェックインして、その場で直接交換した"]];
+const RARES=[["遠征組","アウェイから来ていたサポ"],["常連","今季20試合以上チェックインしている人"],["雨の日","雨の試合で会った"],["平日ナイター","平日の夜に会った"],["開幕戦","開幕戦で会った"],["最終節","最終節で会った"],["初期メンバー","会員番号が100番以内の人"],["最初の5人","そのクラブで最初に名刺を作った5人"],["スタジアムで交換","2人とも同じ日にチェックインして、その場で直接交換した"]];
 const SEASON="2026/27",COMPS=["リーグ","ルヴァンカップ","天皇杯"];
 const KEY="sapo-meishi-live-1",OLD_KEY="sapo-meishi-none";
 const $=id=>document.getElementById(id);
@@ -651,6 +668,7 @@ function onColor(hex){const n=parseInt(hex.slice(1),16),r=n>>16&255,g=n>>8&255,b
 function fmt(d){return d.getFullYear()+"."+String(d.getMonth()+1).padStart(2,"0")+"."+String(d.getDate()).padStart(2,"0")}
 
 let S;
+var FIRST5=new Set();
 const TITLES=[
 ["はじめの一歩","初めてチェックインする",()=>S.log.length>=1],
 ["遠征デビュー","アウェイで1試合チェックインする",()=>S.log.filter(l=>l.ha==="A").length>=1],
@@ -664,12 +682,13 @@ const TITLES=[
 ["レアハンター","レア名刺を10枚集める",()=>BOOK().filter(c=>rareOf(c).length).length>=10],
 ["顔が広い","名刺を50枚集める",()=>BOOK().length>=50],
 ["はじめまして","直接交換を1回する",()=>BOOK().some(c=>c.direct)],
-["現地で名刺交換","スタジアムで直接交換を1回する",()=>BOOK().some(c=>c.direct&&c.place==="stadium")]];
+["現地で名刺交換","スタジアムで直接交換を1回する",()=>BOOK().some(c=>c.direct&&c.place==="stadium")],
+["最初の5人","推しクラブで最初に名刺を作った5人に入る",()=>FIRST5.has(+S.me.idn)]];
 // 会員番号。本番ではサーバーが登録順に振る。試作ではサーバーがないので、始めた時刻が早いほど小さい番号にしている。
 const ID_EPOCH=Date.UTC(2026,9,3,15,0),idText=n=>"No."+String(n||0).padStart(6,"0");
 const newId=()=>Math.max(1,Math.floor((Date.now()-ID_EPOCH)/60000)+1);
 // プレートの格: 1 銅、2 銀、3 金、4 黒金
-const TIER={"はじめの一歩":1,"遠征デビュー":1,"はじめまして":1,"雨天決行":2,"平日休みの達人":2,"通い慣れ":2,"顔なじみ":2,"現地で名刺交換":2,"三階級制覇":3,"全国に知り合い":3,"レアハンター":3,"アウェイの鬼":4,"顔が広い":4};
+const TIER={"はじめの一歩":1,"遠征デビュー":1,"はじめまして":1,"雨天決行":2,"平日休みの達人":2,"通い慣れ":2,"顔なじみ":2,"現地で名刺交換":2,"三階級制覇":3,"全国に知り合い":3,"レアハンター":3,"アウェイの鬼":4,"顔が広い":4,"最初の5人":4};
 const TIER_NAME=["","銅","銀","金","黒金"];
 const plateHTML=(name,sm)=>'<span class="plate t'+(TIER[name]||1)+(sm?' sm':'')+'"><i></i><b>'+esc(name)+'</b><i></i></span>';
 const earned=()=>TITLES.filter(t=>t[2]()).map(t=>t[0]);
@@ -677,7 +696,7 @@ function myTitle(){const e=earned();if(S.me.title===undefined)return e[e.length-
 
 function rareOf(c){
   const trav=c.trav!==undefined?c.trav:(String(c.match||"").split(" vs ")[1]===c.club);
-  const r=[];if(trav)r.push("遠征組");if(c.games>=20)r.push("常連");if(c.rain)r.push("雨の日");if(c.wd)r.push("平日ナイター");if(c.op)r.push("開幕戦");if(c.fin)r.push("最終節");if(c.idn>0&&c.idn<=100)r.push("初期メンバー");if(c.direct&&c.place==="stadium")r.push("スタジアムで交換");return r;
+  const r=[];if(trav)r.push("遠征組");if(c.games>=20)r.push("常連");if(c.rain)r.push("雨の日");if(c.wd)r.push("平日ナイター");if(c.op)r.push("開幕戦");if(c.fin)r.push("最終節");if(c.idn>0&&c.idn<=100)r.push("初期メンバー");if(FIRST5.has(+c.idn))r.push("最初の5人");if(c.direct&&c.place==="stadium")r.push("スタジアムで交換");return r;
 }
 // 同じ試合の人を book に足す。すでに持っている人とは再会として回数を増やす。
 function meet(book,n,home,away,date,ha,rain,wd){
@@ -851,7 +870,7 @@ function renderZukan(){
   $("z-out").innerHTML=h;
 }
 function renderLog(){
-  $("c-log").innerHTML=S.log.slice().reverse().map(l=>'<li><span>'+esc(l.date)+'　'+esc(l.match)+(l.ha==="A"?"（アウェイ）":"")+"　"+esc(l.comp||"リーグ")+(l.res?"　"+RES_JA[l.res]+(l.score?" "+l.score:""):"")+(l.rain?"　雨":"")+'</span><span>'+(l.n==null?'':l.n+' 人')+'</span></li>').join("")||'<li><span>まだチェックインがありません。試合の日にチェックインすると、ここに残ります。</span></li>';
+  $("c-log").innerHTML=S.log.slice().reverse().map(l=>'<li><span>'+esc(l.date)+'　'+esc(l.match)+(l.ha==="A"?"（アウェイ）":l.ha==="N"?"（ほかのクラブ）":"")+"　"+esc(l.comp||"リーグ")+(l.res?"　"+RES_JA[l.res]+(l.score?" "+l.score:""):"")+(l.rain?"　雨":"")+'</span><span>'+(l.n==null?'':l.n+' 人')+'</span></li>').join("")||'<li><span>まだチェックインがありません。試合の日にチェックインすると、ここに残ります。</span></li>';
 }
 // サンプル日程: 週末にリーグ戦、数週おきの水曜にルヴァンカップと天皇杯を交互に
 const isoOf=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
@@ -900,14 +919,43 @@ const RES_JA={W:"勝ち",D:"引き分け",L:"負け"};
 let testDate=null;
 const today=()=>testDate||new Date();
 let NOW={id:"",n:0},RANK={at:0,rows:[]};
-const matchToday=()=>schedule(S.me.club).find(m=>(m.isos||[m.iso]).includes(isoOf(today())));
+// 推しクラブ以外の試合を見に来たとき: 今日の試合から自分で選ぶ（ha は "N"）
+const othersToday=()=>(typeof TODAY_ALL==="undefined"||!TODAY_ALL?[]:TODAY_ALL).filter(m=>m.home!==S.me.club&&m.away!==S.me.club&&m.comp!=="テスト");
+const pickedMatch=()=>{
+  const iso=isoOf(today()),p=S.pick;if(!p||p.iso!==iso)return null;
+  const m=othersToday().find(x=>x.id===p.id);if(!m)return null;
+  return {id:m.id,isos:m.day_from===m.day_to?[m.day_from]:[m.day_from,m.day_to],iso:m.day_from,d:dateOf(m.day_from),tbd:m.day_from!==m.day_to,time:String(m.kickoff||"").slice(0,5),opp:m.away,home:m.home,away:m.away,ha:"N",venue:m.venue||"",res:"",score:"",comp:m.comp,label:m.label,wd:!!m.weeknight,rain:!!m.rain,lat:m.lat,lng:m.lng};
+};
+const ownToday=()=>schedule(S.me.club).find(m=>(m.isos||[m.iso]).includes(isoOf(today())));
+const matchToday=()=>pickedMatch()||ownToday();
+function renderOther(){
+  const el=$("c-other");if(!el)return;
+  const picked=pickedMatch(),n=othersToday().length;
+  el.innerHTML=picked?'<button type="button" class="btn ghost" id="c-pick">試合を選び直す</button><button type="button" class="btn ghost" id="c-unpick">'+(ownToday()?esc(S.me.club)+'の試合に戻す':'選ぶのをやめる')+'</button>'
+    :n?'<button type="button" class="btn ghost" id="c-pick">ほかのクラブの試合を見に来た</button>':'';
+  const p=$("c-pick"),u=$("c-unpick");
+  if(p)p.addEventListener("click",openPick);
+  if(u)u.addEventListener("click",()=>{S.pick=null;save();$("c-out").innerHTML="";renderToday();renderQueue()});
+}
+function openPick(){
+  const DV={j1:"J1",j2:"J2",j3:"J3"},rows=othersToday().slice().sort((a,b)=>String(a.kickoff||"99")<String(b.kickoff||"99")?-1:1);
+  $("pick-list").innerHTML=rows.map(m=>'<li><button type="button" data-id="'+esc(m.id)+'">'+esc(m.home)+' vs '+esc(m.away)+(S.log.some(l=>l.key===m.id)?'　済':'')+'<small>'+esc(m.label||"")+(m.venue?'　'+esc(m.venue):'')+(m.kickoff?'　'+String(m.kickoff).slice(0,5)+'開始':'')+'</small></button></li>').join("");
+  $("pickpop").hidden=false;
+}
+$("pick-x").addEventListener("click",()=>{$("pickpop").hidden=true});
+$("pickpop").addEventListener("click",e=>{if(e.target===$("pickpop"))$("pickpop").hidden=true});
+$("pick-list").addEventListener("click",e=>{
+  const b=e.target.closest("button[data-id]");if(!b)return;
+  S.pick={id:b.dataset.id,iso:isoOf(today())};save();$("pickpop").hidden=true;$("c-out").innerHTML="";NOW={id:"",n:0};renderToday();renderQueue();
+  if(sb&&UID)sb.rpc("match_count",{p_match:b.dataset.id}).then(c=>{if(!c.error&&S.pick&&S.pick.id===b.dataset.id){NOW={id:b.dataset.id,n:c.data||0};renderToday()}},()=>{});
+});
 const doneKey=(m,iso)=>S.log.some(l=>l.key===iso||(m&&m.id&&l.key===m.id));
 function renderToday(){
   const d=today(),iso=isoOf(d),m=matchToday(),done=doneKey(m,iso),mine=S.me.club;
   const head='<span class="d">'+jp(d)+(testDate?'　試作用に日付を変更中':'')+'</span>';
   if(m){
-    const home=m.ha==="H"?mine:m.opp,away=m.ha==="H"?m.opp:mine;
-    $("c-today").innerHTML='<div class="today">'+head+'<p class="m">'+esc(home)+' vs '+esc(away)+'</p><span class="d">'+m.label+'　'+(m.ha==="H"?"ホーム":"アウェイ")+(m.venue?'　'+esc(m.venue):'')+(m.time?'　'+m.time+'開始':'')+(m.tbd?'　開催日は未定（この日か前後の日）':'')+(m.wd?"　平日ナイター":"")+'</span></div>';
+    const home=m.ha==="N"?m.home:m.ha==="H"?mine:m.opp,away=m.ha==="N"?m.away:m.ha==="H"?m.opp:mine;
+    $("c-today").innerHTML='<div class="today">'+head+'<p class="m">'+esc(home)+' vs '+esc(away)+'</p><span class="d">'+m.label+'　'+(m.ha==="N"?"ほかのクラブの試合":m.ha==="H"?"ホーム":"アウェイ")+(m.venue?'　'+esc(m.venue):'')+(m.time?'　'+m.time+'開始':'')+(m.tbd?'　開催日は未定（この日か前後の日）':'')+(m.wd?"　平日ナイター":"")+'</span></div>';
   }else{
     const nx=schedule(mine).find(x=>x.iso>iso),last=S.log[S.log.length-1],t0=dateOf(iso);
     $("c-today").innerHTML='<div class="today off">'+head+'<p class="m">今日は'+esc(mine)+'の試合がありません</p>'
@@ -916,7 +964,7 @@ function renderToday(){
       +'</div>';
   }
   if(m&&NOW.id===m.id&&NOW.n>0){const s=document.createElement("span");s.className="now";s.textContent="いま、この試合に "+NOW.n+" 人がチェックインしています";$("c-today").firstChild.appendChild(s)}
-  $("c-go").hidden=!m;
+  $("c-go").hidden=!m;renderOther();
   $("c-go").disabled=done;
   $("c-go").textContent=done?"この試合はチェックイン済み":"スタジアムに着いた";
   $("c-next").innerHTML=schedule(mine).filter(x=>(x.isos||[x.iso]).slice(-1)[0]>iso&&!(x.isos||[x.iso]).includes(iso)).slice(0,4).map(x=>'<li><span>'+jp(x.d)+(x.tbd?'か翌日':'')+'　'+(x.ha==="H"?"ホーム":"アウェイ")+' '+esc(x.opp)+'戦　'+x.label+(x.time?'　'+x.time:'')+'</span></li>').join("")||'<li><span>今季の残り試合はありません</span></li>';
@@ -979,7 +1027,7 @@ function setDate(iso){
 $("c-date").addEventListener("change",e=>setDate(e.target.value));
 $("c-date-x").addEventListener("click",()=>setDate(""));
 $("c-next").addEventListener("click",e=>{const b=e.target.closest("button");if(b)setDate(b.dataset.iso)});
-const CK_ERR={not_match_day:"今日はこの試合の日ではありません。",not_your_match:"名刺の推しクラブの試合ではありません。",need_location:"位置情報が必要です。スマホの設定で、このサイトに位置情報を許可してください。",too_far:"スタジアムから離れているようです。会場の近くでもう一度押してください。",already_checked_in:"この試合はチェックイン済みです。",no_profile:"名刺がまだ登録できていません。名刺の画面を開いてからもう一度お試しください。",not_signed_in:"通信できませんでした。ページを開き直してください。"};
+const CK_ERR={not_match_day:"今日はこの試合の日ではありません。",not_your_match:"いまは準備中で、この試合にはチェックインできません。少し待ってからもう一度お試しください。",need_location:"位置情報が必要です。スマホの設定で、このサイトに位置情報を許可してください。",too_far:"スタジアムから離れているようです。会場の近くでもう一度押してください。",already_checked_in:"この試合はチェックイン済みです。",no_profile:"名刺がまだ登録できていません。名刺の画面を開いてからもう一度お試しください。",not_signed_in:"通信できませんでした。ページを開き直してください。"};
 const errText=(e,map)=>{const t=String(e&&e.message||e||"");for(const k in map)if(t.includes(k))return map[k];return "通信できませんでした。電波のよいところで、もう一度お試しください。"};
 // 会場の位置のいまの天気（Open-Meteo）。雨なら true、調べられなければ null。
 async function rainNow(m){
@@ -996,7 +1044,7 @@ const getPos=()=>new Promise((ok,ng)=>{if(!navigator.geolocation){ng(new Error("
 $("c-go").addEventListener("click",async()=>{
   const m=matchToday(),d=today(),iso=isoOf(d);
   if(!m||doneKey(m,iso))return;
-  const btn=$("c-go"),mine=S.me.club,ha=m.ha,home=ha==="H"?mine:m.opp,away=ha==="H"?m.opp:mine;
+  const btn=$("c-go"),mine=S.me.club,ha=m.ha,home=ha==="N"?m.home:ha==="H"?mine:m.opp,away=ha==="N"?m.away:ha==="H"?m.opp:mine;
   btn.disabled=true;
   $("c-out").innerHTML='<p class="searching">同じスタジアムにいるサポーターを探しています</p>';
   try{
@@ -1430,7 +1478,14 @@ $("m-share-go").addEventListener("click",()=>showShare($("m-share"),{kind:"card"
 
 // ===== サーバー（Supabase）=====
 const SB_URL="https://hwdpwgxwkcjldnebnizj.supabase.co",SB_KEY="sb_publishable_7Dd0WaUyYQ4sSqbhRnJgNg_sp8D_yWP";
-var sb=null,UID="",MATCHES=[],PENDING="";
+var sb=null,UID="",MATCHES=[],PENDING="",TODAY_ALL=[];
+try{const ta=JSON.parse(localStorage.getItem(KEY+"-today"));if(ta&&ta.iso===isoOf(new Date())&&Array.isArray(ta.rows))TODAY_ALL=ta.rows}catch(e){}
+try{FIRST5=new Set((JSON.parse(localStorage.getItem(KEY+"-first5"))||[]).map(Number))}catch(e){}
+async function loadToday(){
+  const iso=isoOf(today()),r=await sb.from("matches").select("*").lte("day_from",iso).gte("day_to",iso).order("kickoff");
+  if(r.error)throw r.error;
+  TODAY_ALL=r.data||[];try{localStorage.setItem(KEY+"-today",JSON.stringify({iso,rows:TODAY_ALL}))}catch(e){}
+}
 try{sb=supabase.createClient(SB_URL,SB_KEY)}catch(e){}
 var matchesClub="";
 try{const mc=JSON.parse(localStorage.getItem(KEY+"-matches"));if(mc&&mc.club&&mc.club===S.me.club&&Array.isArray(mc.rows)){MATCHES=mc.rows;matchesClub=mc.club}}catch(e){MATCHES=[]}
@@ -1504,6 +1559,7 @@ async function loadMatches(){
   const r=await sb.from("matches").select("*").or("home.eq."+c+",away.eq."+c).order("day_from");
   if(r.error)throw r.error;
   MATCHES=r.data||[];matchesClub=c;matchesAt=Date.now();try{localStorage.setItem(KEY+"-matches",JSON.stringify({club:c,rows:MATCHES}))}catch(e){}
+  try{await loadToday()}catch(e){}
 }
 // サーバーの名刺帳を、画面で使う形に直す。はじめての名刺と再会は袋に入れる。
 function buildBook(rows){
@@ -1536,8 +1592,8 @@ function buildBook(rows){
 function buildLog(rows){
   S.log=rows.map(r=>{
     const m=r.matches||MATCHES.find(x=>x.id===r.match_id);if(!m)return null;
-    const ha=m.home===r.club?"H":"A",done=m.score_home!=null&&m.score_away!=null,a=ha==="H"?m.score_home:m.score_away,b=ha==="H"?m.score_away:m.score_home;
-    return {key:m.id,at:r.created_at,season:m.season,comp:m.comp,res:done?(a>b?"W":a<b?"L":"D"):"",score:done?a+"-"+b:"",date:fmt(new Date(r.created_at)),match:m.home+" vs "+m.away,ha,n:S.cnt[m.id]==null?null:S.cnt[m.id],rain:!!m.rain||!!r.rain,wd:!!m.weeknight};
+    const ha=m.home===r.club?"H":m.away===r.club?"A":"N",done=m.score_home!=null&&m.score_away!=null,a=ha!=="A"?m.score_home:m.score_away,b=ha!=="A"?m.score_away:m.score_home;
+    return {key:m.id,at:r.created_at,season:m.season,comp:m.comp,res:done&&ha!=="N"?(a>b?"W":a<b?"L":"D"):"",score:done?a+"-"+b:"",date:fmt(new Date(r.created_at)),match:m.home+" vs "+m.away,ha,n:S.cnt[m.id]==null?null:S.cnt[m.id],rain:!!m.rain||!!r.rain,wd:!!m.weeknight};
   }).filter(Boolean).sort((x,y)=>x.at<y.at?-1:1);
 }
 let syncing=false,lastSync=0,matchesAt=0;
@@ -1571,6 +1627,7 @@ async function sync(force){
   try{
     const [a,b]=await Promise.all([sb.from("checkins").select("match_id,club,created_at,rain,matches(*)"),sb.rpc("my_book"),(force||!MATCHES.length||matchesClub!==S.me.club||Date.now()-matchesAt>600000)?loadMatches():null]);
     if(a.error)throw a.error;if(b.error)throw b.error;
+    try{const f=await sb.rpc("club_firsts");if(!f.error&&Array.isArray(f.data)){FIRST5=new Set(f.data.map(Number));try{localStorage.setItem(KEY+"-first5",JSON.stringify([...FIRST5]))}catch(e){}}}catch(e){}
     buildLog(a.data||[]);added=buildBook(b.data||[]);
     try{const mt=matchToday();if(mt){const c=await sb.rpc("match_count",{p_match:mt.id});if(!c.error)NOW={id:mt.id,n:c.data||0}}}catch(e){}
     save();renderAll();netMsg("");lastSync=Date.now();fetchPhotos();
@@ -1609,7 +1666,12 @@ async function loadRank(){
   if(!sb||!UID||Date.now()-RANK.at<300000)return;
   try{const r=await sb.rpc("club_ranking");if(!r.error){RANK={at:Date.now(),rows:r.data||[]};if(curTab==="zukan")renderZukan()}}catch(e){}
 }
-$("m-season-go").addEventListener("click",()=>showShare($("m-share"),{kind:"season"}));
+$("m-season-go").addEventListener("click",()=>{$("sumpop").hidden=false;showShare($("sum-out"),{kind:"season"})});
+$("sum-x").addEventListener("click",()=>{$("sumpop").hidden=true;$("sum-out").innerHTML=""});
+$("sumpop").addEventListener("click",e=>{if(e.target===$("sumpop"))$("sum-x").click()});
+// 押した感: 押した瞬間に少し沈む（iPhoneは指を離すのが速いと見えないので、少しのあいだ残す）
+document.addEventListener("touchstart",()=>{},{passive:true});
+document.addEventListener("pointerdown",e=>{const b=e.target&&e.target.closest?e.target.closest(".btn"):null;if(!b||b.disabled)return;b.classList.add("tap");setTimeout(()=>b.classList.remove("tap"),190);try{if(navigator.vibrate)navigator.vibrate(8)}catch(err){}},{passive:true});
 // ホーム画面に追加の案内
 (()=>{
   const day=isoOf(new Date());let seen=false;try{seen=localStorage.getItem(KEY+"-a2hs")===day}catch(e){}
@@ -1697,7 +1759,7 @@ $("about-top").addEventListener("click",()=>$("about-open").click());
 
 
 // 新しい版が公開されていたら、自動で読み込み直す（ホーム画面から開くと更新ボタンがないため）
-const APP_VER="20261004151907";
+const APP_VER="20261004152811";
 async function checkUpdate(){
   try{
     const r=await fetch("version.txt?t="+Date.now(),{cache:"no-store"});if(!r.ok)return;
