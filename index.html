@@ -34,6 +34,7 @@
 .xfer summary{font-size:13px;font-weight:700;cursor:pointer;padding:6px 0}
 .xfer[open]{display:flex;flex-direction:column;gap:10px}
 .tip{display:flex;gap:10px;align-items:flex-start;justify-content:space-between;margin:0 0 12px;padding:10px 12px;border:1px solid var(--line);border-radius:6px;background:var(--surface);font-size:13px}
+.tip .tipb{display:flex;flex-direction:column;gap:6px;flex:none}
 .tip button{flex:none;font:inherit;font-size:12px;font-weight:700;background:none;border:1px solid var(--line);border-radius:4px;color:var(--ink);padding:4px 8px;cursor:pointer}
 .today .now{display:block;margin-top:6px;font-size:13px;font-weight:700;color:var(--ink)}
 .today .cd{display:block;margin:4px 0;font-size:15px;font-weight:700;color:var(--ink)}.today .cd b{font:600 30px/1 var(--num);margin:0 4px}
@@ -438,10 +439,10 @@ button.pick{cursor:pointer}
     <label>ニックネーム<input type="text" id="s-nick" maxlength="14" placeholder="名刺に出る名前"></label>
     <button class="btn flood" id="s-go" disabled>推しクラブを選ぶと始められます</button>
     <details class="xfer">
-      <summary>機種変更などで、引き継ぎコードを持っている方</summary>
+      <summary>機種変更などで、合鍵（引き継ぎコード）を持っている方</summary>
       <label>引き継ぎコード<input type="text" id="t-code" maxlength="24" placeholder="XXXX-XXXX-XXXX-XXXX" autocapitalize="characters" autocomplete="off" spellcheck="false"></label>
       <button type="button" class="btn" id="t-go">この端末に引き継ぐ</button>
-      <p class="note" id="t-out">前の端末の名刺・会員番号・名刺帳が、この端末に移ります。前の端末では使えなくなります。</p>
+      <p class="note" id="t-out">前の端末の名刺・会員番号・名刺帳が、この端末に移ります。</p>
     </details>
   </section>
 
@@ -454,7 +455,7 @@ button.pick{cursor:pointer}
 
   <section id="p-card">
     <div id="card-view">
-      <div class="tip" id="a2hs" hidden><span id="a2hs-t"></span><button type="button" id="a2hs-x">閉じる</button></div>
+      <div class="tip" id="a2hs" hidden><span id="a2hs-t"></span><span class="tipb"><button type="button" id="a2hs-go">追加する</button><button type="button" id="a2hs-x">閉じる</button></span></div>
       <div class="stage" id="stage"></div>
       <div class="row center">
         <button type="button" class="btn" id="e-open">名刺を編集する</button>
@@ -558,10 +559,14 @@ button.pick{cursor:pointer}
       <li>ほかの人をいやな気持ちにさせる内容は書かないでください。見つけた場合は、運営が名刺を消すことがあります。</li>
     </ul>
     <h3>引き継ぎについて</h3>
-    <p>登録なしで使えるかわりに、名刺はこのブラウザに結びついています。機種変更や、ブラウザのデータが消えたときのために、引き継ぎコードを控えておいてください。新しい端末の最初の画面でコードを入れると、名刺・会員番号・名刺帳がそのまま移ります。</p>
+    <p>登録なしで使えるかわりに、名刺は「合鍵」でこの端末に結びついています。合鍵は端末の中に自動で保存され、ブラウザのデータが消えても、どこかに残っていれば開いたときに自動で名刺が戻ります。</p>
+    <ul>
+      <li>ホーム画面に追加しておくと、アイコンにも合鍵が入り、いちばん消えにくくなります。</li>
+      <li>機種変更のときは、下の「復元リンクを自分に送る」で、自分あてのメモやメッセージに残しておいてください。新しい端末でそのリンクを開くだけで戻ります。</li>
+    </ul>
     <div class="danger">
-      <p>コードは合言葉です。人に見せたり、Xに載せたりしないでください。知られると、名刺を乗っ取られます。1回使うと、新しいコードに変わります。</p>
-      <div class="row"><button type="button" class="btn ghost" id="a-code-go">引き継ぎコードを表示する</button></div>
+      <p>合鍵と復元リンクは、人に見せたり、Xに載せたりしないでください。知られると、名刺を乗っ取られます。知られてしまったら「合鍵を作り直す」を押してください。</p>
+      <div class="row"><button type="button" class="btn" id="a-link-go">復元リンクを自分に送る</button><button type="button" class="btn ghost" id="a-code-go">合鍵を表示する</button><button type="button" class="btn ghost" id="a-reset-go">合鍵を作り直す</button></div>
       <div id="a-code-out"></div>
     </div>
     <h3>お問い合わせ</h3>
@@ -1331,7 +1336,7 @@ $("s-go").addEventListener("click",async()=>{
     if(r.error&&String(r.error.code)==="23505")r=await sb.from("profiles").select("*").eq("id",UID).single();
     if(r.error)throw r.error;
     applyProfile(r.data);S.setup=true;save();fillForm();renderAll();applySetup();netMsg("");
-    await sync();
+    await sync();ensureKey();
     if(PENDING){const t=PENDING;PENDING="";redeem(t)}
   }catch(e){
     netMsg("登録できませんでした。電波のよいところで、もう一度お試しください。");renderSetup();
@@ -1385,6 +1390,51 @@ var sb=null,UID="",MATCHES=[],PENDING="";
 try{sb=supabase.createClient(SB_URL,SB_KEY)}catch(e){}
 var matchesClub="";
 try{const mc=JSON.parse(localStorage.getItem(KEY+"-matches"));if(mc&&mc.club&&mc.club===S.me.club&&Array.isArray(mc.rows)){MATCHES=mc.rows;matchesClub=mc.club}}catch(e){MATCHES=[]}
+// 合鍵: 端末の中の2か所（保存領域とクッキー）に置く。ホーム画面のアイコンのアドレスにも入れられる。
+const KCOOKIE="smk";
+function keyGet(){
+  let k="";try{k=localStorage.getItem(KEY+"-k")||""}catch(e){}
+  if(!k){const m=document.cookie.match(/(?:^|; )smk=([0-9A-F]{16})/);if(m)k=m[1]}
+  return /^[0-9A-F]{16}$/.test(k)?k:"";
+}
+function keySave(k){
+  k=String(k||"").replace(/[^0-9A-Fa-f]/g,"").toUpperCase();if(k.length!==16)return;
+  try{localStorage.setItem(KEY+"-k",k)}catch(e){}
+  try{document.cookie=KCOOKIE+"="+k+"; max-age=34560000; path=/; SameSite=Lax"+(location.protocol==="https:"?"; Secure":"")}catch(e){}
+}
+function keyDrop(){try{localStorage.removeItem(KEY+"-k")}catch(e){}try{document.cookie=KCOOKIE+"=; max-age=0; path=/"}catch(e){}}
+// アドレスに合鍵が付いていたら（ホーム画面のアイコンや復元リンクから開いたとき）、読み取ってすぐアドレスから消す
+function takeKey(){
+  const m=location.search.match(/[?&]k=([0-9A-Fa-f]{16})(?:&|$)/)||location.hash.match(/(?:^#|&)k=([0-9A-Fa-f]{16})(?:&|$)/);
+  if(!m)return "";
+  try{history.replaceState(null,"",location.pathname+(location.hash.includes("x=")?location.hash:""))}catch(e){}
+  return m[1].toUpperCase();
+}
+var PKEY=takeKey();
+// 合鍵で名刺を呼び戻す。成功したら true。
+async function restoreWith(code,quiet){
+  try{
+    if(!sb)throw new Error("offline");
+    if(!UID){const r=await sb.auth.signInAnonymously();if(r.error)throw r.error;UID=r.data.user.id}
+    const r=await sb.rpc("redeem_transfer",{p_code:code});if(r.error)throw r.error;
+    const p=await sb.from("profiles").select("*").eq("id",UID).single();if(p.error)throw p.error;
+    S=seed();S.seen={};S.ex={};S.cnt={};S.hidden={};applyProfile(p.data);S.setup=true;S.synced=false;pushed="";keySave(code);
+    return true;
+  }catch(e){
+    if(/bad_code/.test(String(e&&e.message||e))&&keyGet()===code)keyDrop();
+    if(!quiet)throw e;
+    return false;
+  }
+}
+// 名刺があるのに合鍵を持っていなければ、サーバーから受け取って置いておく。ブラウザには「このサイトのデータを消さないで」と頼む。
+async function ensureKey(){
+  try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(()=>{})}catch(e){}
+  if(!sb||!UID||!S.setup)return "";
+  let k=keyGet();
+  if(!k){try{const r=await sb.rpc("my_transfer_code");if(!r.error&&r.data){k=r.data;keySave(k)}}catch(e){}}
+  else keySave(k);
+  return k;
+}
 function takeHash(){const m=location.hash.match(/x=([0-9a-f]{32})/);if(!m)return "";try{history.replaceState(null,"",location.pathname+location.search)}catch(e){}return m[1]}
 PENDING=takeHash();
 window.addEventListener("hashchange",()=>{const t=takeHash();if(!t)return;if(S.setup&&UID)redeem(t);else{PENDING=t;netMsg("名刺を作ると、そのまま交換できます。")}});
@@ -1487,20 +1537,23 @@ async function boot(){
   if(!sb){netMsg("読み込みに失敗しました。ページを開き直してください。");return}
   try{
     try{await loadMatches()}catch(e){}
-    const g=await sb.auth.getSession(),ses=g.data&&g.data.session;
+    const was=S.setup,g=await sb.auth.getSession(),ses=g.data&&g.data.session;
     if(ses){
       UID=ses.user.id;
       const r=await sb.from("profiles").select("*").eq("id",UID).maybeSingle();
       if(r.error)throw r.error;
       if(r.data){applyProfile(r.data);S.setup=true;pushed=""}
       else S.setup=false;
-    }else{
-      if(S.setup){const keep=S.me;S=seed();S.seen={};S.ex={};S.cnt={};S.hidden={};S.me.style=keep.style}
-      S.setup=false;
+    }else S.setup=false;
+    if(!S.setup){
+      const k=PKEY||keyGet();let back=false;
+      if(k){back=await restoreWith(k,true);if(!back&&PKEY&&keyGet()&&keyGet()!==PKEY)back=await restoreWith(keyGet(),true)}
+      if(back)netMsg("名刺を呼び戻しました。会員番号は "+idText(S.me.idn)+" のままです。");
+      else if(was){const keep=S.me;S=seed();S.seen={};S.ex={};S.cnt={};S.hidden={};S.me.style=keep.style;S.setup=false}
     }
     try{localStorage.setItem(KEY,packS())}catch(e){}
     fillForm();renderAll();renderSetup();applySetup();await phLoad();
-    if(S.setup){await sync();if(PENDING){const t=PENDING;PENDING="";redeem(t)}}
+    if(S.setup){const keepMsg=$("net").textContent;await sync();if(keepMsg&&keepMsg.includes("呼び戻"))setTimeout(()=>netMsg(keepMsg),1600);ensureKey();if(PENDING){const t=PENDING;PENDING="";redeem(t)}}
     else if(PENDING)netMsg("名刺を作ると、そのまま交換できます。");
   }catch(e){netMsg("通信できませんでした。電波のよいところで開き直してください。")}
 }
@@ -1520,9 +1573,17 @@ $("m-season-go").addEventListener("click",()=>showShare($("m-share"),{kind:"seas
   const alone=(window.matchMedia&&window.matchMedia("(display-mode: standalone)").matches)||window.navigator.standalone===true;
   if(seen||alone)return;
   const ios=/iPhone|iPad|iPod/.test(navigator.userAgent);
-  $("a2hs-t").textContent=ios?"ホーム画面に追加すると、アプリのように開けます。下の共有ボタン（四角から矢印）→「ホーム画面に追加」。":"ホーム画面に追加すると、アプリのように開けます。ブラウザのメニュー →「ホーム画面に追加」。";
+  const how=ios?"下の共有ボタン（四角から矢印）→「ホーム画面に追加」":"ブラウザのメニュー →「ホーム画面に追加」";
+  $("a2hs-t").textContent="ホーム画面に追加しておくと、名刺が消えにくくなり、消えてもアイコンから開くだけで元に戻ります。";
+  $("a2hs-go").addEventListener("click",async()=>{
+    const k=await ensureKey();
+    if(!k){$("a2hs-t").textContent="準備できませんでした。電波のよいところで、もう一度押してください。";return}
+    try{history.replaceState(null,"",location.pathname+"?k="+k)}catch(e){}
+    $("a2hs-t").textContent="準備できました。このまま "+how+" を押してください。終わったら「閉じる」。この画面のアドレスは合鍵なので、人には送らないでください。";
+    $("a2hs-go").hidden=true;
+  });
   $("a2hs").hidden=false;
-  $("a2hs-x").addEventListener("click",()=>{$("a2hs").hidden=true;try{localStorage.setItem(KEY+"-a2hs","1")}catch(e){}});
+  $("a2hs-x").addEventListener("click",()=>{$("a2hs").hidden=true;try{history.replaceState(null,"",location.pathname)}catch(e){};try{localStorage.setItem(KEY+"-a2hs","1")}catch(e){}});
 })();
 // 引き継ぎ
 const codeFmt=c=>String(c||"").replace(/(.{4})(?=.)/g,"$1-");
@@ -1530,9 +1591,29 @@ $("a-code-go").addEventListener("click",async()=>{
   const o=$("a-code-out");o.innerHTML='<p class="note">取得しています</p>';
   try{
     if(!sb||!UID||!S.setup)throw new Error("no_profile");
-    const r=await sb.rpc("my_transfer_code");if(r.error)throw r.error;
-    o.innerHTML='<p class="code">'+esc(codeFmt(r.data))+'</p><p class="note">紙に書くか、自分だけが見られるメモに控えてください。</p>';
+    const r=await sb.rpc("my_transfer_code");if(r.error)throw r.error;keySave(r.data);
+    o.innerHTML='<p class="code">'+esc(codeFmt(r.data))+'</p><p class="note">新しい端末の最初の画面で「合鍵を持っている方」に入力すると、名刺が戻ります。</p>';
   }catch(e){o.innerHTML='<p class="xmsg">'+(S.setup?"表示できませんでした。電波のよいところで、もう一度お試しください。":"先に名刺を作ってください。")+'</p>'}
+});
+$("a-link-go").addEventListener("click",async()=>{
+  const o=$("a-code-out"),k=await ensureKey();
+  if(!k){o.innerHTML='<p class="xmsg">'+(S.setup?"用意できませんでした。電波のよいところで、もう一度お試しください。":"先に名刺を作ってください。")+'</p>';return}
+  const url=location.origin+location.pathname+"?k="+k,text="サポ名刺すれちがい 復元リンク（自分用。人に送らない）";
+  try{if(navigator.share){await navigator.share({title:"サポ名刺すれちがい",text,url});o.innerHTML='<p class="note">送った先のリンクを開くと、名刺が戻ります。</p>';return}}catch(e){if(e&&e.name==="AbortError")return}
+  try{await navigator.clipboard.writeText(url);o.innerHTML='<p class="note">復元リンクをコピーしました。自分あてのメモなどに貼って残してください。</p>'}
+  catch(e){o.innerHTML='<p class="note">このリンクを、自分あてのメモなどに残してください。</p><p class="code" style="font-size:13px">'+esc(url)+'</p>'}
+});
+let resetArmed=false;
+$("a-reset-go").addEventListener("click",async()=>{
+  const b=$("a-reset-go"),o=$("a-code-out");
+  if(!resetArmed){resetArmed=true;b.textContent="本当に作り直す（もう一度押す）";setTimeout(()=>{resetArmed=false;b.textContent="合鍵を作り直す"},5000);return}
+  resetArmed=false;b.textContent="合鍵を作り直す";
+  try{
+    if(!sb||!UID||!S.setup)throw new Error("no_profile");
+    const r=await sb.rpc("reset_transfer_code");if(r.error)throw r.error;keySave(r.data);
+    o.innerHTML='<p class="note">合鍵を作り直しました。前の合鍵と復元リンクは使えなくなりました。ホーム画面のアイコンは、追加し直してください。</p>';
+    try{localStorage.removeItem(KEY+"-a2hs")}catch(e){}
+  }catch(e){o.innerHTML='<p class="xmsg">作り直せませんでした。電波のよいところで、もう一度お試しください。</p>'}
 });
 const T_ERR={bad_code:"コードが違います。もう一度確かめてください。",same_device:"この端末の名刺のコードです。新しい端末で入力してください。",already_has_profile:"この端末にはすでに名刺があります。引き継ぐ場合は、説明ページの「名刺を消す」で今の名刺を消してから、もう一度お試しください。"};
 $("t-go").addEventListener("click",async()=>{
@@ -1540,11 +1621,7 @@ $("t-go").addEventListener("click",async()=>{
   if(code.length!==16){o.textContent="コードは16文字です。もう一度確かめてください。";return}
   b.disabled=true;o.textContent="引き継いでいます";
   try{
-    if(!sb)throw new Error("offline");
-    if(!UID){const r=await sb.auth.signInAnonymously();if(r.error)throw r.error;UID=r.data.user.id}
-    const r=await sb.rpc("redeem_transfer",{p_code:code});if(r.error)throw r.error;
-    const p=await sb.from("profiles").select("*").eq("id",UID).single();if(p.error)throw p.error;
-    S=seed();S.seen={};S.ex={};S.cnt={};S.hidden={};applyProfile(p.data);S.setup=true;S.synced=false;pushed="";
+    await restoreWith(code,false);
     save();fillForm();renderAll();applySetup();await sync(true);netMsg("引き継ぎました。会員番号は "+idText(S.me.idn)+" のままです。");
   }catch(e){o.textContent=errText(e,T_ERR);b.disabled=false}
 });
@@ -1560,7 +1637,7 @@ $("del-go").addEventListener("click",async()=>{
   delArmed=false;b.disabled=true;$("del-out").textContent="消しています";
   try{
     if(sb&&UID){const r=await sb.rpc("delete_my_account");if(r.error)throw r.error;try{await sb.auth.signOut()}catch(e){}}
-    try{localStorage.removeItem(KEY);if(phDB)phDB.transaction("photos","readwrite").objectStore("photos").clear()}catch(e){}
+    keyDrop();try{localStorage.removeItem(KEY);if(phDB)phDB.transaction("photos","readwrite").objectStore("photos").clear()}catch(e){}
     location.reload();
   }catch(e){b.disabled=false;b.textContent="名刺と記録をすべて消す";$("del-out").textContent="消せませんでした。電波のよいところで、もう一度お試しください。"}
 });
