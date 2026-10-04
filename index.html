@@ -1692,6 +1692,24 @@ function fitCard(){
 window.addEventListener("resize",fitCard);
 $("about-top").addEventListener("click",()=>$("about-open").click());
 
+
+// 新しい版が公開されていたら、自動で読み込み直す（ホーム画面から開くと更新ボタンがないため）
+const APP_VER="20261004145727";
+async function checkUpdate(){
+  try{
+    const r=await fetch("version.txt?t="+Date.now(),{cache:"no-store"});if(!r.ok)return;
+    const v=(await r.text()).trim();if(!/^\d{14}$/.test(v)||v<=APP_VER)return;
+    let tried="";try{tried=sessionStorage.getItem("upd")||""}catch(e){}
+    if(tried===v)return;                                    // 同じ版で2回は読み込み直さない（堂々めぐりを防ぐ）
+    if(PK||!$("viewer").hidden||!$("card-edit").hidden||!$("about").hidden)return;   // 袋を開けている途中や入力中は待つ
+    try{sessionStorage.setItem("upd",v)}catch(e){}
+    location.reload();
+  }catch(e){}
+}
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)checkUpdate()});
+setInterval(()=>{if(!document.hidden)checkUpdate()},600000);
+setTimeout(checkUpdate,3000);
+
 // このアプリについて
 $("about-contact").innerHTML=CONTACT?'不具合や、不適切な名刺の連絡は、Xの <a href="https://x.com/'+esc(CONTACT)+'" target="_blank" rel="noopener">@'+esc(CONTACT)+'</a> までお願いします。':'お問い合わせ先は準備中です。';
 $("about-open").addEventListener("click",()=>{$("about").hidden=false;$("about").scrollTop=0});
