@@ -73,10 +73,12 @@ body.in .tabs button[aria-selected="true"]{background:var(--bg);color:var(--ink)
 body.in .tabs svg{display:block;width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 body.in .tabs .count{font-size:12px;margin-left:3px}
 body.in .stage{padding-block:0;gap:6px}
-body.in #card-view>.row.center{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+body.in #card-view>.row.center{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
 body.in #card-view>.row.center .btn{padding:11px 2px;font-size:13px}
 body.in section{gap:12px}
-.log li span:only-child{font-family:inherit;font-size:13px;white-space:normal}
+.log li span:only-child:only-child{font-family:inherit;font-size:13px;white-space:normal}
+html,body{max-width:100%;overflow-x:clip}
+.wrap{min-width:0}
 #net{margin:8px 0;padding:8px 10px;border:1px solid var(--line);border-radius:5px;font-size:13px;color:var(--muted);background:var(--surface)}
 /* Layout: one narrow column like a phone app. Three tabs. The 91:55 名刺 is the only "object" on the page; everything else stays flat. */
 :root{
@@ -500,7 +502,7 @@ button.pick{cursor:pointer}
       <div class="row center">
         <button type="button" class="btn" id="e-open">編集</button>
         <button type="button" class="btn ghost" id="x-open">交換</button>
-        <button type="button" class="btn ghost" id="m-share-go">シェア</button>
+        <button type="button" class="btn ghost" id="m-share-go" hidden>シェア</button>
         <button type="button" class="btn ghost" id="m-season-go">まとめ</button>
       </div>
       <div id="m-share"></div>
@@ -1010,9 +1012,8 @@ $("c-go").addEventListener("click",async()=>{
     const got=S.queue.map(id=>S.book.find(c=>c.id===id)).filter(Boolean),re=got.filter(c=>(c.met||1)>1).length;
     $("c-out").innerHTML='<div class="result"><p class="big">いま <b>'+n+'</b> 人とすれちがいました</p><p class="note">'+esc(home)+' vs '+esc(away)+'。'+(n?'名刺は袋に入って届きます。':'まだ誰もチェックインしていません。')+'あとからチェックインした人の名刺は、あとで届きます。</p>'
       +'<p class="note">試合結果は、試合が終わってから名刺の戦績に入ります。</p>'
-      +'<div class="row"><button class="btn" id="toBook">名刺帳を見る</button><button class="btn ghost" id="toShare">Xでシェアする</button></div><div id="c-share"></div></div>';
+      +'<div class="row"><button class="btn" id="toBook">名刺帳を見る</button></div></div>';
     const line=home+" vs "+away+"　"+m.label,rare=got.filter(c=>rareOf(c).length).length;
-    $("toShare").addEventListener("click",()=>showShare($("c-share"),{kind:"match",n,re,rare,line}));
     $("toBook").addEventListener("click",()=>$("tab-book").click());
     if(S.queue.length)nextPack();
   }catch(e){
@@ -1420,7 +1421,7 @@ function showShare(el,d){
   el.innerHTML='<p class="note">画像を作っています</p>';
   const text=(d.kind==="match"?"今日は"+d.n+"人とすれちがいました（"+d.line.split("　")[0]+"）":d.kind==="season"?"今季は"+S.log.filter(l=>(l.season||SEASON)===SEASON).length+"試合に行って、"+BOOK().length+"人とすれちがいました":S.me.club+"サポの名刺を作りました")+"\n#サポ名刺すれちがい";
   shareImage(d).then(url=>{
-    el.innerHTML='<div class="share"><img src="'+url+'" alt="Xでシェアする画像"><div class="row"><a class="btn" href="https://x.com/intent/post?text='+encodeURIComponent(text)+'" target="_blank" rel="noopener">Xの投稿画面を開く</a></div><p class="note">画像を長押し（パソコンは右クリック）で保存して、投稿に添付してください。</p></div>';
+    el.innerHTML='<div class="share"><img src="'+url+'" alt="今季のまとめ"><p class="note">画像を長押し（パソコンは右クリック）すると保存できます。</p></div>';
   }).catch(()=>{el.innerHTML='<p class="note">画像を作れませんでした。もう一度押してください。</p>'});
 }
 $("m-share-go").addEventListener("click",()=>showShare($("m-share"),{kind:"card"}));
@@ -1694,7 +1695,7 @@ $("about-top").addEventListener("click",()=>$("about-open").click());
 
 
 // 新しい版が公開されていたら、自動で読み込み直す（ホーム画面から開くと更新ボタンがないため）
-const APP_VER="20261004145727";
+const APP_VER="20261004150434";
 async function checkUpdate(){
   try{
     const r=await fetch("version.txt?t="+Date.now(),{cache:"no-store"});if(!r.ok)return;
