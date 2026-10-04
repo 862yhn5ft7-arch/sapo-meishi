@@ -160,7 +160,21 @@ body.tut #a2hs,body.tut #c-norm{display:none!important}
 #c-norm{display:flex;flex-direction:column;gap:8px}
 #p-book.nm .stats{grid-template-columns:repeat(2,1fr)}
 #p-book.nm .stats div:nth-child(n+3),#p-book.nm #b-divs button[data-rare]{display:none}
-#b-kind,.z-kind{margin-bottom:12px}
+#b-kind,.z-kind{margin-bottom:6px}
+.kind-q{display:block;margin:0 0 12px auto;padding:2px 0;border:0;background:none;color:var(--muted);font:inherit;font-size:12px;font-weight:700;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.kd{padding:10px 12px;border-radius:6px;font-size:13px}
+.kd strong{display:block;font-size:14px;margin-bottom:4px}
+.kd ul{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:3px}
+.kd.n{background:#f6f2e7;color:#20242a}
+.kd.s{border:1px solid var(--flood);background:color-mix(in srgb,var(--flood) 10%,transparent)}
+.pk.plain{animation:none}
+.pk.plain .pk-main{text-shadow:none;background:linear-gradient(180deg,#efe8d6,#e2d9c2)!important;box-shadow:inset 0 0 0 1px #cfc5aa}
+.pk.plain .pk-main::before,.pk.plain .pk-main::after{display:none}
+.pk.plain .pk-top i,.pk.plain .pk-bot{background:linear-gradient(180deg,#e6dec9,#d9cfb6)!important}
+.pk.plain .pk-n b{filter:none;font-size:120px}
+.pk.plain .pk-brand{font-family:var(--body);font-weight:700;font-size:20px}
+.pk.foil .pk-main{box-shadow:inset 0 0 0 2px rgba(255,215,90,.75),inset 0 0 22px rgba(255,215,90,.25)}
+.pk.foil .pk-brand small{color:#ffd95a}
 .pflip .face{border-radius:7px;text-shadow:none;background:linear-gradient(180deg,#faf7ee,#f1ecdf);box-shadow:inset 0 0 0 1px #d8d1bf,0 22px 34px -18px rgba(0,0,0,.55)}
 .pflip .face::after{display:none}
 .pflip .face::before{content:"";position:absolute;left:0;top:0;bottom:0;width:9px;background:var(--pc)}
@@ -554,6 +568,13 @@ button.pick{cursor:pointer}
       <div class="row"><button type="button" class="btn flood" id="a2hs-go">追加する</button><button type="button" class="btn ghost" id="a2hs-x">あとで</button></div>
     </div>
   </div>
+  <div class="a2pop" id="kindpop" hidden role="dialog" aria-modal="true" aria-label="ノーマル名刺とスタジアム名刺のちがい">
+    <div class="a2card"><b>名刺は2種類あります</b>
+      <div class="kd n"><strong>ノーマル名刺</strong><ul><li>チェックインの画面で、1日3枚までもらえる</li><li>全国のサポの中から、だれかの名刺が届く</li><li>もらうだけ。相手に自分の名刺は渡らない</li><li>紙の名刺。レアはなし</li></ul></div>
+      <div class="kd s"><strong>スタジアム名刺</strong><ul><li>試合の日にスタジアムでチェックインすると、同じ試合にいたサポと交換になる</li><li>QRで直接交換しても手に入る</li><li>レア・激レアがある</li><li>称号とレア図鑑は、こちらの名刺で数える</li><li>相手のXアカウントが載る</li></ul></div>
+      <span>同じ人でも、ノーマルとスタジアムは別の名刺として集まります。</span>
+      <div class="row"><button type="button" class="btn ghost" id="kind-x">閉じる</button></div></div>
+  </div>
   <div class="a2pop" id="tutpop" hidden role="dialog" aria-modal="true" aria-label="はじめの1枚">
     <div class="a2card"><b>名刺ができました</b><span>使い方を1分で練習しましょう。チェックインして、名刺を1枚もらうところまでやってみます。</span><div class="row"><button type="button" class="btn flood" id="tut-go">練習をはじめる</button><button type="button" class="btn ghost" id="tut-skip0">とばす</button></div></div>
   </div>
@@ -643,6 +664,7 @@ button.pick{cursor:pointer}
 
   <section id="p-book" hidden>
     <div class="seg" id="b-kind"></div>
+    <button type="button" class="kind-q" data-kindq="1">ノーマルとスタジアムのちがい</button>
     <div class="stats">
       <div><b id="s-total">0</b><span>集めた名刺</span></div>
       <div><b id="s-clubs">0</b><span>クラブ数</span></div>
@@ -787,6 +809,8 @@ const plateHTML=(name,sm)=>'<span class="plate t'+(TIER[name]||1)+(sm?' sm':'')+
 const earned=()=>TITLES.filter(t=>t[2]()).map(t=>t[0]);
 function myTitle(){const e=earned();if(S.me.title===undefined)return e[e.length-1]||"";return e.includes(S.me.title)?S.me.title:""}
 
+// 見た目と演出に使うレア。運営の名刺は「開発者」として激レアの演出にする（図鑑や称号の数には入れない）
+function rareFx(c){return c&&c.idn===0&&c.kind!=="n"?["開発者","No.000000"]:rareOf(c)}
 function rareOf(c){
   if(c.idn===0||c.kind==="n")return [];   // 運営の名刺（はじめの1枚）は、レアには数えない
   const trav=c.trav!==undefined?c.trav:(String(c.match||"").split(" vs ")[1]===c.club);
@@ -849,7 +873,7 @@ function paperHTML(c,big){
 }
 function cardHTML(c,opt){
   opt=opt||{};if(c.kind==="n")return paperHTML(c);
-  const rare=opt.mine?[]:rareOf(c),met=c.met||1;
+  const rare=opt.mine?[]:rareFx(c),met=c.met||1;
   let tags=opt.mine?'<span class="tag">MY CARD</span>':'';
   if(!opt.mine){
     if(c.direct)tags+=c.place==="stadium"?'<span class="tag dx">スタジアムで交換</span>':c.idn===0&&!c.match?'<span class="tag">はじめの1枚</span>':'<span class="tag">街で交換</span>';
@@ -907,7 +931,7 @@ function heroHTML(c){
 }
 // 相手の名刺の裏: ユニフォームの背中のように名前と背番号。下に、その人とのすれちがいの記録。
 function otherBackHTML(c,raw){
-  const h=backHead(c),rare=rareOf(raw),met=raw.met||1;
+  const h=backHead(c),rare=rareFx(raw),met=raw.met||1;
   const where=raw.direct&&!raw.match?(raw.place==="stadium"?"スタジアムで交換":raw.idn===0?"はじめの1枚":"街で交換"):esc(raw.match)+(raw.ha==="A"?"（アウェイ）":"");
   return h.top+'<div class="k-name">'+h.nick+'</div><div class="k-big chrome">'+(c.no||12)+'</div>'
     +'<dl class="k-dl"><div class="wide"><dt class="lb">'+(raw.direct&&!raw.match?"交換した日":"最後にすれちがった試合")+'</dt><dd>'+esc(raw.date)+'　'+where+'</dd></div>'
@@ -966,7 +990,7 @@ function renderBook(){
 function renderZukan(){
   const cnt={};SRC().forEach(c=>cnt[c.club]=(cnt[c.club]||0)+1);
   const got=Object.keys(cnt).filter(c=>divOf(c)).length;
-  let h='<div class="seg z-kind">'+kindSeg()+'</div><div class="group"><h2>'+(KIND==="n"?"ノーマル図鑑":"スタジアム図鑑")+'<span>'+got+' / '+CLUBS.length+'</span></h2><p class="note">そのクラブのサポ名刺を1枚でも持っていると色がつきます。数字は持っている枚数です。色のついたクラブを押すと、その名刺が見られます。</p>';
+  let h='<div class="seg z-kind">'+kindSeg()+'</div><button type="button" class="kind-q" data-kindq="1">ノーマルとスタジアムのちがい</button><div class="group"><h2>'+(KIND==="n"?"ノーマル図鑑":"スタジアム図鑑")+'<span>'+got+' / '+CLUBS.length+'</span></h2><p class="note">そのクラブのサポ名刺を1枚でも持っていると色がつきます。数字は持っている枚数です。色のついたクラブを押すと、その名刺が見られます。</p>';
   h+=DIVS.map(d=>'<h3>'+d+'<span>'+LEAGUE[d].filter(c=>cnt[c[0]]).length+' / '+LEAGUE[d].length+'</span></h3><div class="tiles">'+LEAGUE[d].map(c=>{const k=cnt[c[0]]||0;return k?'<button type="button" class="tile got" data-club="'+c[0]+'" aria-label="'+c[0]+'サポの名刺 '+k+'枚を見る" style="--club:'+c[1]+';--on-club:'+onColor(c[1])+'"><span>'+c[0]+'</span><b>×'+k+'</b></button>':'<div class="tile"><span>'+c[0]+'</span><b>—</b></div>'}).join("")+'</div>').join("")+'</div>';
   if(KIND==="n"){$("z-out").innerHTML=h+'<p class="note">レア図鑑と称号は、スタジアム名刺のほうにあります。</p>';return}
   const rc=RARES.map(r=>BOOK().filter(c=>rareOf(c).includes(r[0])).length);
@@ -1087,7 +1111,7 @@ function renderToday(){
 function renderNorm(){
   const el=$("c-norm");if(!el)return;
   const iso=isoOf(today()),used=NORMALL().filter(c=>c.day===iso).length,left=Math.max(0,3-used),none=S.normNone===iso;
-  el.innerHTML='<div class="normbox"><div><b>今日のノーマル名刺</b><span>'+(!left?'今日の3枚はもらいました。また明日。':none?'いまは、もらえる名刺がありません。サポーターが増えると、また引けます。':'あと '+left+' 枚もらえます（1日3枚まで）')+'</span></div>'+(left&&!none?'<button type="button" class="btn" id="n-go">名刺を引く</button>':'')+'</div><div id="c-norm-out"></div>';
+  el.innerHTML='<div class="normbox"><div><b>今日のノーマル名刺</b><span>'+(!left?'今日の3枚はもらいました。また明日。':none?'いまは、もらえる名刺がありません。サポーターが増えると、また引けます。':'あと '+left+' 枚もらえます（1日3枚まで）')+'</span></div>'+(left&&!none?'<button type="button" class="btn" id="n-go">名刺を引く</button>':'')+'</div><button type="button" class="kind-q" data-kindq="1">ノーマルとスタジアムのちがい</button><div id="c-norm-out"></div>';
   const b=$("n-go");if(b)b.addEventListener("click",drawNormal);
 }
 async function drawNormal(){
@@ -1101,7 +1125,7 @@ async function drawNormal(){
     await sync(true);
     const cards=got.map(id=>NORMALL().find(c=>c.pid===id)).filter(Boolean);
     if(!cards.length){S.normNone=isoOf(today());save();renderNorm();return}
-    openPack(cards,{line:"ノーマル名刺",label:fmt(today())});
+    openPack(cards,{line:"ノーマル名刺",label:fmt(today()),kind:"n"});
   }catch(e){
     renderNorm();const o=$("c-norm-out");if(o)o.innerHTML='<p class="xmsg">引けませんでした。電波のよいところで、もう一度お試しください。</p>';
   }
@@ -1348,7 +1372,7 @@ $("x-go").addEventListener("click",()=>{
 let lastFocus=null;
 function openCard(id){
   const raw=S.book.find(c=>c.id===id);if(!raw)return;
-  const c=statsOf(raw),rare=rareOf(raw),met=raw.met||1;VIEW.ang=0;VIEW.cur=0;
+  const c=statsOf(raw),rare=rareFx(raw),met=raw.met||1;VIEW.ang=0;VIEW.cur=0;
   const where=raw.direct&&!raw.match?(raw.place==="stadium"?"スタジアムで交換":raw.idn===0?"はじめの1枚":"街で交換"):esc(raw.match)+(raw.ha==="A"?"（アウェイ）":"")+" ですれちがい";
   $("viewer").innerHTML='<div class="bar"><h2>'+esc(c.nick)+'さんの名刺</h2><button type="button" class="btn ghost" id="v-close">閉じる</button></div>'
     +solid(c,0,frontHTML(c),otherBackHTML(c,raw))+'<p class="hint">スワイプで裏返す</p>'
@@ -1413,6 +1437,7 @@ document.addEventListener("click",e=>{
   if(!e.target.closest||e.target.closest("#pack .gc"))return;
   const p=e.target.closest(".paper[data-id]");if(p)openPaper(p.dataset.id);
 });
+document.addEventListener("click",e=>{if(e.target.closest&&e.target.closest("[data-kindq]"))$("kindpop").hidden=false;else if(e.target===$("kindpop")||e.target===$("kind-x"))$("kindpop").hidden=true});
 function closeCard(){$("viewer").hidden=true;$("viewer").innerHTML="";try{lastFocus&&lastFocus.focus()}catch(e){}}
 document.addEventListener("click",e=>{
   if(e.target===$("viewer")){closeCard();return}
@@ -1429,13 +1454,13 @@ document.addEventListener("keydown",e=>{
 // いちばん上を横に払うと下の1枚が現れる（裏返す手順はない）。
 // 並びは普通→レア→激レア。袋を開けた瞬間の光の色で、中の一番いい名刺が分かる（白=普通、金=レア、虹=激レア）。
 let PK=null;
-function openPack(cards,info){PK={cards,info,i:-1,a:0,up:false,busy:false,auto:false,autoT:0,before:earned(),best:Math.max(0,...cards.map(c=>rareOf(c).length))};renderPack();$("pack").hidden=false;$("pack").scrollTop=0}
+function openPack(cards,info){PK={cards,info,i:-1,a:0,up:false,busy:false,auto:false,autoT:0,before:earned(),best:Math.max(0,...cards.map(c=>rareFx(c).length))};renderPack();$("pack").hidden=false;$("pack").scrollTop=0}
 // 順番待ちの先頭から5枚までを1袋にして開ける。袋の中は、普通→レア→激レアの順に並べる
 function nextPack(){
   S.free=false;
   const cards=S.queue.slice(0,PACK_SIZE).map(id=>S.book.find(c=>c.id===id)).filter(Boolean);
   if(!cards.length){S.queue=[];save();renderQueue();return}
-  cards.sort((a,b)=>rareOf(a).length-rareOf(b).length||(a.met||1)-(b.met||1));
+  cards.sort((a,b)=>rareFx(a).length-rareFx(b).length||(a.met||1)-(b.met||1));
   const ms=[...new Set(cards.map(c=>c.match))];
   openPack(cards,{line:ms.length===1?(ms[0]||"はじめの1枚"):"すれちがった名刺",label:cards[0].date||""});
 }
@@ -1461,19 +1486,19 @@ function fx(level,sparks,soft){ // 0 白 / 1 金 / 2 虹。soft は名刺1枚ご
 function renderPack(pop){
   const k=PK,p=$("pack");if(!k||k.stage==="ad")return;
   if(k.i<0){
-    const col=S.me.color;
-    p.innerHTML='<h2>名刺が届きました</h2>'
-      +'<div class="pk-wrap"><div class="pk" id="pk" style="--club:'+esc(col)+';--on-club:'+onColor(col)+'"><span class="pk-in"></span><span class="pk-peek"></span><span class="pk-rip"></span><span class="pk-top a"><i></i></span><span class="pk-top b"><i></i></span><span class="pk-cut"></span><span class="pk-spark"></span><span class="pk-body"><span class="pk-main"><span class="pk-brand">サポ名刺<small>'+SEASON+'</small></span><span class="pk-n"><b>'+k.cards.length+'</b><span>枚入り</span></span><span class="pk-match">'+esc(k.info.line)+'<br>'+esc(k.info.label)+'</span></span><span class="pk-bot"></span></span></div></div>'
+    const plain=k.info.kind==="n",col=plain?"#E9E1CC":S.me.color;
+    p.innerHTML='<h2>'+(plain?'ノーマル名刺が届きました':'スタジアム名刺が届きました')+'</h2>'
+      +'<div class="pk-wrap"><div class="pk'+(plain?' plain':' foil')+'" id="pk" style="--club:'+esc(col)+';--on-club:'+onColor(col)+'"><span class="pk-in"></span><span class="pk-peek"></span><span class="pk-rip"></span><span class="pk-top a"><i></i></span><span class="pk-top b"><i></i></span><span class="pk-cut"></span><span class="pk-spark"></span><span class="pk-body"><span class="pk-main"><span class="pk-brand">サポ名刺<small>'+(plain?"NORMAL":"STADIUM")+'　'+SEASON+'</small></span><span class="pk-n"><b>'+k.cards.length+'</b><span>枚入り</span></span><span class="pk-match">'+esc(k.info.line)+'<br>'+esc(k.info.label)+'</span></span><span class="pk-bot"></span></span></div></div>'
       +'<p class="pk-hint">袋の上を、横にスワイプして開ける</p><div class="row center"><button type="button" class="btn ghost" data-pk="open">ボタンで開ける</button></div>';
   }else if(k.i>=k.cards.length){
     k.cards.forEach(unseal);renderAll();
-    const got=earned().filter(t=>!k.before.includes(t)),rest=S.queue.length,re=k.cards.filter(c=>(c.met||1)>1).length,rr=k.cards.filter(c=>rareOf(c).length).length;
+    const got=earned().filter(t=>!k.before.includes(t)),rest=S.queue.length,re=k.cards.filter(c=>(c.met||1)>1).length,rr=k.cards.filter(c=>rareFx(c).length).length;
     p.innerHTML='<div class="done"><h2>'+k.cards.length+' 枚の名刺を開けました</h2><p class="note" style="text-align:center">はじめまして '+(k.cards.length-re)+' 人、再会 '+re+' 人、レア '+rr+' 枚'+(got.length?'。称号を獲得：'+got.map(esc).join("、"):'')+'</p>'
       +'<div class="grid">'+k.cards.slice().reverse().map(c=>cardHTML(c,{isNew:true})).join("")+'</div>'
       +(rest?'<p class="xmsg" style="text-align:center">未開封の名刺が、あと '+rest+' 枚あります</p><div class="row center"><button type="button" class="btn flood" data-pk="ad">'+(ADS?"広告を見て次の袋を開ける":"次の袋を開ける")+'</button></div>'
         :'<div class="row center"><button type="button" class="btn" data-pk="close">閉じる</button></div>')+'</div>';
   }else{
-    const c=k.cards[k.i],r=rareOf(c).length,left=k.cards.length-1-k.i;
+    const c=k.cards[k.i],r=rareFx(c).length,left=k.cards.length-1-k.i;
     k.a=0;k.up=false;k.mv=false;
     p.innerHTML='<p class="pk-count">'+(k.i+1)+' / '+k.cards.length+'</p>'
       +'<div class="gc-area">'+(left>1?'<span class="gc-deck d2"></span>':'')+(left>0?'<span class="gc-deck d1"></span>':'')
@@ -1503,13 +1528,13 @@ function playMovie(level,cb){
 // 「全部開ける」: 普通の名刺は飛ばすが、レアと激レアは1枚ずつ、めくれるところを見せてから結果へ進む
 function pkAll(){
   const k=PK;if(!k||k.busy)return;clearTimeout(k.autoT);cancelAnimationFrame(pkRaf);k.auto=true;
-  let j=k.up?k.i+1:k.i;while(j<k.cards.length&&!rareOf(k.cards[j]).length)j++;
+  let j=k.up?k.i+1:k.i;while(j<k.cards.length&&!rareFx(k.cards[j]).length)j++;
   if(j>=k.cards.length){k.i=k.cards.length;k.auto=false;renderPack();$("pack").scrollTop=0;return}
   k.i=j;renderPack();pkFlipTo(180);
 }
 // 名刺の下の文字とボタンを、裏向きか表向きかに合わせる（名刺そのものは描き直さない）
 function pkMeta(){
-  const k=PK,c=k.cards[k.i],r=rareOf(c).length,last=k.i===k.cards.length-1,t=$("pk-tag");
+  const k=PK,c=k.cards[k.i],r=rareFx(c).length,last=k.i===k.cards.length-1,t=$("pk-tag");
   t.textContent=k.up?(r>1?"激レア！":r?"レア！":(c.met||1)>1?"また会えた":""):(r>1?"この光は…":r?"なにか光っている":"");
   t.classList.toggle("hit",k.up&&r>0);
   $("pk-hint").textContent=k.up?(last?"タップかスワイプで結果へ":"タップかスワイプで次へ"):"タップかスワイプでめくる";
@@ -1521,9 +1546,9 @@ function pkAngle(a){const k=PK,g=$("gc");k.a=a;if(!g)return;g.style.setProperty(
 let pkRaf=0;
 function pkFlipTo(to){ // 裏から表へ（または途中でやめて裏へ戻る）。途中の角度からそのまま続ける
   const k=PK;cancelAnimationFrame(pkRaf);
-  const lv=rareOf(k.cards[k.i]).length;
+  const lv=rareFx(k.cards[k.i]).length;
   if(to>=180&&!k.up&&lv&&!k.mv&&!calm){k.mv=true;pkAngle(0);playMovie(lv,()=>pkFlipTo(180));return}
-  const done=()=>{pkAngle(to);if(to>=180&&!k.up){k.up=true;unseal(k.cards[k.i]);const g=$("gc"),r=rareOf(k.cards[k.i]).length;
+  const done=()=>{pkAngle(to);if(to>=180&&!k.up){k.up=true;unseal(k.cards[k.i]);const g=$("gc"),r=rareFx(k.cards[k.i]).length;
       if(g&&r){const y=document.createElement("span");y.className="gc-rays";g.prepend(y)}
       pkMeta();if(r)fx(r,r>1?22:12,r<2);
       if(k.auto){clearTimeout(k.autoT);k.autoT=setTimeout(()=>{if(PK===k&&k.auto)pkAll()},1300)}}};
@@ -1573,7 +1598,7 @@ document.addEventListener("pointermove",e=>{
   if(!d.moved&&Math.abs(d.dx)>6){d.moved=true;d.el.classList.remove("rise","first");d.el.classList.add("drag")}
   if(!d.moved)return;
   if(k.up)d.el.style.setProperty("--dx",d.dx.toFixed(0));
-  else{const hold=rareOf(k.cards[k.i]).length&&!k.mv&&!calm; // レアは、ムービーが入るまで半分より先へは回らない
+  else{const hold=rareFx(k.cards[k.i]).length&&!k.mv&&!calm; // レアは、ムービーが入るまで半分より先へは回らない
     pkAngle(Math.max(0,Math.min(hold?52:180,d.a0+Math.abs(d.dx)/(d.w*.55)*180)))}
 });
 function pkEnd(e){
@@ -1584,7 +1609,7 @@ function pkEnd(e){
   if(e.type!=="pointerup"){if(k.up)d.el.style.setProperty("--dx","0");else pkFlipTo(k.a>90?180:0);return}
   if(!d.moved){pkAct(1);return}
   if(k.up){if(Math.abs(d.dx)>50||flick)pkAct(d.dx>0?1:-1);else d.el.style.setProperty("--dx","0")}
-  else pkFlipTo(k.a>(rareOf(k.cards[k.i]).length&&!k.mv?32:60)||flick?180:0);
+  else pkFlipTo(k.a>(rareFx(k.cards[k.i]).length&&!k.mv?32:60)||flick?180:0);
 }
 document.addEventListener("pointerup",pkEnd);
 document.addEventListener("pointercancel",pkEnd);
@@ -2024,7 +2049,7 @@ $("about-top").addEventListener("click",()=>$("about-open").click());
 
 
 // 新しい版が公開されていたら、自動で読み込み直す（ホーム画面から開くと更新ボタンがないため）
-const APP_VER="20261004171637";
+const APP_VER="20261004172656";
 async function checkUpdate(){
   try{
     const r=await fetch("version.txt?t="+Date.now(),{cache:"no-store"});if(!r.ok)return;
