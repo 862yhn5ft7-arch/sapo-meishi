@@ -168,6 +168,14 @@ body.tut #a2hs,body.tut #c-norm{display:none!important}
 #p-book.nm .stats{grid-template-columns:repeat(2,1fr)}
 #p-book.nm .stats div:nth-child(n+3),#p-book.nm #b-divs button[data-rare]{display:none}
 #b-kind,.z-kind{margin-bottom:6px}
+:not(.pflip)>.flip:not([class*="pt-"]) .face{outline:5px solid var(--c2);outline-offset:-12px}
+:not(.pflip)>.flip[class*="fr-"]:not([class*="pt-"]) .face{outline-width:3px;outline-offset:-23px}
+:not(.pflip)>.flip:not([class*="pt-"]) .l-ava{box-shadow:0 0 0 3px var(--c2),0 0 0 4px rgba(0,0,0,.45)}
+:not(.pflip)>.flip:not([class*="pt-"]) .l-coin{box-shadow:inset 0 2px 4px rgba(0,0,0,.45),0 0 0 3px var(--c2),0 1px 0 4px rgba(0,0,0,.35)}
+:not(.pflip)>.flip:not([class*="pt-"]) .l-track i{background:linear-gradient(180deg,color-mix(in srgb,var(--c2) 62%,#fff),var(--c2) 50%,color-mix(in srgb,var(--c2) 78%,#000))}
+:not(.pflip)>.flip:not([class*="pt-"]) .face{padding:24px}
+:not(.pflip)>.flip[class*="fr-"]:not([class*="pt-"]) .face{padding:30px}
+:not(.pflip)>.flip:not([class*="pt-"]) .screw.s1{left:3px;top:3px}:not(.pflip)>.flip:not([class*="pt-"]) .screw.s2{right:3px;top:3px}:not(.pflip)>.flip:not([class*="pt-"]) .screw.s3{left:3px;bottom:3px}:not(.pflip)>.flip:not([class*="pt-"]) .screw.s4{right:3px;bottom:3px}
 .pk-lab{grid-column:1/-1;margin:6px 0 0;font-size:12px;font-weight:700;color:var(--muted)}
 .flip[class*="pt-"] .face{text-shadow:0 1px 1px rgba(0,0,0,.25)}
 .flip.on-light[class*="pt-"] .face{text-shadow:none}
@@ -2310,7 +2318,7 @@ $("about-top").addEventListener("click",()=>$("about-open").click());
 
 
 // 新しい版が公開されていたら、自動で読み込み直す（ホーム画面から開くと更新ボタンがないため）
-const APP_VER="20261005132930";
+const APP_VER="20261005133649";
 async function checkUpdate(){
   try{
     const r=await fetch("version.txt?t="+Date.now(),{cache:"no-store"});if(!r.ok)return;
