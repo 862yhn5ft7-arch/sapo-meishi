@@ -1211,7 +1211,7 @@ function renderToday(){
   }
   if(m&&NOW.id===m.id&&NOW.n>0){const s=document.createElement("span");s.className="now";s.textContent="いま、この試合に "+NOW.n+" 人がチェックインしています";$("c-today").firstChild.appendChild(s)}
   if(m&&m.time&&!m.tbd){const hm=m.time.split(":"),k=(+hm[0])*60+(+hm[1]),f=v=>{v=Math.max(0,Math.min(1439,v));return String(Math.floor(v/60)).padStart(2,"0")+":"+String(v%60).padStart(2,"0")};
-    const sp=document.createElement("span");sp.className="d";sp.textContent="チェックインできる時間　"+f(k-180)+" 〜 "+f(k+180);$("c-today").firstChild.appendChild(sp)}
+    const sp=document.createElement("span");sp.className="d";sp.textContent="チェックインできる時間　"+f(k-300)+" 〜 "+f(k+60);$("c-today").firstChild.appendChild(sp)}
   if(m&&BNOW&&BNOW.id===m.id){const v=document.createElement("div");v.className="vs";
     v.innerHTML='<span class="vl">サポ対抗戦</span><div class="vb"><span>'+esc(BNOW.home)+'</span><b>'+BNOW.hp+'</b><i>-</i><b>'+BNOW.ap+'</b><span>'+esc(BNOW.away)+'</span></div><small>チェックインすると自分のクラブに点が入ります。現地 3点・リモート 1点（いま 現地 '+BNOW.hs+'人 対 '+BNOW.a_s+'人、リモート '+BNOW.hr+'人 対 '+BNOW.ar+'人）</small>';
     $("c-today").firstChild.appendChild(v)}
@@ -1305,7 +1305,7 @@ function setDate(iso){
 $("c-date").addEventListener("change",e=>setDate(e.target.value));
 $("c-date-x").addEventListener("click",()=>setDate(""));
 $("c-next").addEventListener("click",e=>{const b=e.target.closest("button");if(b)setDate(b.dataset.iso)});
-const CK_ERR={too_early:"まだチェックインできません。キックオフの3時間前から押せます。",too_late:"この試合のチェックインは終わりました。キックオフの3時間後まで押せます。",not_match_day:"今日はこの試合の日ではありません。",not_your_match:"いまは準備中で、この試合にはチェックインできません。少し待ってからもう一度お試しください。",need_location:"位置情報が必要です。スマホの設定で、このサイトに位置情報を許可してください。",too_far:"スタジアムから離れているようです。会場の近くでもう一度押してください。",already_checked_in:"この試合はチェックイン済みです。",no_profile:"名刺がまだ登録できていません。名刺の画面を開いてからもう一度お試しください。",not_signed_in:"通信できませんでした。ページを開き直してください。"};
+const CK_ERR={too_early:"まだチェックインできません。キックオフの5時間前から押せます。",too_late:"この試合のチェックインは終わりました。キックオフの1時間後まで押せます。",not_match_day:"今日はこの試合の日ではありません。",not_your_match:"いまは準備中で、この試合にはチェックインできません。少し待ってからもう一度お試しください。",need_location:"位置情報が必要です。スマホの設定で、このサイトに位置情報を許可してください。",too_far:"スタジアムから離れているようです。会場の近くでもう一度押してください。",already_checked_in:"この試合はチェックイン済みです。",no_profile:"名刺がまだ登録できていません。名刺の画面を開いてからもう一度お試しください。",not_signed_in:"通信できませんでした。ページを開き直してください。"};
 const errText=(e,map)=>{const t=String(e&&e.message||e||"");for(const k in map)if(t.includes(k))return map[k];return "通信できませんでした。電波のよいところで、もう一度お試しください。"};
 // 会場の位置のいまの天気（Open-Meteo）。雨なら true、調べられなければ null。
 async function rainNow(m){
@@ -2055,7 +2055,7 @@ function buildRem(rows){
 // サポ対抗戦の点（自分のクラブから見た 得点・失点・勝ち負け）。勝ち負けは、チェックインの受付が終わってから付く
 function btInfo(m,ha){
   const p=BTL[m.id];if(!p||ha==="N")return null;
-  const end=m.kickoff&&m.day_from===m.day_to?new Date(m.day_from+"T"+String(m.kickoff).slice(0,5)+":00+09:00").getTime()+3*3600e3:new Date(m.day_to+"T23:59:59+09:00").getTime();
+  const end=m.kickoff&&m.day_from===m.day_to?new Date(m.day_from+"T"+String(m.kickoff).slice(0,5)+":00+09:00").getTime()+1*3600e3:new Date(m.day_to+"T23:59:59+09:00").getTime();
   const f=ha==="H"?p[0]:p[1],a=ha==="H"?p[1]:p[0];
   return {f,a,res:Date.now()>end?(f>a?"W":f<a?"L":"D"):""};
 }
@@ -2251,7 +2251,7 @@ $("about-top").addEventListener("click",()=>$("about-open").click());
 
 
 // 新しい版が公開されていたら、自動で読み込み直す（ホーム画面から開くと更新ボタンがないため）
-const APP_VER="20261005122412";
+const APP_VER="20261005123655";
 async function checkUpdate(){
   try{
     const r=await fetch("version.txt?t="+Date.now(),{cache:"no-store"});if(!r.ok)return;
