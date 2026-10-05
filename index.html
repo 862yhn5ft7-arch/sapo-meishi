@@ -172,9 +172,14 @@ label:has(#f-color){display:none}
 .btn.rbtn{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:15px;padding:12px 14px;background:color-mix(in srgb,var(--flood) 14%,var(--surface));color:var(--ink);border:2px solid var(--flood)}
 .btn.rbtn small{font-size:11px;font-weight:700;color:var(--muted)}
 .btn.rbtn:disabled{border-color:var(--line);background:none}
-.flip.pt-sv .face{background:repeating-linear-gradient(90deg,color-mix(in srgb,var(--on-club) 17%,transparent) 0 28px,transparent 28px 56px),radial-gradient(120% 70% at 0% 0%,rgba(255,255,255,.2),transparent 60%),repeating-linear-gradient(90deg,rgba(255,255,255,.05) 0 1px,rgba(0,0,0,.045) 1px 2px,transparent 2px 4px),linear-gradient(128deg,color-mix(in srgb,var(--club) 84%,#fff) 0%,var(--club) 24%,color-mix(in srgb,var(--club) var(--deep),#000) 56%,color-mix(in srgb,var(--club) 88%,#000) 80%,color-mix(in srgb,var(--club) 84%,#fff) 100%)}
-.flip.pt-sh .face{background:repeating-linear-gradient(180deg,color-mix(in srgb,var(--on-club) 17%,transparent) 0 28px,transparent 28px 56px),radial-gradient(120% 70% at 0% 0%,rgba(255,255,255,.2),transparent 60%),repeating-linear-gradient(90deg,rgba(255,255,255,.05) 0 1px,rgba(0,0,0,.045) 1px 2px,transparent 2px 4px),linear-gradient(128deg,color-mix(in srgb,var(--club) 84%,#fff) 0%,var(--club) 24%,color-mix(in srgb,var(--club) var(--deep),#000) 56%,color-mix(in srgb,var(--club) 88%,#000) 80%,color-mix(in srgb,var(--club) 84%,#fff) 100%)}
-.flip.pt-ck .face{background:repeating-linear-gradient(90deg,color-mix(in srgb,var(--on-club) 12%,transparent) 0 28px,transparent 28px 56px),repeating-linear-gradient(180deg,color-mix(in srgb,var(--on-club) 12%,transparent) 0 28px,transparent 28px 56px),radial-gradient(120% 70% at 0% 0%,rgba(255,255,255,.2),transparent 60%),repeating-linear-gradient(90deg,rgba(255,255,255,.05) 0 1px,rgba(0,0,0,.045) 1px 2px,transparent 2px 4px),linear-gradient(128deg,color-mix(in srgb,var(--club) 84%,#fff) 0%,var(--club) 24%,color-mix(in srgb,var(--club) var(--deep),#000) 56%,color-mix(in srgb,var(--club) 88%,#000) 80%,color-mix(in srgb,var(--club) 84%,#fff) 100%)}
+.flip[class*="pt-"] .face{--c2:color-mix(in srgb,var(--club) 74%,#fff);--mesh:radial-gradient(circle at 1.5px 1.5px,rgba(0,0,0,.26) 0 1px,transparent 1.25px) 0 0/5px 5px,radial-gradient(circle at 4px 4px,rgba(255,255,255,.12) 0 1px,transparent 1.25px) 0 0/5px 5px;--fold:linear-gradient(100deg,rgba(255,255,255,.12),transparent 28%,rgba(0,0,0,.16) 62%,transparent 86%,rgba(0,0,0,.12));
+  text-shadow:0 1px 2px rgba(0,0,0,.6);border-radius:14px;outline:2px dashed color-mix(in srgb,var(--on-club) 60%,transparent);outline-offset:-8px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.3),inset 0 0 30px rgba(0,0,0,.22),0 30px 40px -18px rgba(0,0,0,.55)}
+.flip[class*="pt-"] .face::after,.flip[class*="pt-"] .screw{display:none}
+.flip[class*="pt-"] .slab,.flip[class*="pt-"] .edge{border-radius:14px}
+.flip.pt-sv .face{background:var(--mesh),var(--fold),repeating-linear-gradient(90deg,var(--club) 0 34px,var(--c2) 34px 68px)}
+.flip.pt-sh .face{background:var(--mesh),var(--fold),repeating-linear-gradient(180deg,var(--club) 0 34px,var(--c2) 34px 68px)}
+.flip.pt-ck .face{background:var(--mesh),var(--fold),repeating-linear-gradient(90deg,color-mix(in srgb,var(--c2) 55%,transparent) 0 34px,transparent 34px 68px),repeating-linear-gradient(180deg,var(--club) 0 34px,var(--c2) 34px 68px)}
+.flip.pt-un .face{background:var(--mesh),var(--fold),linear-gradient(var(--club),var(--club))}
 .k-big.sm{font-size:104px;margin-block:6px 2px}
 .k-more{display:flex;flex-direction:column;gap:8px;margin-top:auto;padding-top:10px}
 .k-tl{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
@@ -1055,8 +1060,8 @@ function otherBackHTML(c,raw){
     +'<dl class="k-dl"><div class="wide"><dt class="lb">'+(raw.direct&&!raw.match?"交換した日":"最後にすれちがった試合")+'</dt><dd>'+esc(raw.date)+'　'+where+'</dd></div>'
     +'<div><dt class="lb">会った回数</dt><dd>'+met+' 回</dd></div><div><dt class="lb">レア</dt><dd>'+(rare.length?rare.join("、"):"なし")+'</dd></div></dl>';
 }
-const PATS=["sv","sh","ck"],ptClass=c=>PATS.includes(c.skin)?" pt-"+c.skin:"";
-const SKINS=[["","クラブカラー","最初から使えます",()=>true],["sv","たてじま","称号を3つ集めると使えます",()=>earned().length>=3],["sh","よこじま","称号を6つ集めると使えます",()=>earned().length>=6],["ck","チェック","称号を10個集めると使えます",()=>earned().length>=10],["gold","ゴールド","今季10試合チェックインすると使えます",()=>S.log.filter(l=>(l.season||SEASON)===SEASON).length>=10],["black","ブラック","称号を5つ集めると使えます",()=>earned().length>=5]];
+const PATS=["un","sv","sh","ck"],ptClass=c=>PATS.includes(c.skin)?" pt-"+c.skin:"";
+const SKINS=[["","クラブカラー","最初から使えます",()=>true],["un","ユニフォーム","称号を1つ集めると使えます",()=>earned().length>=1],["sv","たてじま","称号を3つ集めると使えます",()=>earned().length>=3],["sh","よこじま","称号を6つ集めると使えます",()=>earned().length>=6],["ck","チェック","称号を10個集めると使えます",()=>earned().length>=10],["gold","ゴールド","今季10試合チェックインすると使えます",()=>S.log.filter(l=>(l.season||SEASON)===SEASON).length>=10],["black","ブラック","称号を5つ集めると使えます",()=>earned().length>=5]];
 const skinOK=s=>{const k=SKINS.find(x=>x[0]===(s||""));return !!k&&k[3]()};
 function myStats(){
   const e=earned(),mine=S.log.filter(l=>(l.season||SEASON)===SEASON),n=k=>mine.filter(l=>(l.comp||"リーグ")===k).length;
@@ -2026,7 +2031,7 @@ function buildBook(rows){
     const st=r.stats&&typeof r.stats==="object"?r.stats:{},day=[r.last_day,r.last_exchange].filter(Boolean).sort().pop()||"";
     return {id:r.id,nick:r.nick,club:r.club,color:colorOf(r.club),style:r.style||"",word:r.word||"",fav:r.fav||"",no:r.back_no||12,x:xHandle(r.x_handle||""),title:names.includes(r.title)?r.title:"",pk:r.photo_key||"",photo:photoOf(r.id,r.photo_key),idn:r.member_no,
       games:r.games||0,rec:[r.wins||0,r.draws||0,r.losses||0],rrec:rrOf(st),tl:tlOf(st),home:[r.home_games||0,Math.max(1,num(st.homeAll,40))],cards:num(st.cards,9999),rare:num(st.rare,9999),zukan:[num(st.zukan,CLUBS.length),CLUBS.length],titles:[num(st.titles,TITLES.length),TITLES.length],
-      met:r.met||1,day,date:day?fmt(dateOf(day)):"",match:r.last_match||"",ha:r.last_away?"A":"H",rain:!!r.any_rain,wd:!!r.any_weeknight,trav:!!r.any_trav,op:!!r.any_opening,fin:!!r.any_final,skin:["gold","black","sv","sh","ck"].includes(r.skin)?r.skin:"",direct:!!r.direct,place:r.stadium?"stadium":"town",ex:r.last_exchange||""};
+      met:r.met||1,day,date:day?fmt(dateOf(day)):"",match:r.last_match||"",ha:r.last_away?"A":"H",rain:!!r.any_rain,wd:!!r.any_weeknight,trav:!!r.any_trav,op:!!r.any_opening,fin:!!r.any_final,skin:["gold","black","un","sv","sh","ck"].includes(r.skin)?r.skin:"",direct:!!r.direct,place:r.stadium?"stadium":"town",ex:r.last_exchange||""};
   }).sort((a,b)=>a.day<b.day?-1:a.day>b.day?1:0);
   const add=[];
   book.forEach(c=>{
@@ -2277,7 +2282,7 @@ $("about-top").addEventListener("click",()=>$("about-open").click());
 
 
 // 新しい版が公開されていたら、自動で読み込み直す（ホーム画面から開くと更新ボタンがないため）
-const APP_VER="20261005125931";
+const APP_VER="20261005131012";
 async function checkUpdate(){
   try{
     const r=await fetch("version.txt?t="+Date.now(),{cache:"no-store"});if(!r.ok)return;
