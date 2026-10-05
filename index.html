@@ -168,12 +168,30 @@ body.tut #a2hs,body.tut #c-norm{display:none!important}
 #p-book.nm .stats{grid-template-columns:repeat(2,1fr)}
 #p-book.nm .stats div:nth-child(n+3),#p-book.nm #b-divs button[data-rare]{display:none}
 #b-kind,.z-kind{margin-bottom:6px}
+.pk-lab{grid-column:1/-1;margin:6px 0 0;font-size:12px;font-weight:700;color:var(--muted)}
+.flip[class*="pt-"] .face{text-shadow:0 1px 1px rgba(0,0,0,.25)}
+.flip.on-light[class*="pt-"] .face{text-shadow:none}
+.flip[class*="pt-"] .pan{background:color-mix(in srgb,var(--club) 62%,#000);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14)}
+.flip.on-light[class*="pt-"] .pan{background:color-mix(in srgb,var(--club) 80%,#fff)}
+.flip[class*="pt-"] .face.back{background:var(--mesh),var(--fold),linear-gradient(var(--club),var(--club))}
+.flip[class*="pt-"]:not(.pt-un) .face.front .l-nick,.flip[class*="pt-"]:not(.pt-un) .face.front .l-sub,.flip[class*="pt-"]:not(.pt-un) .face.front .l-word{align-self:flex-start;max-width:100%;background:var(--club);border-radius:6px;padding:3px 10px;margin-left:-6px;box-shadow:0 1px 2px rgba(0,0,0,.3)}
+.flip[class*="pt-"]:not(.pt-un) .face.front .l-nick{padding:2px 10px 5px}
+.flip[class*="pt-"]:not(.pt-un) .face.front .l-sub{margin-top:4px}
+.flip[class*="pt-"]:not(.pt-un) .face.front .l-bars{background:var(--club);border-radius:8px;padding:10px 12px;margin:auto -6px 0;box-shadow:0 1px 2px rgba(0,0,0,.3)}
+.flip[class*="pt-"]:not(.pt-un) .face.front .l-coin{background:var(--club)}
+.flip[class*="fr-"] .face{padding:27px}
+.flip.flip.fr-gold .face{box-shadow:inset 0 0 0 2px #fff3b0,inset 0 0 0 5px #e9cf62,inset 0 0 0 13px #c9a63b,inset 0 0 0 15px #f6e27a,inset 0 0 0 17px #5f4709,inset 0 0 18px 17px rgba(0,0,0,.28),0 30px 40px -18px rgba(0,0,0,.55)}
+.flip.flip.fr-black .face{box-shadow:inset 0 0 0 2px #6b727d,inset 0 0 0 5px #2a2e35,inset 0 0 0 13px #101216,inset 0 0 0 15px #4a505a,inset 0 0 0 17px #000,inset 0 0 18px 17px rgba(0,0,0,.32),0 30px 40px -18px rgba(0,0,0,.55)}
+.flip.flip[class*="fr-"][class*="pt-"] .face{outline-offset:-24px}
+.flip[class*="fr-"] .screw.s1{left:4px;top:4px}.flip[class*="fr-"] .screw.s2{right:4px;top:4px}.flip[class*="fr-"] .screw.s3{left:4px;bottom:4px}.flip[class*="fr-"] .screw.s4{right:4px;bottom:4px}
+.flip[class*="fr-"] .l-cols{grid-template-columns:84px minmax(0,1fr);gap:10px}
+.flip[class*="fr-"] .l-ava,.flip[class*="fr-"] .l-coin{width:84px;height:84px}
 label:has(#f-color){display:none}
 .btn.rbtn{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:15px;padding:12px 14px;background:color-mix(in srgb,var(--flood) 14%,var(--surface));color:var(--ink);border:2px solid var(--flood)}
 .btn.rbtn small{font-size:11px;font-weight:700;color:var(--muted)}
 .btn.rbtn:disabled{border-color:var(--line);background:none}
-.flip[class*="pt-"] .face{--c2:color-mix(in srgb,var(--club) 74%,#fff);--mesh:radial-gradient(circle at 1.5px 1.5px,rgba(0,0,0,.26) 0 1px,transparent 1.25px) 0 0/5px 5px,radial-gradient(circle at 4px 4px,rgba(255,255,255,.12) 0 1px,transparent 1.25px) 0 0/5px 5px;--fold:linear-gradient(100deg,rgba(255,255,255,.12),transparent 28%,rgba(0,0,0,.16) 62%,transparent 86%,rgba(0,0,0,.12));
-  text-shadow:0 1px 2px rgba(0,0,0,.6);border-radius:14px;outline:2px dashed color-mix(in srgb,var(--on-club) 60%,transparent);outline-offset:-8px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.3),inset 0 0 30px rgba(0,0,0,.22),0 30px 40px -18px rgba(0,0,0,.55)}
+.flip[class*="pt-"] .face{--mesh:radial-gradient(circle at 1.5px 1.5px,rgba(0,0,0,.26) 0 1px,transparent 1.25px) 0 0/5px 5px,radial-gradient(circle at 4px 4px,rgba(255,255,255,.12) 0 1px,transparent 1.25px) 0 0/5px 5px;--fold:linear-gradient(100deg,rgba(255,255,255,.12),transparent 28%,rgba(0,0,0,.16) 62%,transparent 86%,rgba(0,0,0,.12));
+  border-radius:14px;outline:2px dashed color-mix(in srgb,var(--on-club) 60%,transparent);outline-offset:-8px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.3),inset 0 0 30px rgba(0,0,0,.22),0 30px 40px -18px rgba(0,0,0,.55)}
 .flip[class*="pt-"] .face::after,.flip[class*="pt-"] .screw{display:none}
 .flip[class*="pt-"] .slab,.flip[class*="pt-"] .edge{border-radius:14px}
 .flip.pt-sv .face{background:var(--mesh),var(--fold),repeating-linear-gradient(90deg,var(--club) 0 34px,var(--c2) 34px 68px)}
@@ -828,7 +846,7 @@ button.pick{cursor:pointer}
 <script>
 const LEAGUE={
 J1:[["鹿島","#9E1B32"],["水戸","#1D2E8A"],["浦和","#E6002D"],["千葉","#F7D500"],["柏","#F5D000"],["FC東京","#1E3A9F"],["東京V","#00693E"],["町田","#0A2A6B"],["川崎","#23B6E6"],["横浜FM","#0B3B8C"],["清水","#F39800"],["名古屋","#D80C18"],["京都","#7A1A7E"],["G大阪","#0A4EA3"],["C大阪","#E4568F"],["神戸","#A01437"],["岡山","#8E1230"],["広島","#51318F"],["福岡","#1B2A5C"],["長崎","#2A6EBB"]],
-J2:[["札幌","#C8102E"],["八戸","#0B8F4D"],["仙台","#E8B600"],["秋田","#0F5BB5"],["山形","#1E4FA3"],["いわき","#C8102E"],["栃木C","#0F3B8F"],["大宮","#F26522"],["横浜FC","#4CB5E8"],["湘南","#6FBA2C"],["甲府","#1B4BA0"],["新潟","#F47B20"],["富山","#1C3C8C"],["磐田","#6CA6D9"],["藤枝","#6A2C91"],["徳島","#1F3F94"],["今治","#1A3E8C"],["鳥栖","#3FA7D6"],["大分","#1C3F94"],["宮崎","#2B2B2B"]],
+J2:[["札幌","#C8102E"],["八戸","#0B8F4D"],["仙台","#E8B600"],["秋田","#0F5BB5"],["山形","#1E4FA3"],["いわき","#C8102E"],["栃木C","#0F3B8F"],["大宮","#F26522"],["横浜FC","#4CB5E8"],["湘南","#6FBA2C"],["甲府","#1B4BA0"],["新潟","#F47B20"],["富山","#1C3C8C"],["磐田","#6CA6D9"],["藤枝","#6A2C91"],["徳島","#1F3F94"],["今治","#1A3E8C"],["鳥栖","#3FA7D6"],["大分","#1C3F94"],["宮崎","#E62E8B"]],
 J3:[["福島","#D7141A"],["栃木SC","#F5D000"],["群馬","#1B2A5C"],["相模原","#0E7A3B"],["松本","#0B6B3A"],["長野","#F47B20"],["金沢","#C8102E"],["岐阜","#0B6B3A"],["滋賀","#1F4E9E"],["FC大阪","#6EC6E8"],["奈良","#1D2C6B"],["鳥取","#7BC043"],["山口","#F26522"],["讃岐","#5BB5E5"],["愛媛","#F47B20"],["高知","#C8102E"],["北九州","#F5C400"],["熊本","#C8102E"],["鹿児島","#1F3A7A"],["琉球","#8C1D40"]]};
 const DIVS=Object.keys(LEAGUE);
 const CLUBS=DIVS.flatMap(d=>LEAGUE[d].map(c=>[c[0],c[1],d]));
@@ -843,6 +861,10 @@ const KEY="sapo-meishi-live-1",OLD_KEY="sapo-meishi-none";
 const $=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const pick=a=>a[Math.floor(Math.random()*a.length)];
+const CLUB2={"鹿島":"#1B2A5C","水戸":"#FFFFFF","浦和":"#111111","千葉":"#009944","柏":"#111111","FC東京":"#D7141A","東京V":"#C9A63B","町田":"#C9A63B","川崎":"#111111","横浜FM":"#D7141A","清水":"#1B2A5C","名古屋":"#F5D000","京都":"#FFFFFF","G大阪":"#111111","C大阪":"#1B2A5C","神戸":"#FFFFFF","岡山":"#1B2A5C","広島":"#FFFFFF","福岡":"#B5B8BC","長崎":"#F47B20",
+"札幌":"#111111","八戸":"#1E4FA3","仙台":"#1E4FA3","秋田":"#C9A63B","山形":"#F5D000","いわき":"#1E4FA3","栃木C":"#FFFFFF","大宮":"#1B2A5C","横浜FC":"#FFFFFF","湘南":"#1E4FA3","甲府":"#D7141A","新潟":"#1E4FA3","富山":"#FFFFFF","磐田":"#FFFFFF","藤枝":"#009944","徳島":"#009944","今治":"#F5D000","鳥栖":"#E4568F","大分":"#F5D000","宮崎":"#FFFFFF",
+"福島":"#111111","栃木SC":"#1E4FA3","群馬":"#F5D000","相模原":"#111111","松本":"#FFFFFF","長野":"#1B2A5C","金沢":"#111111","岐阜":"#FFFFFF","滋賀":"#7B4BA8","FC大阪":"#FFFFFF","奈良":"#D7141A","鳥取":"#FFFFFF","山口":"#111111","讃岐":"#1B2A5C","愛媛":"#1B2A5C","高知":"#009944","北九州":"#D7141A","熊本":"#111111","鹿児島":"#FFFFFF","琉球":"#FFFFFF"};
+const color2Of=c=>CLUB2[c]||"#FFFFFF";
 const colorOf=c=>(CLUBS.find(x=>x[0]===c)||[0,"#777777"])[1];
 function onColor(hex){const n=parseInt(hex.slice(1),16),r=n>>16&255,g=n>>8&255,b=n&255;return (0.299*r+0.587*g+0.114*b)>160?"#14202B":"#FFFFFF"}
 function fmt(d){return d.getFullYear()+"."+String(d.getMonth()+1).padStart(2,"0")+"."+String(d.getDate()).padStart(2,"0")}
@@ -1030,8 +1052,8 @@ function frontHTML(c){
 }
 // 厚みのある1枚の板として、表と裏を組み立てる
 function solid(c,a,front,back,id){
-  const sk=c.skin==="gold"?"#C9A63B":c.skin==="black"?"#17191D":"",col=sk||c.color,on=onColor(col);
-  return '<div class="flip '+(on==="#FFFFFF"?"on-dark":"on-light")+(sk?" sk":"")+ptClass(c)+(Math.cos(a*Math.PI/180)<0?" show-back":"")+'"'+(id?' id="'+id+'"':'')+' style="--club:'+esc(col)+';--clubc:'+esc(c.color)+';--on-club:'+on+';--ang:'+a+'deg">'
+  const sk="",col=c.color,on=onColor(col);
+  return '<div class="flip '+(on==="#FFFFFF"?"on-dark":"on-light")+(sk?" sk":"")+ptClass(c)+(Math.cos(a*Math.PI/180)<0?" show-back":"")+'"'+(id?' id="'+id+'"':'')+' style="--club:'+esc(col)+';--clubc:'+esc(c.color)+';--c2:'+color2Of(c.club)+';--on-club:'+on+';--ang:'+a+'deg">'
     +[-3,-2,-1,0,1,2,3].map(z=>'<i class="slab" style="--z:'+z+'px"></i>').join("")+'<i class="edge l"></i><i class="edge r"></i>'
     +'<article class="face front">'+front+'</article><article class="face back">'+back+'</article></div>';
 }
@@ -1060,12 +1082,17 @@ function otherBackHTML(c,raw){
     +'<dl class="k-dl"><div class="wide"><dt class="lb">'+(raw.direct&&!raw.match?"交換した日":"最後にすれちがった試合")+'</dt><dd>'+esc(raw.date)+'　'+where+'</dd></div>'
     +'<div><dt class="lb">会った回数</dt><dd>'+met+' 回</dd></div><div><dt class="lb">レア</dt><dd>'+(rare.length?rare.join("、"):"なし")+'</dd></div></dl>';
 }
-const PATS=["un","sv","sh","ck"],ptClass=c=>PATS.includes(c.skin)?" pt-"+c.skin:"";
-const SKINS=[["","クラブカラー","最初から使えます",()=>true],["un","ユニフォーム","称号を1つ集めると使えます",()=>earned().length>=1],["sv","たてじま","称号を3つ集めると使えます",()=>earned().length>=3],["sh","よこじま","称号を6つ集めると使えます",()=>earned().length>=6],["ck","チェック","称号を10個集めると使えます",()=>earned().length>=10],["gold","ゴールド","今季10試合チェックインすると使えます",()=>S.log.filter(l=>(l.season||SEASON)===SEASON).length>=10],["black","ブラック","称号を5つ集めると使えます",()=>earned().length>=5]];
+const PATS=["un","sv","sh","ck"],FRS=["gold","black"];
+const skinParts=s=>{s=String(s||"");if(FRS.includes(s))return {p:"",f:s};const a=s.split(".");return {p:PATS.includes(a[0])?a[0]:"",f:FRS.includes(a[1])?a[1]:""}};
+const skinJoin=(p,f)=>(p||"")+(f?"."+f:"");
+const ptClass=c=>{const k=skinParts(c.skin);return (k.p?" pt-"+k.p:"")+(k.f?" fr-"+k.f:"")};
+const FRAMES=[["","枠なし","最初から使えます",()=>true],["gold","ゴールドの枠","今季10試合チェックインすると使えます",()=>S.log.filter(l=>(l.season||SEASON)===SEASON).length>=10],["black","ブラックの枠","称号を5つ集めると使えます",()=>earned().length>=5]];
+const skinClean=s=>{const k=skinParts(s),p=SKINS.find(x=>x[0]===k.p),f=FRAMES.find(x=>x[0]===k.f);return skinJoin(p&&p[3]()?k.p:"",f&&f[3]()?k.f:"")};
+const SKINS=[["","クラブカラー","最初から使えます",()=>true],["un","ユニフォーム","称号を1つ集めると使えます",()=>earned().length>=1],["sv","たてじま","称号を3つ集めると使えます",()=>earned().length>=3],["sh","よこじま","称号を6つ集めると使えます",()=>earned().length>=6],["ck","チェック","称号を10個集めると使えます",()=>earned().length>=10]];
 const skinOK=s=>{const k=SKINS.find(x=>x[0]===(s||""));return !!k&&k[3]()};
 function myStats(){
   const e=earned(),mine=S.log.filter(l=>(l.season||SEASON)===SEASON),n=k=>mine.filter(l=>(l.comp||"リーグ")===k).length;
-  return Object.assign({},S.me,{games:mine.length,by:"リーグ "+n("リーグ")+"・ルヴァン "+n("ルヴァンカップ")+"・天皇杯 "+n("天皇杯"),rec:["W","D","L"].map(k=>mine.filter(l=>l.res===k).length),rrec:["W","D","L"].map(k=>(S.rlog||[]).filter(l=>(l.season||SEASON)===SEASON&&l.res===k).length),title:myTitle(),skin:skinOK(S.me.skin)?S.me.skin||"":"",
+  return Object.assign({},S.me,{games:mine.length,by:"リーグ "+n("リーグ")+"・ルヴァン "+n("ルヴァンカップ")+"・天皇杯 "+n("天皇杯"),rec:["W","D","L"].map(k=>mine.filter(l=>l.res===k).length),rrec:["W","D","L"].map(k=>(S.rlog||[]).filter(l=>(l.season||SEASON)===SEASON&&l.res===k).length),title:myTitle(),skin:skinClean(S.me.skin),
     cards:BOOK().length,rare:BOOK().filter(c=>rareOf(c).length).length,
     home:[mine.filter(l=>(l.comp||"リーグ")==="リーグ"&&l.ha==="H").length,schedule(S.me.club).filter(m=>m.comp==="リーグ"&&m.ha==="H").length],
     zukan:[new Set(BOOK().map(c=>c.club).filter(divOf)).size,CLUBS.length],titles:[e.length,titleTotal(e)]});
@@ -1083,8 +1110,9 @@ function renderMine(){
     +listed(e).sort((a,b)=>(TIER[a[0]]||1)-(TIER[b[0]]||1)).map(t=>e.includes(t[0])
       ?'<button type="button" class="pick" data-t="'+esc(t[0])+'" aria-pressed="'+(cur===t[0])+'">'+plateHTML(t[0])+'<small>'+TIER_NAME[TIER[t[0]]||1]+'　'+t[1]+'</small></button>'
       :'<div class="pick locked">'+hiddenPlate(t[0])+'<small>'+TIER_NAME[TIER[t[0]]||1]+'　未獲得：'+t[1]+'</small></div>').join("");
-  const curS=skinOK(S.me.skin)?S.me.skin||"":"";
-  $("f-skins").innerHTML=SKINS.map(k=>k[3]()?'<button type="button" class="pick" data-s="'+k[0]+'" aria-pressed="'+(curS===k[0])+'"><span class="none">'+k[1]+'</span><small>'+k[2]+'</small></button>':'<div class="pick locked"><span class="none">'+k[1]+'</span><small>未解放：'+k[2]+'</small></div>').join("");
+  const curK=skinParts(skinClean(S.me.skin));
+  const pickRow=(list,cur,attr)=>list.map(k=>k[3]()?'<button type="button" class="pick" data-'+attr+'="'+k[0]+'" aria-pressed="'+(cur===k[0])+'"><span class="none">'+k[1]+'</span><small>'+k[2]+'</small></button>':'<div class="pick locked"><span class="none">'+k[1]+'</span><small>未解放：'+k[2]+'</small></div>').join("");
+  $("f-skins").innerHTML='<p class="pk-lab">柄</p>'+pickRow(SKINS,curK.p,"p")+'<p class="pk-lab">枠</p>'+pickRow(FRAMES,curK.f,"f");
   const my=myStats();
   $("myCard").innerHTML=cardHTML(my,{mine:true});$("stage").innerHTML=heroHTML(my);
 }
@@ -1293,7 +1321,7 @@ function readForm(e){
 }
 ["f-nick","f-club","f-color","f-style","f-word","f-no","f-fav","f-x"].forEach(id=>$(id).addEventListener("input",readForm));
 
-$("f-skins").addEventListener("click",e=>{const b=e.target.closest("button.pick");if(!b)return;S.me.skin=b.dataset.s;save();renderMine()});
+$("f-skins").addEventListener("click",e=>{const b=e.target.closest("button.pick");if(!b)return;const k=skinParts(skinClean(S.me.skin));S.me.skin=skinJoin(b.dataset.p!==undefined?b.dataset.p:k.p,b.dataset.f!==undefined?b.dataset.f:k.f);save();renderMine()});
 $("f-plates").addEventListener("click",e=>{const b=e.target.closest("button.pick");if(!b)return;S.me.title=b.dataset.t;save();renderMine()});
 // 写真: 端末で160pxに縮めてから保存する
 $("f-photo").addEventListener("change",e=>{
@@ -1567,8 +1595,8 @@ function openCard(id){
 }
 // 袋から出てくる名刺: 一覧用の小さい名刺ではなく、大きく開いたときと同じ質感の面をそのまま見せる
 function faceOnly(c,front){
-  const sk=c.skin==="gold"?"#C9A63B":c.skin==="black"?"#17191D":"",col=sk||c.color,on=onColor(col);
-  return '<div class="flip gflip '+(on==="#FFFFFF"?"on-dark":"on-light")+(sk?" sk":"")+ptClass(c)+'" style="--club:'+esc(col)+';--clubc:'+esc(c.color)+';--on-club:'+on+'"><article class="face front">'+front+'</article></div>';
+  const sk="",col=c.color,on=onColor(col);
+  return '<div class="flip gflip '+(on==="#FFFFFF"?"on-dark":"on-light")+(sk?" sk":"")+ptClass(c)+'" style="--club:'+esc(col)+';--clubc:'+esc(c.color)+';--c2:'+color2Of(c.club)+';--on-club:'+on+'"><article class="face front">'+front+'</article></div>';
 }
 function packFace(c){
   if(c.kind==="n")return '<div class="pflip" style="--pc:'+esc(c.color)+';--pon:'+onColor(c.color)+'">'+faceOnly(Object.assign({},c,{color:"#F6F2E7",skin:""}),paperFront(c))+'</div>';
@@ -2007,7 +2035,7 @@ function applyProfile(p){
 }
 // 自分の名刺の数字（相手の画面に出す用）
 function myStatsJSON(){const q=myStats();return {cards:q.cards,rare:q.rare,zukan:q.zukan[0],titles:q.titles[0],homeAll:q.home[1],rr:q.rrec,tl:earned()}}
-function profilePayload(){const m=S.me;return {nick:m.nick,club:m.club,color:m.color,style:m.style||"",word:m.word||"",fav:m.fav||"",back_no:m.no||12,x_handle:m.x||"",title:myTitle()||"",photo:m.photo||null,stats:myStatsJSON(),skin:skinOK(m.skin)?m.skin||"":""}}
+function profilePayload(){const m=S.me;return {nick:m.nick,club:m.club,color:m.color,style:m.style||"",word:m.word||"",fav:m.fav||"",back_no:m.no||12,x_handle:m.x||"",title:myTitle()||"",photo:m.photo||null,stats:myStatsJSON(),skin:skinClean(m.skin)}}
 var pushT=0,pushed="";
 async function flushProfile(){
   clearTimeout(pushT);
@@ -2031,7 +2059,7 @@ function buildBook(rows){
     const st=r.stats&&typeof r.stats==="object"?r.stats:{},day=[r.last_day,r.last_exchange].filter(Boolean).sort().pop()||"";
     return {id:r.id,nick:r.nick,club:r.club,color:colorOf(r.club),style:r.style||"",word:r.word||"",fav:r.fav||"",no:r.back_no||12,x:xHandle(r.x_handle||""),title:names.includes(r.title)?r.title:"",pk:r.photo_key||"",photo:photoOf(r.id,r.photo_key),idn:r.member_no,
       games:r.games||0,rec:[r.wins||0,r.draws||0,r.losses||0],rrec:rrOf(st),tl:tlOf(st),home:[r.home_games||0,Math.max(1,num(st.homeAll,40))],cards:num(st.cards,9999),rare:num(st.rare,9999),zukan:[num(st.zukan,CLUBS.length),CLUBS.length],titles:[num(st.titles,TITLES.length),TITLES.length],
-      met:r.met||1,day,date:day?fmt(dateOf(day)):"",match:r.last_match||"",ha:r.last_away?"A":"H",rain:!!r.any_rain,wd:!!r.any_weeknight,trav:!!r.any_trav,op:!!r.any_opening,fin:!!r.any_final,skin:["gold","black","un","sv","sh","ck"].includes(r.skin)?r.skin:"",direct:!!r.direct,place:r.stadium?"stadium":"town",ex:r.last_exchange||""};
+      met:r.met||1,day,date:day?fmt(dateOf(day)):"",match:r.last_match||"",ha:r.last_away?"A":"H",rain:!!r.any_rain,wd:!!r.any_weeknight,trav:!!r.any_trav,op:!!r.any_opening,fin:!!r.any_final,skin:skinJoin(skinParts(r.skin).p,skinParts(r.skin).f),direct:!!r.direct,place:r.stadium?"stadium":"town",ex:r.last_exchange||""};
   }).sort((a,b)=>a.day<b.day?-1:a.day>b.day?1:0);
   const add=[];
   book.forEach(c=>{
@@ -2282,7 +2310,7 @@ $("about-top").addEventListener("click",()=>$("about-open").click());
 
 
 // 新しい版が公開されていたら、自動で読み込み直す（ホーム画面から開くと更新ボタンがないため）
-const APP_VER="20261005131012";
+const APP_VER="20261005132930";
 async function checkUpdate(){
   try{
     const r=await fetch("version.txt?t="+Date.now(),{cache:"no-store"});if(!r.ok)return;
