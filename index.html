@@ -574,6 +574,7 @@ button.pick{cursor:pointer}
     <p class="note">あとから名刺の画面で変えられます。</p>
     <div id="s-clubs-pick" class="group"></div>
     <label>ニックネーム<input type="text" id="s-nick" maxlength="14" placeholder="名刺に出る名前"></label>
+    <p class="note">名刺（ニックネーム・写真・ひとこと・戦績）は、このアプリを使っているほかのサポーターに見られます。本名や、知られて困ることは入れないでください。</p>
     <button class="btn flood" id="s-go" disabled>推しクラブを選ぶと始められます</button>
     <details class="xfer">
       <summary>機種変更などで、合鍵（引き継ぎコード）を持っている方</summary>
@@ -719,12 +720,20 @@ button.pick{cursor:pointer}
     <h3>預かる情報</h3>
     <ul>
       <li>名刺に書いた内容（ニックネーム、推しクラブ、ひとこと、観戦スタイル、推し選手、背番号、Xのアカウント名、写真）</li>
-      <li>チェックインした試合と日時</li>
+      <li>チェックインした試合と日時（スタジアムか、リモートか）</li>
+      <li>もらったノーマル名刺と日付</li>
       <li>直接交換した相手と日付</li>
     </ul>
     <p>メールアドレスや本名、電話番号は預かりません。位置情報は、チェックインのときに「スタジアムの近くにいるか」を確かめるためだけに使い、保存しません。</p>
     <h3>名刺が見える相手</h3>
-    <p>あなたの名刺が見えるのは、同じ試合にチェックインした人と、直接交換した人だけです。それ以外の人や、インターネット上には公開されません。</p>
+    <p>あなたの名刺は、このアプリを使っているほかのサポーターに見られます。</p>
+    <ul>
+      <li>ノーマル名刺：1日3枚まで、全国のだれかの名刺が届く仕組みです。あなたの名刺（ニックネーム、推しクラブ、写真、ひとこと、背番号、推し選手、戦績）も、会ったことのない人に届きます。Xのアカウント名は載りません。</li>
+      <li>スタジアム名刺：同じ試合にスタジアムでチェックインした人と、QRで直接交換した人に届きます。こちらにはXのアカウント名も載ります。</li>
+    </ul>
+    <p>アプリを使っていない人や、検索サイトからは見えません。</p>
+    <h3>通報について</h3>
+    <p>名刺を開くと「この名刺を通報する」があります。通報した名刺は、あなたの名刺帳から見えなくなります。何人かから通報された名刺は、全員から見えなくなり、新しく配られることもなくなります。</p>
     <h3>お願い</h3>
     <ul>
       <li>ニックネームやひとことに、本名や連絡先など、知られて困ることを書かないでください。</li>
@@ -1135,6 +1144,8 @@ function renderToday(){
       +'</div>';
   }
   if(m&&NOW.id===m.id&&NOW.n>0){const s=document.createElement("span");s.className="now";s.textContent="いま、この試合に "+NOW.n+" 人がチェックインしています";$("c-today").firstChild.appendChild(s)}
+  if(m&&m.time&&!m.tbd){const hm=m.time.split(":"),k=(+hm[0])*60+(+hm[1]),f=v=>{v=Math.max(0,Math.min(1439,v));return String(Math.floor(v/60)).padStart(2,"0")+":"+String(v%60).padStart(2,"0")};
+    const sp=document.createElement("span");sp.className="d";sp.textContent="チェックインできる時間　"+f(k-180)+" 〜 "+f(k+180);$("c-today").firstChild.appendChild(sp)}
   $("c-go").hidden=!m;renderOther();
   $("c-geo").hidden=!(m&&!done&&m.lat!=null&&m.lng!=null);
   renderNorm();
@@ -1225,7 +1236,7 @@ function setDate(iso){
 $("c-date").addEventListener("change",e=>setDate(e.target.value));
 $("c-date-x").addEventListener("click",()=>setDate(""));
 $("c-next").addEventListener("click",e=>{const b=e.target.closest("button");if(b)setDate(b.dataset.iso)});
-const CK_ERR={not_match_day:"今日はこの試合の日ではありません。",not_your_match:"いまは準備中で、この試合にはチェックインできません。少し待ってからもう一度お試しください。",need_location:"位置情報が必要です。スマホの設定で、このサイトに位置情報を許可してください。",too_far:"スタジアムから離れているようです。会場の近くでもう一度押してください。",already_checked_in:"この試合はチェックイン済みです。",no_profile:"名刺がまだ登録できていません。名刺の画面を開いてからもう一度お試しください。",not_signed_in:"通信できませんでした。ページを開き直してください。"};
+const CK_ERR={too_early:"まだチェックインできません。キックオフの3時間前から押せます。",too_late:"この試合のチェックインは終わりました。キックオフの3時間後まで押せます。",not_match_day:"今日はこの試合の日ではありません。",not_your_match:"いまは準備中で、この試合にはチェックインできません。少し待ってからもう一度お試しください。",need_location:"位置情報が必要です。スマホの設定で、このサイトに位置情報を許可してください。",too_far:"スタジアムから離れているようです。会場の近くでもう一度押してください。",already_checked_in:"この試合はチェックイン済みです。",no_profile:"名刺がまだ登録できていません。名刺の画面を開いてからもう一度お試しください。",not_signed_in:"通信できませんでした。ページを開き直してください。"};
 const errText=(e,map)=>{const t=String(e&&e.message||e||"");for(const k in map)if(t.includes(k))return map[k];return "通信できませんでした。電波のよいところで、もう一度お試しください。"};
 // 会場の位置のいまの天気（Open-Meteo）。雨なら true、調べられなければ null。
 async function rainNow(m){
@@ -2115,7 +2126,7 @@ $("about-top").addEventListener("click",()=>$("about-open").click());
 
 
 // 新しい版が公開されていたら、自動で読み込み直す（ホーム画面から開くと更新ボタンがないため）
-const APP_VER="20261004233638";
+const APP_VER="20261005111206";
 async function checkUpdate(){
   try{
     const r=await fetch("version.txt?t="+Date.now(),{cache:"no-store"});if(!r.ok)return;
