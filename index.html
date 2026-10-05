@@ -168,6 +168,13 @@ body.tut #a2hs,body.tut #c-norm{display:none!important}
 #p-book.nm .stats{grid-template-columns:repeat(2,1fr)}
 #p-book.nm .stats div:nth-child(n+3),#p-book.nm #b-divs button[data-rare]{display:none}
 #b-kind,.z-kind{margin-bottom:6px}
+label:has(#f-color){display:none}
+.btn.rbtn{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:15px;padding:12px 14px;background:color-mix(in srgb,var(--flood) 14%,var(--surface));color:var(--ink);border:2px solid var(--flood)}
+.btn.rbtn small{font-size:11px;font-weight:700;color:var(--muted)}
+.btn.rbtn:disabled{border-color:var(--line);background:none}
+.flip.pt-sv .face{background:repeating-linear-gradient(90deg,color-mix(in srgb,var(--on-club) 17%,transparent) 0 28px,transparent 28px 56px),radial-gradient(120% 70% at 0% 0%,rgba(255,255,255,.2),transparent 60%),repeating-linear-gradient(90deg,rgba(255,255,255,.05) 0 1px,rgba(0,0,0,.045) 1px 2px,transparent 2px 4px),linear-gradient(128deg,color-mix(in srgb,var(--club) 84%,#fff) 0%,var(--club) 24%,color-mix(in srgb,var(--club) var(--deep),#000) 56%,color-mix(in srgb,var(--club) 88%,#000) 80%,color-mix(in srgb,var(--club) 84%,#fff) 100%)}
+.flip.pt-sh .face{background:repeating-linear-gradient(180deg,color-mix(in srgb,var(--on-club) 17%,transparent) 0 28px,transparent 28px 56px),radial-gradient(120% 70% at 0% 0%,rgba(255,255,255,.2),transparent 60%),repeating-linear-gradient(90deg,rgba(255,255,255,.05) 0 1px,rgba(0,0,0,.045) 1px 2px,transparent 2px 4px),linear-gradient(128deg,color-mix(in srgb,var(--club) 84%,#fff) 0%,var(--club) 24%,color-mix(in srgb,var(--club) var(--deep),#000) 56%,color-mix(in srgb,var(--club) 88%,#000) 80%,color-mix(in srgb,var(--club) 84%,#fff) 100%)}
+.flip.pt-ck .face{background:repeating-linear-gradient(90deg,color-mix(in srgb,var(--on-club) 12%,transparent) 0 28px,transparent 28px 56px),repeating-linear-gradient(180deg,color-mix(in srgb,var(--on-club) 12%,transparent) 0 28px,transparent 28px 56px),radial-gradient(120% 70% at 0% 0%,rgba(255,255,255,.2),transparent 60%),repeating-linear-gradient(90deg,rgba(255,255,255,.05) 0 1px,rgba(0,0,0,.045) 1px 2px,transparent 2px 4px),linear-gradient(128deg,color-mix(in srgb,var(--club) 84%,#fff) 0%,var(--club) 24%,color-mix(in srgb,var(--club) var(--deep),#000) 56%,color-mix(in srgb,var(--club) 88%,#000) 80%,color-mix(in srgb,var(--club) 84%,#fff) 100%)}
 .k-big.sm{font-size:104px;margin-block:6px 2px}
 .k-more{display:flex;flex-direction:column;gap:8px;margin-top:auto;padding-top:10px}
 .k-tl{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
@@ -720,7 +727,7 @@ button.pick{cursor:pointer}
     <div id="tut-ck"><div class="today"><span class="d">練習</span><p class="m">はじめの1枚をもらおう</p><span class="d">試合の日は、ここにその日の試合が出ます。スタジアムに着いたら、下のボタンを押すだけです。</span></div><button type="button" class="btn flood" id="tut-ck-go">スタジアムに着いた（練習）</button><div id="tut-ck-out"></div></div>
     <div id="c-today"></div>
     <button class="btn flood" id="c-go">スタジアムに着いた</button>
-    <button type="button" class="btn ghost" id="c-remote" hidden>リモートで応援する</button>
+    <button type="button" class="btn rbtn" id="c-remote" hidden>リモートで応援する</button>
     <p class="note" id="c-geo" hidden>押すと、スマホが位置情報の確認を出します。「許可」を選んでください。位置はスタジアムの近くにいるかの確認だけに使い、保存しません。</p>
     <div id="c-other"></div>
     <div id="c-norm"></div>
@@ -825,7 +832,7 @@ const clubOpts=ex=>DIVS.map(d=>'<optgroup label="'+d+'">'+LEAGUE[d].filter(c=>c[
 const STYLES=["ゴール裏で跳ぶ","ゴール裏で声出し","バクスタでじっくり","メインで戦術を見る","家族でのんびり","スタグル優先"];
 const NICKS=["ゴール裏の住人","遠征は寝台派","雨男サポ","スタグル番長","太鼓のとなり","年チケ12年目","バクスタの主","声枯れ担当","ゲーフラ職人","平日は社畜","子連れ参戦","アウェイ皆勤","終電ダッシュ","タオマフ収集家","逆転信者","PK見れない人","前泊の達人","コンコース徘徊","選手バス待ち","開門3時間前","ビール片手に","今日も最前列"];
 const WORDS=["今年こそ昇格","声出していきましょう","スタグルが楽しみで来てます","アウェイ全通が今年の目標","後半40分からが本番","雨の日ほど燃える","まずは残留、話はそれから","遠征先の銭湯を巡ってます","スタメン発表が一番緊張する","引き分けは勝ちに数えない派","ユニは毎年買う派","セットプレーで祈る係","帰りの電車で反省会","選手入場で毎回泣く"];
-const RARES=[["遠征組","アウェイから来ていたサポ"],["常連","今季20試合以上チェックインしている人"],["雨の日","雨の試合で会った"],["平日ナイター","平日の夜に会った"],["開幕戦","開幕戦で会った"],["最終節","最終節で会った"],["初期メンバー","会員番号が100番以内の人"],["最初の5人","そのクラブで最初に名刺を作った5人"],["スタジアムで交換","2人とも同じ日にチェックインして、その場で直接交換した"],["やっと会えた","ノーマル名刺を持っていた人と、スタジアムで会った"]];
+const RARES=[["遠征組","アウェイから来ていたサポ"],["常連","今季20試合以上チェックインしている人"],["雨の日","雨の試合で会った"],["平日ナイター","平日の夜に会った"],["開幕戦","開幕戦で会った"],["最終節","最終節で会った"],["初期メンバー","会員番号が100番以内の人"],["切り込み隊長","そのクラブで最初に名刺を作った5人"],["スタジアムで交換","2人とも同じ日にチェックインして、その場で直接交換した"],["やっと会えた","ノーマル名刺を持っていた人と、スタジアムで会った"]];
 const SEASON="2026/27",COMPS=["リーグ","ルヴァンカップ","天皇杯"];
 const KEY="sapo-meishi-live-1",OLD_KEY="sapo-meishi-none";
 const $=id=>document.getElementById(id);
@@ -851,7 +858,7 @@ const TITLES=[
 ["顔が広い","名刺を50枚集める",()=>BOOK().length>=50],
 ["はじめまして","直接交換を1回する",()=>BOOK().some(c=>c.direct&&c.idn!==0)],
 ["現地で名刺交換","スタジアムで直接交換を1回する",()=>BOOK().some(c=>c.direct&&c.place==="stadium")],
-["最初の5人","推しクラブで最初に名刺を作った5人に入る",()=>FIRST5.has(+S.me.idn)],
+["切り込み隊長","推しクラブで最初に名刺を作った5人に入る",()=>FIRST5.has(+S.me.idn)],
 ["傷心旅行","アウェイで負けを見る",()=>ownLog().some(l=>l.ha==="A"&&l.res==="L")],
 ["泣きっ面に雨","雨の試合で負けを見る",()=>ownLog().some(l=>l.rain&&l.res==="L")],
 ["ハシゴ観戦","同じ日に2試合チェックインする",()=>S.log.some((l,i)=>S.log.some((k,j)=>j>i&&k.date===l.date))],
@@ -903,9 +910,13 @@ const tagged=(kind,mineOnly)=>S.log.some(l=>String(l.tags||"").split(",").some(t
 const ID_EPOCH=Date.UTC(2026,9,3,15,0),idText=n=>"No."+String(n||0).padStart(6,"0");
 const newId=()=>Math.max(1,Math.floor((Date.now()-ID_EPOCH)/60000)+1);
 // プレートの格: 1 銅、2 銀、3 金、4 黒金
-const TIER={"はじめの一歩":1,"遠征デビュー":1,"はじめまして":1,"雨天決行":2,"平日休みの達人":2,"通い慣れ":2,"顔なじみ":2,"現地で名刺交換":2,"三階級制覇":3,"全国に知り合い":3,"レアハンター":3,"アウェイの鬼":4,"顔が広い":4,"最初の5人":4,"傷心旅行":1,"泣きっ面に雨":1,"ハシゴ観戦":1,"疫病神":2,"ゴールを知らない":2,"修行僧":2,"ドロー沼":2,"持ってる人":2,"お祭り騒ぎ":2,"浮気性":2,"有給の使い手":2,"雨男・雨女":2,"新体制の目撃者":2,"それでも来る人":3,"不敗神話":3,"ウノゼロ職人":3,"解任立会人":3,"歴史の証人":4,"地獄まで一緒":4,"戴冠式の参列者":4,"住んでる":4,"やっと会えた":2,"紙から本物へ":3,"名刺箱":1,"紙の旅人":2,"全国名刺めぐり":3,"日本一周":4,"勝ち点3":1,"応援は届いた":1,"孤軍奮闘":2,"数の暴力":2,"アウェイジャック":3,"連戦連勝":3,"画面の前から":1,"二刀流":2,"家だと勝つ":2,"テレビを消した":2,"お茶の間サポ":2,"配信の住人":3};
+const TIER={"はじめの一歩":1,"遠征デビュー":1,"はじめまして":1,"雨天決行":2,"平日休みの達人":2,"通い慣れ":2,"顔なじみ":2,"現地で名刺交換":2,"三階級制覇":3,"全国に知り合い":3,"レアハンター":3,"アウェイの鬼":4,"顔が広い":4,"切り込み隊長":4,"傷心旅行":1,"泣きっ面に雨":1,"ハシゴ観戦":1,"疫病神":2,"ゴールを知らない":2,"修行僧":2,"ドロー沼":2,"持ってる人":2,"お祭り騒ぎ":2,"浮気性":2,"有給の使い手":2,"雨男・雨女":2,"新体制の目撃者":2,"それでも来る人":3,"不敗神話":3,"ウノゼロ職人":3,"解任立会人":3,"歴史の証人":4,"地獄まで一緒":4,"戴冠式の参列者":4,"住んでる":4,"やっと会えた":2,"紙から本物へ":3,"名刺箱":1,"紙の旅人":2,"全国名刺めぐり":3,"日本一周":4,"勝ち点3":1,"応援は届いた":1,"孤軍奮闘":2,"数の暴力":2,"アウェイジャック":3,"連戦連勝":3,"画面の前から":1,"二刀流":2,"家だと勝つ":2,"テレビを消した":2,"お茶の間サポ":2,"配信の住人":3};
 const TIER_NAME=["","銅","銀","金","黒金"];
-const plateHTML=(name,sm)=>'<span class="plate t'+(TIER[name]||1)+(sm?' sm':'')+'"><i></i><b>'+esc(name)+'</b><i></i></span>';
+const SECRET=["切り込み隊長"];   // 隠し称号: とるまで一覧に出さない
+const plateName=(name,club)=>name==="切り込み隊長"?(club||(S.me&&S.me.club)||"")+"の切り込み隊長":name;
+const plateHTML=(name,sm,club)=>'<span class="plate t'+(TIER[name]||1)+(sm?' sm':'')+'"><i></i><b>'+esc(plateName(name,club))+'</b><i></i></span>';
+const titleTotal=e=>TITLES.length-SECRET.filter(x=>!e.includes(x)).length;
+const listed=e=>TITLES.filter(t=>!SECRET.includes(t[0])||e.includes(t[0]));
 const hiddenPlate=name=>'<span class="plate t'+(TIER[name]||1)+'"><i></i><b>？？？</b><i></i></span>';
 const earned=()=>TITLES.filter(t=>t[2]()).map(t=>t[0]);
 function myTitle(){const e=earned();if(S.me.title===undefined)return e[e.length-1]||"";return e.includes(S.me.title)?S.me.title:""}
@@ -917,7 +928,7 @@ function rareFx(c){return c&&c.idn===0&&!c.kind?["開発者","No.000000"]:rareOf
 function rareOf(c){
   if(c.idn===0||c.kind==="n"||c.kind==="r")return [];   // 運営の名刺（はじめの1枚）は、レアには数えない
   const trav=c.trav!==undefined?c.trav:(String(c.match||"").split(" vs ")[1]===c.club);
-  const r=[];if(trav)r.push("遠征組");if(c.games>=20)r.push("常連");if(c.rain)r.push("雨の日");if(c.wd)r.push("平日ナイター");if(c.op)r.push("開幕戦");if(c.fin)r.push("最終節");if(c.idn>0&&c.idn<=100)r.push("初期メンバー");if(FIRST5.has(+c.idn))r.push("最初の5人");if(c.direct&&c.place==="stadium")r.push("スタジアムで交換");if(knewByPaper(c))r.push("やっと会えた");return r;
+  const r=[];if(trav)r.push("遠征組");if(c.games>=20)r.push("常連");if(c.rain)r.push("雨の日");if(c.wd)r.push("平日ナイター");if(c.op)r.push("開幕戦");if(c.fin)r.push("最終節");if(c.idn>0&&c.idn<=100)r.push("初期メンバー");if(FIRST5.has(+c.idn))r.push("切り込み隊長");if(c.direct&&c.place==="stadium")r.push("スタジアムで交換");if(knewByPaper(c))r.push("やっと会えた");return r;
 }
 // 同じ試合の人を book に足す。すでに持っている人とは再会として回数を増やす。
 function meet(book,n,home,away,date,ha,rain,wd){
@@ -990,7 +1001,7 @@ function cardHTML(c,opt){
   const foot=opt.mine?'':'<div class="met">'+esc(c.date)+'　'+(c.direct&&!c.match?(c.place==="stadium"?'スタジアムで交換':c.idn===0?'はじめの1枚':'街で交換'):esc(c.match)+(c.ha==="A"?"（アウェイ）":"")+' ですれちがい')+(met>1?'　<b>'+met+'回目</b>':'')+'</div>';
   return '<article class="meishi'+(rare.length>1?" super":rare.length?" rare":"")+(c.direct&&c.place==="stadium"?" direct":"")+'"'+(opt.mine||!c.id?'':' data-id="'+esc(c.id)+'" tabindex="0" role="button" aria-label="'+esc(c.nick)+'さんの名刺を開く"')+' style="--club:'+esc(c.color)+';--on-club:'+onColor(c.color)+'"><div class="muffler"></div><div class="in">'
     +'<div class="top"><span class="lg"><span class="div">'+esc(divOf(c.club)||"J")+'</span><span class="club">'+esc(c.club)+'サポ</span></span><span class="tags">'+tags+'</span></div>'
-    +'<div class="who">'+(c.photo?'<img class="ava" src="'+esc(c.photo)+'" alt="">':'<span class="ava">'+esc([...(c.nick||"?")][0])+'</span>')+'<div><div class="nick">'+(esc(c.nick)||"ニックネーム")+'</div>'+(c.title?'<div>'+plateHTML(c.title,true)+'</div>':'')+'</div></div>'
+    +'<div class="who">'+(c.photo?'<img class="ava" src="'+esc(c.photo)+'" alt="">':'<span class="ava">'+esc([...(c.nick||"?")][0])+'</span>')+'<div><div class="nick">'+(esc(c.nick)||"ニックネーム")+'</div>'+(c.title?'<div>'+plateHTML(c.title,true,c.club)+'</div>':'')+'</div></div>'
     +(c.word?'<div class="word">「'+esc(c.word)+'」</div>':'')
     +(links?'<div class="links">'+links+'</div>':'')
     +'<dl><div><dt>今季の現地（'+SEASON+'）</dt><dd><b>'+c.games+'</b> 試合'+(c.by?'<small>'+c.by+'</small>':'')+'</dd></div><div><dt>スタイル</dt><dd>'+esc(c.style)+'</dd></div></dl>'
@@ -1000,7 +1011,7 @@ function cardHTML(c,opt){
 function frontHTML(c){
   const n=[...(c.nick||"ニックネーム")],hsize=n.length<=6?34:n.length<=9?27:n.length<=12?21:18,d=esc(divOf(c.club)||"J"),idn="No."+String(c.idn||0).padStart(6,"0");
   return '<i class="screw s1"></i><i class="screw s2"></i><i class="screw s3"></i><i class="screw s4"></i>'
-    +'<div class="l-plate">'+(c.title?plateHTML(c.title):'<span></span>')+(c.x?'<a class="l-x pan" href="https://x.com/'+esc(c.x)+'" target="_blank" rel="noopener"><b>X</b>@'+esc(c.x)+'</a>':'')+'</div>'
+    +'<div class="l-plate">'+(c.title?plateHTML(c.title,false,c.club):'<span></span>')+(c.x?'<a class="l-x pan" href="https://x.com/'+esc(c.x)+'" target="_blank" rel="noopener"><b>X</b>@'+esc(c.x)+'</a>':'')+'</div>'
     +'<div class="c-nick l-nick" style="font-size:'+hsize+'px">'+esc(n.join(""))+'</div>'
     +'<div class="l-sub"><span>'+esc(c.club)+'サポーター　'+d+'</span><span class="f-no">'+idn+'</span></div>'
     +'<div class="l-cols"><div class="l-left">'+(c.photo?'<img class="l-ava" src="'+esc(c.photo)+'" alt="" draggable="false">':'<span class="l-ava">'+esc(n[0])+'</span>')
@@ -1015,7 +1026,7 @@ function frontHTML(c){
 // 厚みのある1枚の板として、表と裏を組み立てる
 function solid(c,a,front,back,id){
   const sk=c.skin==="gold"?"#C9A63B":c.skin==="black"?"#17191D":"",col=sk||c.color,on=onColor(col);
-  return '<div class="flip '+(on==="#FFFFFF"?"on-dark":"on-light")+(sk?" sk":"")+(Math.cos(a*Math.PI/180)<0?" show-back":"")+'"'+(id?' id="'+id+'"':'')+' style="--club:'+esc(col)+';--clubc:'+esc(c.color)+';--on-club:'+on+';--ang:'+a+'deg">'
+  return '<div class="flip '+(on==="#FFFFFF"?"on-dark":"on-light")+(sk?" sk":"")+ptClass(c)+(Math.cos(a*Math.PI/180)<0?" show-back":"")+'"'+(id?' id="'+id+'"':'')+' style="--club:'+esc(col)+';--clubc:'+esc(c.color)+';--on-club:'+on+';--ang:'+a+'deg">'
     +[-3,-2,-1,0,1,2,3].map(z=>'<i class="slab" style="--z:'+z+'px"></i>').join("")+'<i class="edge l"></i><i class="edge r"></i>'
     +'<article class="face front">'+front+'</article><article class="face back">'+back+'</article></div>';
 }
@@ -1040,18 +1051,19 @@ function otherBackHTML(c,raw){
   const h=backHead(c),rare=rareFx(raw),met=raw.met||1;
   const where=raw.direct&&!raw.match?(raw.place==="stadium"?"スタジアムで交換":raw.idn===0?"はじめの1枚":"街で交換"):esc(raw.match)+(raw.ha==="A"?"（アウェイ）":"");
   return h.top+'<div class="k-name">'+h.nick+'</div><div class="k-big sm chrome">'+(c.no||12)+'</div>'
-    +'<div class="k-more">'+titlesMini(raw.tl||[],3)+'<div class="k-histbox" data-pid="'+esc(raw.id)+'"></div></div>'
+    +'<div class="k-more">'+titlesMini(raw.tl||[],3,raw.club)+'<div class="k-histbox" data-pid="'+esc(raw.id)+'"></div></div>'
     +'<dl class="k-dl"><div class="wide"><dt class="lb">'+(raw.direct&&!raw.match?"交換した日":"最後にすれちがった試合")+'</dt><dd>'+esc(raw.date)+'　'+where+'</dd></div>'
     +'<div><dt class="lb">会った回数</dt><dd>'+met+' 回</dd></div><div><dt class="lb">レア</dt><dd>'+(rare.length?rare.join("、"):"なし")+'</dd></div></dl>';
 }
-const SKINS=[["","クラブカラー","最初から使えます",()=>true],["gold","ゴールド","今季10試合チェックインすると使えます",()=>S.log.filter(l=>(l.season||SEASON)===SEASON).length>=10],["black","ブラック","称号を5つ集めると使えます",()=>earned().length>=5]];
+const PATS=["sv","sh","ck"],ptClass=c=>PATS.includes(c.skin)?" pt-"+c.skin:"";
+const SKINS=[["","クラブカラー","最初から使えます",()=>true],["sv","たてじま","称号を3つ集めると使えます",()=>earned().length>=3],["sh","よこじま","称号を6つ集めると使えます",()=>earned().length>=6],["ck","チェック","称号を10個集めると使えます",()=>earned().length>=10],["gold","ゴールド","今季10試合チェックインすると使えます",()=>S.log.filter(l=>(l.season||SEASON)===SEASON).length>=10],["black","ブラック","称号を5つ集めると使えます",()=>earned().length>=5]];
 const skinOK=s=>{const k=SKINS.find(x=>x[0]===(s||""));return !!k&&k[3]()};
 function myStats(){
   const e=earned(),mine=S.log.filter(l=>(l.season||SEASON)===SEASON),n=k=>mine.filter(l=>(l.comp||"リーグ")===k).length;
   return Object.assign({},S.me,{games:mine.length,by:"リーグ "+n("リーグ")+"・ルヴァン "+n("ルヴァンカップ")+"・天皇杯 "+n("天皇杯"),rec:["W","D","L"].map(k=>mine.filter(l=>l.res===k).length),rrec:["W","D","L"].map(k=>(S.rlog||[]).filter(l=>(l.season||SEASON)===SEASON&&l.res===k).length),title:myTitle(),skin:skinOK(S.me.skin)?S.me.skin||"":"",
     cards:BOOK().length,rare:BOOK().filter(c=>rareOf(c).length).length,
     home:[mine.filter(l=>(l.comp||"リーグ")==="リーグ"&&l.ha==="H").length,schedule(S.me.club).filter(m=>m.comp==="リーグ"&&m.ha==="H").length],
-    zukan:[new Set(BOOK().map(c=>c.club).filter(divOf)).size,CLUBS.length],titles:[e.length,TITLES.length]});
+    zukan:[new Set(BOOK().map(c=>c.club).filter(divOf)).size,CLUBS.length],titles:[e.length,titleTotal(e)]});
 }
 // 相手の名刺の数字。直接交換した相手は本人の数字が入っている。サンプルの相手は、試合数に合わせた仮の数字を作る。
 function statsOf(c){
@@ -1063,7 +1075,7 @@ function statsOf(c){
 function renderMine(){
   const e=earned(),cur=myTitle();
   $("f-plates").innerHTML='<button type="button" class="pick" data-t="" aria-pressed="'+(cur==="")+'"><span class="none">付けない</span><small>名刺にプレートを出しません</small></button>'
-    +TITLES.slice().sort((a,b)=>(TIER[a[0]]||1)-(TIER[b[0]]||1)).map(t=>e.includes(t[0])
+    +listed(e).sort((a,b)=>(TIER[a[0]]||1)-(TIER[b[0]]||1)).map(t=>e.includes(t[0])
       ?'<button type="button" class="pick" data-t="'+esc(t[0])+'" aria-pressed="'+(cur===t[0])+'">'+plateHTML(t[0])+'<small>'+TIER_NAME[TIER[t[0]]||1]+'　'+t[1]+'</small></button>'
       :'<div class="pick locked">'+hiddenPlate(t[0])+'<small>'+TIER_NAME[TIER[t[0]]||1]+'　未獲得：'+t[1]+'</small></div>').join("");
   const curS=skinOK(S.me.skin)?S.me.skin||"":"";
@@ -1106,7 +1118,7 @@ function renderZukan(){
   const rc=RARES.map(r=>BOOK().filter(c=>rareOf(c).includes(r[0])).length);
   h+='<div class="group"><h2>レア図鑑<span>'+rc.filter(Boolean).length+' / '+RARES.length+'</span></h2><p class="note">条件が1つでレア、2つ以上重なると激レアです。</p><ul class="rows">'+RARES.map((r,i)=>'<li class="'+(rc[i]?'got':'')+'"><strong>'+r[0]+'</strong><small>'+r[1]+'</small>'+(rc[i]?'<button type="button" class="btn ghost st" data-kind="'+r[0]+'">'+rc[i]+' 枚を見る</button>':'<span class="st">未発見</span>')+'</li>').join("")+'</ul></div>';
   const e=earned();
-  h+='<div class="group"><h2>称号<span>'+e.length+' / '+TITLES.length+'</span></h2><ul class="rows">'+TITLES.map(t=>'<li class="'+(e.includes(t[0])?'got':'locked')+'"><strong>'+(e.includes(t[0])?plateHTML(t[0]):hiddenPlate(t[0]))+'</strong><small>'+t[1]+'</small><span class="st">'+(e.includes(t[0])?'獲得':'未獲得')+'</span></li>').join("")+'</ul></div>';
+  h+='<div class="group"><h2>称号<span>'+e.length+' / '+titleTotal(e)+'</span></h2><ul class="rows">'+listed(e).map(t=>'<li class="'+(e.includes(t[0])?'got':'locked')+'"><strong>'+(e.includes(t[0])?plateHTML(t[0]):hiddenPlate(t[0]))+'</strong><small>'+t[1]+'</small><span class="st">'+(e.includes(t[0])?'獲得':'未獲得')+'</span></li>').join("")+'</ul></div>';
   if(BTAB.length){
     const mine=S.me.club,top=BTAB.slice(0,10),mi=BTAB.findIndex(r=>r.club===mine);
     const row=(r,i)=>'<li class="'+(r.club===mine?'me':'')+'"><b>'+(i+1)+'</b><span>'+esc(r.club)+'<small>　'+r.wins+'勝 '+r.draws+'分 '+r.losses+'敗</small></span><span><b>'+r.pts+'</b> 点</span></li>';
@@ -1223,7 +1235,7 @@ function renderToday(){
   $("c-geo").hidden=!(m&&!done&&m.lat!=null&&m.lng!=null);
   renderNorm();
   {const own=ownToday(),rb=$("c-remote"),rd=!!own&&(S.rlog||[]).some(l=>l.key===own.id);
-   rb.hidden=!(own&&m&&m.ha!=="N"&&!done);rb.disabled=rd;rb.textContent=rd?"リモートでチェックイン済み":"リモートで応援する（スタジアムにいない人）"}
+   rb.hidden=!(own&&m&&m.ha!=="N"&&!done);rb.disabled=rd;rb.innerHTML=rd?"リモートでチェックイン済み":"リモートで応援する<small>スタジアムに行けない日はこちら（位置情報は使いません）</small>"}
   $("c-go").disabled=done;
   $("c-go").textContent=done?"この試合はチェックイン済み":"スタジアムに着いた";
   $("c-next").innerHTML=schedule(mine).filter(x=>(x.isos||[x.iso]).slice(-1)[0]>iso&&!(x.isos||[x.iso]).includes(iso)).slice(0,4).map(x=>'<li><span>'+jp(x.d)+(x.tbd?'か翌日':'')+'　'+(x.ha==="H"?"ホーム":"アウェイ")+' '+esc(x.opp)+'戦　'+x.label+(x.time?'　'+x.time:'')+'</span></li>').join("")||'<li><span>今季の残り試合はありません</span></li>';
@@ -1271,7 +1283,7 @@ function readForm(e){
   const clubChanged=e&&e.target.id==="f-club";
   if(clubChanged)$("f-color").value=colorOf($("f-club").value);
   const title=S.me.title;
-  S.me={nick:$("f-nick").value.trim(),club:$("f-club").value,color:$("f-color").value,style:$("f-style").value,word:$("f-word").value.trim(),fav:$("f-fav").value.trim(),no:Math.min(99,Math.max(1,parseInt($("f-no").value,10)||S.me.no||12)),x:xHandle($("f-x").value),photo:S.me.photo||"",title,idn:S.me.idn,skin:S.me.skin||""};
+  S.me={nick:$("f-nick").value.trim(),club:$("f-club").value,color:colorOf($("f-club").value),style:$("f-style").value,word:$("f-word").value.trim(),fav:$("f-fav").value.trim(),no:Math.min(99,Math.max(1,parseInt($("f-no").value,10)||S.me.no||12)),x:xHandle($("f-x").value),photo:S.me.photo||"",title,idn:S.me.idn,skin:S.me.skin||""};
   save();renderMine();if(clubChanged){$("c-out").innerHTML="";MATCHES=[];renderToday();if(sb&&UID)loadMatches().then(()=>{renderAll()}).catch(()=>{})}
 }
 ["f-nick","f-club","f-color","f-style","f-word","f-no","f-fav","f-x"].forEach(id=>$(id).addEventListener("input",readForm));
@@ -1544,14 +1556,14 @@ function openCard(id){
       S.hidden[id]=1;S.queue=S.queue.filter(q=>q!==id);save();closeCard();renderAll();netMsg("通報を受け付けました。ありがとうございます。");
     }catch(err){$("v-rep-out").innerHTML='<p class="xmsg">送れませんでした。電波のよいところで、もう一度お試しください。</p>'}
   });
-  vDetail(id,raw.tl||[]);
+  vDetail(id,raw.tl||[],raw.club);
   lastFocus=document.activeElement;$("viewer").hidden=false;$("viewer").scrollTop=0;
   $("v-close").addEventListener("click",closeCard);try{$("v-close").focus()}catch(e){}
 }
 // 袋から出てくる名刺: 一覧用の小さい名刺ではなく、大きく開いたときと同じ質感の面をそのまま見せる
 function faceOnly(c,front){
   const sk=c.skin==="gold"?"#C9A63B":c.skin==="black"?"#17191D":"",col=sk||c.color,on=onColor(col);
-  return '<div class="flip gflip '+(on==="#FFFFFF"?"on-dark":"on-light")+(sk?" sk":"")+'" style="--club:'+esc(col)+';--clubc:'+esc(c.color)+';--on-club:'+on+'"><article class="face front">'+front+'</article></div>';
+  return '<div class="flip gflip '+(on==="#FFFFFF"?"on-dark":"on-light")+(sk?" sk":"")+ptClass(c)+'" style="--club:'+esc(col)+';--clubc:'+esc(c.color)+';--on-club:'+on+'"><article class="face front">'+front+'</article></div>';
 }
 function packFace(c){
   if(c.kind==="n")return '<div class="pflip" style="--pc:'+esc(c.color)+';--pon:'+onColor(c.color)+'">'+faceOnly(Object.assign({},c,{color:"#F6F2E7",skin:""}),paperFront(c))+'</div>';
@@ -1574,7 +1586,7 @@ function paperFront(c){
     +'<p class="p-got">'+(c.kind==="r"?esc(c.date)+'　'+esc(c.match)+'（リモート）'+((c.met||1)>1?'　'+c.met+'回目':''):esc(c.date)+' にもらった名刺')+'</p>';
 }
 function paperBack(c){
-  return '<div class="k-club">'+esc(c.club)+'</div><div class="k-name"><div class="c-nick" style="font-size:22px">'+esc(c.nick)+'</div></div><div class="k-big sm">'+(c.no||12)+'</div><div class="k-more">'+titlesMini(c.tl||[],3)+'<div class="k-histbox" data-pid="'+esc(c.pid)+'"></div></div><p class="p-got">スタジアムで会うと、この人のスタジアム名刺が手に入ります</p>';
+  return '<div class="k-club">'+esc(c.club)+'</div><div class="k-name"><div class="c-nick" style="font-size:22px">'+esc(c.nick)+'</div></div><div class="k-big sm">'+(c.no||12)+'</div><div class="k-more">'+titlesMini(c.tl||[],3,c.club)+'<div class="k-histbox" data-pid="'+esc(c.pid)+'"></div></div><p class="p-got">スタジアムで会うと、この人のスタジアム名刺が手に入ります</p>';
 }
 function openPaper(id){
   const c=NORMALL().concat(REMALL()).find(x=>x.id===id);if(!c)return;VIEW.ang=0;VIEW.cur=0;const rm=c.kind==="r";
@@ -1595,7 +1607,7 @@ function openPaper(id){
       S.hidden[id]=1;save();closeCard();renderAll();netMsg("通報を受け付けました。ありがとうございます。");
     }catch(err){$("v-rep-out").innerHTML='<p class="xmsg">送れませんでした。電波のよいところで、もう一度お試しください。</p>'}
   });
-  vDetail(c.pid,c.tl||[]);
+  vDetail(c.pid,c.tl||[],c.club);
   lastFocus=document.activeElement;$("viewer").hidden=false;$("viewer").scrollTop=0;
   $("v-close").addEventListener("click",closeCard);try{$("v-close").focus()}catch(e){}
 }
@@ -1604,12 +1616,12 @@ document.addEventListener("click",e=>{
   const p=e.target.closest(".paper[data-id]");if(p)openPaper(p.dataset.id);
 });
 document.addEventListener("click",e=>{if(e.target.closest&&e.target.closest("[data-kindq]"))$("kindpop").hidden=false;else if(e.target===$("kindpop")||e.target===$("kind-x"))$("kindpop").hidden=true});
-function vDetail(pid,tl){
+function vDetail(pid,tl,club){
   loadHist(pid);
   $("v-more").addEventListener("click",async()=>{
     const d=$("v-detail");if(d.innerHTML){d.innerHTML="";return}
     d.innerHTML='<p class="note">読み込んでいます</p>';await loadHist(pid);
-    d.innerHTML=HIST[pid]?detailHTML(tl,HIST[pid]):'<p class="xmsg">読み込めませんでした。電波のよいところで、もう一度お試しください。</p>';
+    d.innerHTML=HIST[pid]?detailHTML(tl,HIST[pid],club):'<p class="xmsg">読み込めませんでした。電波のよいところで、もう一度お試しください。</p>';
   });
 }
 document.addEventListener("click",e=>{
@@ -1985,7 +1997,7 @@ PENDING=takeHash();
 window.addEventListener("hashchange",()=>{const t=takeHash();if(!t)return;if(S.setup&&UID)redeem(t);else{PENDING=t;netMsg("名刺を作ると、そのまま交換できます。")}});
 function netMsg(t){const n=$("net");n.textContent=t;n.hidden=!t}
 function applyProfile(p){
-  S.me={nick:p.nick,club:p.club,color:p.color,style:p.style,word:p.word,fav:p.fav||"",no:p.back_no||12,x:p.x_handle||"",photo:p.photo||"",title:S.me&&S.me.title!==undefined?S.me.title:(p.title||undefined),idn:p.member_no,skin:p.skin||""};
+  S.me={nick:p.nick,club:p.club,color:colorOf(p.club),style:p.style,word:p.word,fav:p.fav||"",no:p.back_no||12,x:p.x_handle||"",photo:p.photo||"",title:S.me&&S.me.title!==undefined?S.me.title:(p.title||undefined),idn:p.member_no,skin:p.skin||""};
   pickClub=p.club;
 }
 // 自分の名刺の数字（相手の画面に出す用）
@@ -2012,9 +2024,9 @@ function buildBook(rows){
   const num=(v,b)=>Math.min(b,Math.max(0,parseInt(v,10)||0)),names=TITLES.map(t=>t[0]),first=!S.synced;
   const book=rows.map(r=>{
     const st=r.stats&&typeof r.stats==="object"?r.stats:{},day=[r.last_day,r.last_exchange].filter(Boolean).sort().pop()||"";
-    return {id:r.id,nick:r.nick,club:r.club,color:/^#[0-9a-fA-F]{6}$/.test(r.color)?r.color:colorOf(r.club),style:r.style||"",word:r.word||"",fav:r.fav||"",no:r.back_no||12,x:xHandle(r.x_handle||""),title:names.includes(r.title)?r.title:"",pk:r.photo_key||"",photo:photoOf(r.id,r.photo_key),idn:r.member_no,
+    return {id:r.id,nick:r.nick,club:r.club,color:colorOf(r.club),style:r.style||"",word:r.word||"",fav:r.fav||"",no:r.back_no||12,x:xHandle(r.x_handle||""),title:names.includes(r.title)?r.title:"",pk:r.photo_key||"",photo:photoOf(r.id,r.photo_key),idn:r.member_no,
       games:r.games||0,rec:[r.wins||0,r.draws||0,r.losses||0],rrec:rrOf(st),tl:tlOf(st),home:[r.home_games||0,Math.max(1,num(st.homeAll,40))],cards:num(st.cards,9999),rare:num(st.rare,9999),zukan:[num(st.zukan,CLUBS.length),CLUBS.length],titles:[num(st.titles,TITLES.length),TITLES.length],
-      met:r.met||1,day,date:day?fmt(dateOf(day)):"",match:r.last_match||"",ha:r.last_away?"A":"H",rain:!!r.any_rain,wd:!!r.any_weeknight,trav:!!r.any_trav,op:!!r.any_opening,fin:!!r.any_final,skin:["gold","black"].includes(r.skin)?r.skin:"",direct:!!r.direct,place:r.stadium?"stadium":"town",ex:r.last_exchange||""};
+      met:r.met||1,day,date:day?fmt(dateOf(day)):"",match:r.last_match||"",ha:r.last_away?"A":"H",rain:!!r.any_rain,wd:!!r.any_weeknight,trav:!!r.any_trav,op:!!r.any_opening,fin:!!r.any_final,skin:["gold","black","sv","sh","ck"].includes(r.skin)?r.skin:"",direct:!!r.direct,place:r.stadium?"stadium":"town",ex:r.last_exchange||""};
   }).sort((a,b)=>a.day<b.day?-1:a.day>b.day?1:0);
   const add=[];
   book.forEach(c=>{
@@ -2047,9 +2059,9 @@ function histRows(rows){
     return {date:r.day?fmt(dateOf(r.day)):"",match:r.home+" vs "+r.away,ha,remote:!!r.remote,res:done&&ha!=="N"?(a>b?"W":a<b?"L":"D"):"",score:done?a+"-"+b:"",comp:r.comp||"リーグ"}});
 }
 const histHTML=(list,max)=>list.length?'<ul class="k-hist">'+list.slice(0,max).map(x=>'<li><span>'+esc(x.date.slice(5))+'</span><span>'+esc(x.match)+'</span><span>'+haTag(x)+(x.res?' '+RES_JA[x.res]:'')+'</span></li>').join("")+'</ul>':'<p class="k-none">観戦履歴はまだありません</p>';
-const titlesMini=(tl,max)=>tl.length?'<div class="k-tl">'+tl.slice().sort((a,b)=>(TIER[b]||1)-(TIER[a]||1)).slice(0,max).map(t=>plateHTML(t,true)).join("")+(tl.length>max?'<span class="k-rest">ほか '+(tl.length-max)+'</span>':'')+'</div>':'';
-function detailHTML(tl,list){
-  return '<h3>称号　'+tl.length+' 個</h3>'+(tl.length?'<div class="d-tl">'+tl.slice().sort((a,b)=>(TIER[b]||1)-(TIER[a]||1)).map(t=>plateHTML(t,true)).join("")+'</div>':'<p class="note">まだありません</p>')
+const titlesMini=(tl,max,club)=>tl.length?'<div class="k-tl">'+tl.slice().sort((a,b)=>(TIER[b]||1)-(TIER[a]||1)).slice(0,max).map(t=>plateHTML(t,true,club)).join("")+(tl.length>max?'<span class="k-rest">ほか '+(tl.length-max)+'</span>':'')+'</div>':'';
+function detailHTML(tl,list,club){
+  return '<h3>称号　'+tl.length+' 個</h3>'+(tl.length?'<div class="d-tl">'+tl.slice().sort((a,b)=>(TIER[b]||1)-(TIER[a]||1)).map(t=>plateHTML(t,true,club)).join("")+'</div>':'<p class="note">まだありません</p>')
     +'<h3>観戦履歴　'+list.length+' 試合</h3>'+(list.length?'<ul class="d-hist">'+list.map(x=>'<li><span>'+esc(x.date)+'</span><span>'+esc(x.match)+'<small>'+esc(x.comp)+'　'+haTag(x)+'</small></span><span>'+(x.res?RES_JA[x.res]+(x.score?' '+x.score:''):'')+'</span></li>').join("")+'</ul>':'<p class="note">まだありません</p>');
 }
 async function loadHist(pid){
@@ -2059,11 +2071,11 @@ async function loadHist(pid){
 }
 const recRow=(lb,r)=>'<div><dt class="lb">'+lb+'</dt><dd><b>'+r[0]+'</b>勝<b>'+r[1]+'</b>分<b>'+r[2]+'</b>敗</dd></div>';
 function buildNorm(rows){
-  S.norm=rows.map(r=>({id:"n:"+r.id,pid:r.id,kind:"n",nick:r.nick,club:r.club,color:/^#[0-9a-fA-F]{6}$/.test(r.color)?r.color:colorOf(r.club),style:r.style||"",word:r.word||"",fav:r.fav||"",no:r.back_no||12,
+  S.norm=rows.map(r=>({id:"n:"+r.id,pid:r.id,kind:"n",nick:r.nick,club:r.club,color:colorOf(r.club),style:r.style||"",word:r.word||"",fav:r.fav||"",no:r.back_no||12,
     pk:r.photo_key||"",photo:photoOf(r.id,r.photo_key),idn:r.member_no,games:r.games||0,rec:[r.wins||0,r.draws||0,r.losses||0],rrec:r.stats?rrOf(r.stats):null,tl:tlOf(r.stats),day:r.day||"",date:r.day?fmt(dateOf(r.day)):"",met:1}));
 }
 function buildRem(rows){
-  S.rem=rows.map(r=>({id:"r:"+r.id,pid:r.id,kind:"r",nick:r.nick,club:r.club,color:/^#[0-9a-fA-F]{6}$/.test(r.color)?r.color:colorOf(r.club),style:r.style||"",word:r.word||"",fav:r.fav||"",no:r.back_no||12,
+  S.rem=rows.map(r=>({id:"r:"+r.id,pid:r.id,kind:"r",nick:r.nick,club:r.club,color:colorOf(r.club),style:r.style||"",word:r.word||"",fav:r.fav||"",no:r.back_no||12,
     pk:r.photo_key||"",photo:photoOf(r.id,r.photo_key),idn:r.member_no,games:r.games||0,rec:[r.wins||0,r.draws||0,r.losses||0],day:r.last_day||"",date:r.last_day?fmt(dateOf(r.last_day)):"",match:r.last_match||"",met:r.met||1}));
 }
 // サポ対抗戦の点（自分のクラブから見た 得点・失点・勝ち負け）。勝ち負けは、チェックインの受付が終わってから付く
@@ -2166,8 +2178,8 @@ function checkTitles(){
   if(S.me.title===undefined)S.me.title=(Array.isArray(S.got)?e.filter(t=>seen.includes(t)).pop():e[e.length-1])||""; // これまで自動で付いていた称号はそのままにする
   S.got=seen.concat(fresh);save();
   gotNew=fresh.slice().sort((a,b)=>(TIER[a]||1)-(TIER[b]||1));
-  $("got-list").innerHTML=gotNew.slice().reverse().map(t=>{const d=TITLES.find(x=>x[0]===t);return '<li>'+plateHTML(t)+'<small>'+esc(d?d[1]:"")+'</small></li>'}).join("");
-  $("got-use").textContent=gotNew.length>1?"「"+gotNew[gotNew.length-1]+"」を名刺に付ける":"名刺に付ける";
+  $("got-list").innerHTML=gotNew.slice().reverse().map(t=>{const d=TITLES.find(x=>x[0]===t);return '<li>'+plateHTML(t)+'<small>'+(SECRET.includes(t)?'隠し称号　':'')+esc(d?d[1]:"")+'</small></li>'}).join("");
+  $("got-use").textContent=gotNew.length>1?"「"+plateName(gotNew[gotNew.length-1])+"」を名刺に付ける":"名刺に付ける";
   $("gotpop").hidden=false;try{if(navigator.vibrate)navigator.vibrate([30,60,30])}catch(err){}
 }
 $("got-x").addEventListener("click",()=>{$("gotpop").hidden=true;renderMine()});
@@ -2265,7 +2277,7 @@ $("about-top").addEventListener("click",()=>$("about-open").click());
 
 
 // 新しい版が公開されていたら、自動で読み込み直す（ホーム画面から開くと更新ボタンがないため）
-const APP_VER="20261005124555";
+const APP_VER="20261005125931";
 async function checkUpdate(){
   try{
     const r=await fetch("version.txt?t="+Date.now(),{cache:"no-store"});if(!r.ok)return;
