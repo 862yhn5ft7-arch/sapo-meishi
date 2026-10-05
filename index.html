@@ -51,6 +51,13 @@
 .tip button.go{background:var(--flood);color:var(--on-flood);border-color:var(--flood)}
 .tip .tipb{display:flex;flex-direction:column;gap:6px;flex:none}
 .tip button{flex:none;font:inherit;font-size:12px;font-weight:700;background:none;border:1px solid var(--line);border-radius:4px;color:var(--ink);padding:4px 8px;cursor:pointer}
+.today .vs{margin-top:8px;padding-top:10px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:4px}
+.today .vs .vl{font-size:11px;font-weight:700;letter-spacing:.12em;color:var(--flood)}
+.today .vs .vb{display:grid;grid-template-columns:1fr auto auto auto 1fr;align-items:baseline;gap:8px;font-weight:700}
+.today .vs .vb span:first-child{text-align:right}
+.today .vs .vb b{font:600 34px/1 var(--num);font-variant-numeric:tabular-nums}
+.today .vs .vb i{font-style:normal;color:var(--muted)}
+.today .vs small{font-size:11px;color:var(--muted)}
 .today .now{display:block;margin-top:6px;font-size:13px;font-weight:700;color:var(--ink)}
 .today .cd{display:block;margin:4px 0;font-size:15px;font-weight:700;color:var(--ink)}.today .cd b{font:600 30px/1 var(--num);margin:0 4px}
 .rank{list-style:none;margin:0;padding:0;display:grid;gap:4px}
@@ -803,7 +810,7 @@ function onColor(hex){const n=parseInt(hex.slice(1),16),r=n>>16&255,g=n>>8&255,b
 function fmt(d){return d.getFullYear()+"."+String(d.getMonth()+1).padStart(2,"0")+"."+String(d.getDate()).padStart(2,"0")}
 
 let S;
-var FIRST5=new Set();
+var FIRST5=new Set(),BTL={},BNOW=null,BTAB=[];
 const TITLES=[
 ["はじめの一歩","初めてチェックインする",()=>S.log.length>=1],
 ["遠征デビュー","アウェイで1試合チェックインする",()=>S.log.filter(l=>l.ha==="A").length>=1],
@@ -845,6 +852,12 @@ const TITLES=[
 ["紙の旅人","ノーマル名刺で10クラブ集める",()=>new Set(NORM().map(c=>c.club)).size>=10],
 ["全国名刺めぐり","ノーマル名刺で30クラブ集める",()=>new Set(NORM().map(c=>c.club)).size>=30],
 ["日本一周","ノーマル名刺で全60クラブ集める",()=>new Set(NORM().map(c=>c.club).filter(divOf)).size>=CLUBS.length],
+["勝ち点3","サポ対抗戦で勝った試合に、現地でチェックインする",()=>S.log.some(l=>l.bt&&l.bt.res==="W")],
+["応援は届いた","リモートでチェックインした試合で、サポ対抗戦に勝つ",()=>RL().some(l=>l.bt&&l.bt.res==="W")],
+["孤軍奮闘","自分のクラブのサポが自分ひとりの試合に、現地でチェックインする",()=>S.log.some(l=>l.bt&&l.bt.res&&l.bt.f===3)],
+["数の暴力","サポ対抗戦に10点差以上で勝つ",()=>S.log.some(l=>l.bt&&l.bt.res==="W"&&l.bt.f-l.bt.a>=10)],
+["アウェイジャック","アウェイで、サポ対抗戦に勝つ",()=>S.log.some(l=>l.ha==="A"&&l.bt&&l.bt.res==="W")],
+["連戦連勝","サポ対抗戦で3連勝する",()=>{let b=0,c=0;S.log.filter(l=>l.bt&&l.bt.res).forEach(l=>{c=l.bt.res==="W"?c+1:0;if(c>b)b=c});return b>=3}],
 ["画面の前から","リモートで1試合チェックインする",()=>RL().length>=1],
 ["二刀流","同じシーズンに、現地とリモートの両方でチェックインする",()=>RL().some(r=>S.log.some(l=>(l.season||SEASON)===(r.season||SEASON)))],
 ["家だと勝つ","リモートで3連勝する",()=>rstreak("W")>=3],
@@ -864,7 +877,7 @@ const tagged=(kind,mineOnly)=>S.log.some(l=>String(l.tags||"").split(",").some(t
 const ID_EPOCH=Date.UTC(2026,9,3,15,0),idText=n=>"No."+String(n||0).padStart(6,"0");
 const newId=()=>Math.max(1,Math.floor((Date.now()-ID_EPOCH)/60000)+1);
 // プレートの格: 1 銅、2 銀、3 金、4 黒金
-const TIER={"はじめの一歩":1,"遠征デビュー":1,"はじめまして":1,"雨天決行":2,"平日休みの達人":2,"通い慣れ":2,"顔なじみ":2,"現地で名刺交換":2,"三階級制覇":3,"全国に知り合い":3,"レアハンター":3,"アウェイの鬼":4,"顔が広い":4,"最初の5人":4,"傷心旅行":1,"泣きっ面に雨":1,"ハシゴ観戦":1,"疫病神":2,"ゴールを知らない":2,"修行僧":2,"ドロー沼":2,"持ってる人":2,"お祭り騒ぎ":2,"浮気性":2,"有給の使い手":2,"雨男・雨女":2,"新体制の目撃者":2,"それでも来る人":3,"不敗神話":3,"ウノゼロ職人":3,"解任立会人":3,"歴史の証人":4,"地獄まで一緒":4,"戴冠式の参列者":4,"住んでる":4,"やっと会えた":2,"紙から本物へ":3,"名刺箱":1,"紙の旅人":2,"全国名刺めぐり":3,"日本一周":4,"画面の前から":1,"二刀流":2,"家だと勝つ":2,"テレビを消した":2,"お茶の間サポ":2,"配信の住人":3};
+const TIER={"はじめの一歩":1,"遠征デビュー":1,"はじめまして":1,"雨天決行":2,"平日休みの達人":2,"通い慣れ":2,"顔なじみ":2,"現地で名刺交換":2,"三階級制覇":3,"全国に知り合い":3,"レアハンター":3,"アウェイの鬼":4,"顔が広い":4,"最初の5人":4,"傷心旅行":1,"泣きっ面に雨":1,"ハシゴ観戦":1,"疫病神":2,"ゴールを知らない":2,"修行僧":2,"ドロー沼":2,"持ってる人":2,"お祭り騒ぎ":2,"浮気性":2,"有給の使い手":2,"雨男・雨女":2,"新体制の目撃者":2,"それでも来る人":3,"不敗神話":3,"ウノゼロ職人":3,"解任立会人":3,"歴史の証人":4,"地獄まで一緒":4,"戴冠式の参列者":4,"住んでる":4,"やっと会えた":2,"紙から本物へ":3,"名刺箱":1,"紙の旅人":2,"全国名刺めぐり":3,"日本一周":4,"勝ち点3":1,"応援は届いた":1,"孤軍奮闘":2,"数の暴力":2,"アウェイジャック":3,"連戦連勝":3,"画面の前から":1,"二刀流":2,"家だと勝つ":2,"テレビを消した":2,"お茶の間サポ":2,"配信の住人":3};
 const TIER_NAME=["","銅","銀","金","黒金"];
 const plateHTML=(name,sm)=>'<span class="plate t'+(TIER[name]||1)+(sm?' sm':'')+'"><i></i><b>'+esc(name)+'</b><i></i></span>';
 const hiddenPlate=name=>'<span class="plate t'+(TIER[name]||1)+'"><i></i><b>？？？</b><i></i></span>';
@@ -1067,6 +1080,11 @@ function renderZukan(){
   h+='<div class="group"><h2>レア図鑑<span>'+rc.filter(Boolean).length+' / '+RARES.length+'</span></h2><p class="note">条件が1つでレア、2つ以上重なると激レアです。</p><ul class="rows">'+RARES.map((r,i)=>'<li class="'+(rc[i]?'got':'')+'"><strong>'+r[0]+'</strong><small>'+r[1]+'</small>'+(rc[i]?'<button type="button" class="btn ghost st" data-kind="'+r[0]+'">'+rc[i]+' 枚を見る</button>':'<span class="st">未発見</span>')+'</li>').join("")+'</ul></div>';
   const e=earned();
   h+='<div class="group"><h2>称号<span>'+e.length+' / '+TITLES.length+'</span></h2><ul class="rows">'+TITLES.map(t=>'<li class="'+(e.includes(t[0])?'got':'locked')+'"><strong>'+(e.includes(t[0])?plateHTML(t[0]):hiddenPlate(t[0]))+'</strong><small>'+t[1]+'</small><span class="st">'+(e.includes(t[0])?'獲得':'未獲得')+'</span></li>').join("")+'</ul></div>';
+  if(BTAB.length){
+    const mine=S.me.club,top=BTAB.slice(0,10),mi=BTAB.findIndex(r=>r.club===mine);
+    const row=(r,i)=>'<li class="'+(r.club===mine?'me':'')+'"><b>'+(i+1)+'</b><span>'+esc(r.club)+'<small>　'+r.wins+'勝 '+r.draws+'分 '+r.losses+'敗</small></span><span><b>'+r.pts+'</b> 点</span></li>';
+    h+='<div class="group"><h2>サポ対抗戦<span>今季</span></h2><p class="note">試合ごとに、チェックインした人数で相手のサポと競います（現地 3点・リモート 1点）。勝ちの多い順です。</p><ol class="rank">'+top.map(row).join("")+(mi>=10?row(BTAB[mi],mi):"")+'</ol></div>';
+  }
   if(RANK.rows.length){
     const mine=S.me.club,top=RANK.rows.slice(0,10),mi=RANK.rows.findIndex(r=>r.club===mine);
     const row=(r,i)=>'<li class="'+(r.club===mine?'me':'')+'"><b>'+(i+1)+'</b><span>'+esc(r.club)+'<small>　サポ '+r.fans+' 人・アウェイ '+r.away+' 回</small></span><span><b>'+r.checkins+'</b> 回</span></li>';
@@ -1075,7 +1093,7 @@ function renderZukan(){
   $("z-out").innerHTML=h;
 }
 function renderLog(){
-  $("c-log").innerHTML=S.log.concat(S.rlog||[]).sort((x,y)=>x.at<y.at?-1:1).reverse().map(l=>'<li><span>'+esc(l.date)+'　'+(l.remote?"【リモート】":"")+esc(l.match)+(l.ha==="A"?"（アウェイ）":l.ha==="N"?"（ほかのクラブ）":"")+"　"+esc(l.comp||"リーグ")+(l.res?"　"+RES_JA[l.res]+(l.score?" "+l.score:""):"")+(l.rain?"　雨":"")+'</span><span>'+(l.n==null?'':l.n+' 人')+'</span></li>').join("")||'<li><span>まだチェックインがありません。試合の日にチェックインすると、ここに残ります。</span></li>';
+  $("c-log").innerHTML=S.log.concat(S.rlog||[]).sort((x,y)=>x.at<y.at?-1:1).reverse().map(l=>'<li><span>'+esc(l.date)+'　'+(l.remote?"【リモート】":"")+esc(l.match)+(l.ha==="A"?"（アウェイ）":l.ha==="N"?"（ほかのクラブ）":"")+"　"+esc(l.comp||"リーグ")+(l.res?"　"+RES_JA[l.res]+(l.score?" "+l.score:""):"")+(l.rain?"　雨":"")+(l.bt?"　対抗戦 "+l.bt.f+"-"+l.bt.a+(l.bt.res?" "+RES_JA[l.bt.res]:""):"")+'</span><span>'+(l.n==null?'':l.n+' 人')+'</span></li>').join("")||'<li><span>まだチェックインがありません。試合の日にチェックインすると、ここに残ります。</span></li>';
 }
 // サンプル日程: 週末にリーグ戦、数週おきの水曜にルヴァンカップと天皇杯を交互に
 const isoOf=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
@@ -1171,6 +1189,9 @@ function renderToday(){
   if(m&&NOW.id===m.id&&NOW.n>0){const s=document.createElement("span");s.className="now";s.textContent="いま、この試合に "+NOW.n+" 人がチェックインしています";$("c-today").firstChild.appendChild(s)}
   if(m&&m.time&&!m.tbd){const hm=m.time.split(":"),k=(+hm[0])*60+(+hm[1]),f=v=>{v=Math.max(0,Math.min(1439,v));return String(Math.floor(v/60)).padStart(2,"0")+":"+String(v%60).padStart(2,"0")};
     const sp=document.createElement("span");sp.className="d";sp.textContent="チェックインできる時間　"+f(k-180)+" 〜 "+f(k+180);$("c-today").firstChild.appendChild(sp)}
+  if(m&&BNOW&&BNOW.id===m.id){const v=document.createElement("div");v.className="vs";
+    v.innerHTML='<span class="vl">サポ対抗戦</span><div class="vb"><span>'+esc(BNOW.home)+'</span><b>'+BNOW.hp+'</b><i>-</i><b>'+BNOW.ap+'</b><span>'+esc(BNOW.away)+'</span></div><small>チェックインすると自分のクラブに点が入ります。現地 3点・リモート 1点（いま 現地 '+BNOW.hs+'人 対 '+BNOW.a_s+'人、リモート '+BNOW.hr+'人 対 '+BNOW.ar+'人）</small>';
+    $("c-today").firstChild.appendChild(v)}
   $("c-go").hidden=!m;renderOther();
   $("c-geo").hidden=!(m&&!done&&m.lat!=null&&m.lng!=null);
   renderNorm();
@@ -1300,7 +1321,7 @@ $("c-go").addEventListener("click",async()=>{
     await sync(true);
     const got=S.queue.map(id=>S.book.find(c=>c.id===id)).filter(Boolean),re=got.filter(c=>(c.met||1)>1).length;
     $("c-out").innerHTML='<div class="result"><p class="big">いま <b>'+n+'</b> 人とすれちがいました</p><p class="note">'+esc(home)+' vs '+esc(away)+'。'+(n?'名刺は袋に入って届きます。':'まだ誰もチェックインしていません。')+'あとからチェックインした人の名刺は、あとで届きます。</p>'
-      +'<p class="note">試合結果は、試合が終わってから名刺の戦績に入ります。</p>'
+      +'<p class="note">試合結果は、試合が終わってから名刺の戦績に入ります。サポ対抗戦は、'+esc(mine)+'に 3点 入りました。</p>'
       +'<div class="row"><button class="btn" id="toBook">名刺帳を見る</button></div></div>';
     const line=home+" vs "+away+"　"+m.label,rare=got.filter(c=>rareOf(c).length).length;
     $("toBook").addEventListener("click",()=>{KIND="st";$("tab-book").click()});
@@ -1324,7 +1345,7 @@ $("c-remote").addEventListener("click",async()=>{
     while(syncing)await new Promise(ok=>setTimeout(ok,150));
     await sync(true);
     const cards=[],rw=(S.rlog||[]).length;
-    $("c-out").innerHTML='<div class="result"><p class="big">リモートでチェックインしました</p><p class="note">'+esc(home)+' vs '+esc(away)+'。いま、この試合を <b>'+(n+1)+'</b> 人が応援しています。リモートは '+rw+' 試合目です。試合の結果は、名刺の「リモート」の戦績に入ります。</p><p class="note">スタジアムに着いたら「スタジアムに着いた」を押すと、スタジアムのチェックインに切り替わります。</p></div>';
+    $("c-out").innerHTML='<div class="result"><p class="big">リモートでチェックインしました</p><p class="note">'+esc(home)+' vs '+esc(away)+'。いま、この試合を <b>'+(n+1)+'</b> 人が応援しています。リモートは '+rw+' 試合目です。試合の結果は、名刺の「リモート」の戦績に入ります。サポ対抗戦は、'+esc(mine)+'に 1点 入りました。</p><p class="note">スタジアムに着いたら「スタジアムに着いた」を押すと、スタジアムのチェックインに切り替わります。</p></div>';
     if(cards.length)openPack(cards,{line:home+" vs "+away,label:fmt(today()),kind:"r"});
   }catch(e){
     $("c-out").innerHTML='<p class="xmsg">'+esc(errText(e,CK_ERR))+'</p>';
@@ -1971,11 +1992,18 @@ function buildRem(rows){
   S.rem=rows.map(r=>({id:"r:"+r.id,pid:r.id,kind:"r",nick:r.nick,club:r.club,color:/^#[0-9a-fA-F]{6}$/.test(r.color)?r.color:colorOf(r.club),style:r.style||"",word:r.word||"",fav:r.fav||"",no:r.back_no||12,
     pk:r.photo_key||"",photo:photoOf(r.id,r.photo_key),idn:r.member_no,games:r.games||0,rec:[r.wins||0,r.draws||0,r.losses||0],day:r.last_day||"",date:r.last_day?fmt(dateOf(r.last_day)):"",match:r.last_match||"",met:r.met||1}));
 }
+// サポ対抗戦の点（自分のクラブから見た 得点・失点・勝ち負け）。勝ち負けは、チェックインの受付が終わってから付く
+function btInfo(m,ha){
+  const p=BTL[m.id];if(!p||ha==="N")return null;
+  const end=m.kickoff&&m.day_from===m.day_to?new Date(m.day_from+"T"+String(m.kickoff).slice(0,5)+":00+09:00").getTime()+3*3600e3:new Date(m.day_to+"T23:59:59+09:00").getTime();
+  const f=ha==="H"?p[0]:p[1],a=ha==="H"?p[1]:p[0];
+  return {f,a,res:Date.now()>end?(f>a?"W":f<a?"L":"D"):""};
+}
 function buildLog(rows){
   S.log=rows.map(r=>{
     const m=r.matches||MATCHES.find(x=>x.id===r.match_id);if(!m)return null;
     const ha=m.home===r.club?"H":m.away===r.club?"A":"N",done=m.score_home!=null&&m.score_away!=null,a=ha!=="A"?m.score_home:m.score_away,b=ha!=="A"?m.score_away:m.score_home;
-    return {key:m.id,at:r.created_at,season:m.season,comp:m.comp,res:done&&ha!=="N"?(a>b?"W":a<b?"L":"D"):"",score:done?a+"-"+b:"",date:fmt(new Date(r.created_at)),match:m.home+" vs "+m.away,ha,n:S.cnt[m.id]==null?null:S.cnt[m.id],rain:!!m.rain||!!r.rain,wd:!!m.weeknight,tags:m.tags||"",remote:!!r.remote};
+    return {key:m.id,at:r.created_at,season:m.season,comp:m.comp,res:done&&ha!=="N"?(a>b?"W":a<b?"L":"D"):"",score:done?a+"-"+b:"",date:fmt(new Date(r.created_at)),match:m.home+" vs "+m.away,ha,n:S.cnt[m.id]==null?null:S.cnt[m.id],rain:!!m.rain||!!r.rain,wd:!!m.weeknight,tags:m.tags||"",remote:!!r.remote,bt:btInfo(m,ha)};
   }).filter(Boolean).sort((x,y)=>x.at<y.at?-1:1);
   S.rlog=S.log.filter(l=>l.remote);S.log=S.log.filter(l=>!l.remote);   // リモートは現地の記録や称号に数えない
 }
@@ -2011,10 +2039,11 @@ async function sync(force){
     const [a,b]=await Promise.all([sb.from("checkins").select("match_id,club,created_at,rain,remote,matches(*)"),sb.rpc("my_book"),(force||!MATCHES.length||matchesClub!==S.me.club||Date.now()-matchesAt>600000)?loadMatches():null]);
     if(a.error)throw a.error;if(b.error)throw b.error;
     try{const f=await sb.rpc("club_firsts");if(!f.error&&Array.isArray(f.data)){FIRST5=new Set(f.data.map(Number));try{localStorage.setItem(KEY+"-first5",JSON.stringify([...FIRST5]))}catch(e){}}}catch(e){}
+    try{const bt=await sb.rpc("my_battles");if(!bt.error){BTL={};(bt.data||[]).forEach(r=>{BTL[r.match_id]=[r.hp||0,r.ap||0]})}}catch(e){}
     try{const nr=await sb.rpc("my_normals");if(!nr.error)buildNorm(nr.data||[])}catch(e){}
     S.rem=[];if(KIND==="r")KIND="n";
     buildLog(a.data||[]);added=buildBook(b.data||[]);
-    try{const mt=matchToday();if(mt){const c=await sb.rpc("match_count",{p_match:mt.id});if(!c.error)NOW={id:mt.id,n:c.data||0}}}catch(e){}
+    try{const mt=matchToday();if(mt){const c=await sb.rpc("match_count",{p_match:mt.id});if(!c.error)NOW={id:mt.id,n:c.data||0};const bb=await sb.rpc("match_battle",{p_match:mt.id});if(!bb.error&&bb.data&&bb.data[0])BNOW=Object.assign({id:mt.id},bb.data[0])}}catch(e){}
     save();renderAll();netMsg("");lastSync=Date.now();fetchPhotos();
   }catch(e){netMsg("通信できませんでした。電波のよいところで開き直してください。")}
   syncing=false;return added;
@@ -2049,6 +2078,7 @@ setInterval(()=>{if(!document.hidden&&S.setup&&UID&&!PK){const m=matchToday();if
 // クラブ別の集計を取りに行く（5分に1回まで）
 async function loadRank(){
   if(!sb||!UID||Date.now()-RANK.at<300000)return;
+  try{const t=await sb.rpc("battle_table");if(!t.error)BTAB=t.data||[]}catch(e){}
   try{const r=await sb.rpc("club_ranking");if(!r.error){RANK={at:Date.now(),rows:r.data||[]};if(curTab==="zukan")renderZukan()}}catch(e){}
 }
 $("m-season-go").addEventListener("click",()=>{$("sumpop").hidden=false;showShare($("sum-out"),{kind:"season"})});
@@ -2161,7 +2191,7 @@ $("about-top").addEventListener("click",()=>$("about-open").click());
 
 
 // 新しい版が公開されていたら、自動で読み込み直す（ホーム画面から開くと更新ボタンがないため）
-const APP_VER="20261005115916";
+const APP_VER="20261005120601";
 async function checkUpdate(){
   try{
     const r=await fetch("version.txt?t="+Date.now(),{cache:"no-store"});if(!r.ok)return;
