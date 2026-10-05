@@ -199,7 +199,7 @@ label:has(#f-color){display:none}
 .btn.rbtn small{font-size:11px;font-weight:700;color:var(--muted)}
 .btn.rbtn:disabled{border-color:var(--line);background:none}
 .flip[class*="pt-"] .face{--mesh:radial-gradient(circle at 1.5px 1.5px,rgba(0,0,0,.26) 0 1px,transparent 1.25px) 0 0/5px 5px,radial-gradient(circle at 4px 4px,rgba(255,255,255,.12) 0 1px,transparent 1.25px) 0 0/5px 5px;--fold:linear-gradient(100deg,rgba(255,255,255,.12),transparent 28%,rgba(0,0,0,.16) 62%,transparent 86%,rgba(0,0,0,.12));
-  border-radius:14px;outline:2px dashed color-mix(in srgb,var(--on-club) 60%,transparent);outline-offset:-8px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.3),inset 0 0 30px rgba(0,0,0,.22),0 30px 40px -18px rgba(0,0,0,.55)}
+  border-radius:14px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.3),inset 0 0 30px rgba(0,0,0,.22),0 30px 40px -18px rgba(0,0,0,.55)}
 .flip[class*="pt-"] .face::after,.flip[class*="pt-"] .screw{display:none}
 .flip[class*="pt-"] .slab,.flip[class*="pt-"] .edge{border-radius:14px}
 .flip.pt-sv .face{background:var(--mesh),var(--fold),repeating-linear-gradient(90deg,var(--club) 0 34px,var(--c2) 34px 68px)}
@@ -2318,7 +2318,7 @@ $("about-top").addEventListener("click",()=>$("about-open").click());
 
 
 // 新しい版が公開されていたら、自動で読み込み直す（ホーム画面から開くと更新ボタンがないため）
-const APP_VER="20261005133649";
+const APP_VER="20261005134432";
 async function checkUpdate(){
   try{
     const r=await fetch("version.txt?t="+Date.now(),{cache:"no-store"});if(!r.ok)return;
