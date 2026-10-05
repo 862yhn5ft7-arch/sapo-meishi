@@ -608,7 +608,7 @@ button.pick{cursor:pointer}
   </div>
   <div class="a2pop" id="kindpop" hidden role="dialog" aria-modal="true" aria-label="ノーマル名刺とスタジアム名刺のちがい">
     <div class="a2card"><b>名刺は2種類あります</b>
-      <div class="kd n"><strong>ノーマル名刺</strong><ul><li>チェックインの画面で、1日3枚までもらえる</li><li>全国のサポの中から、だれかの名刺が届く</li><li>もらうだけ。相手に自分の名刺は渡らない</li><li>紙の名刺。レアはなし</li></ul></div>
+      <div class="kd n"><strong>ノーマル名刺</strong><ul><li>チェックインの画面で、1日3枚までもらえる</li><li>全国のサポの中から、だれかの名刺が届く</li><li>もらうだけ。相手に自分の名刺は渡らない</li><li>紙の名刺。レアはなし</li><li>持っている人とスタジアムで会うと、その人のスタジアム名刺が「やっと会えた」のレアになる</li></ul></div>
       <div class="kd s"><strong>スタジアム名刺</strong><ul><li>試合の日にスタジアムでチェックインすると、同じ試合にいたサポと交換になる</li><li>QRで直接交換しても手に入る</li><li>レア・激レアがある</li><li>称号とレア図鑑は、こちらの名刺で数える</li><li>相手のXアカウントが載る</li></ul></div>
       <span>同じ人でも、ノーマルとスタジアムは別の名刺として集まります。スタジアムに行けない日は「リモートで応援する」を押すと、名刺は増えませんが、リモートの戦績と称号が残ります。</span>
       <div class="row"><button type="button" class="btn ghost" id="kind-x">閉じる</button></div></div>
@@ -792,7 +792,7 @@ const clubOpts=ex=>DIVS.map(d=>'<optgroup label="'+d+'">'+LEAGUE[d].filter(c=>c[
 const STYLES=["ゴール裏で跳ぶ","ゴール裏で声出し","バクスタでじっくり","メインで戦術を見る","家族でのんびり","スタグル優先"];
 const NICKS=["ゴール裏の住人","遠征は寝台派","雨男サポ","スタグル番長","太鼓のとなり","年チケ12年目","バクスタの主","声枯れ担当","ゲーフラ職人","平日は社畜","子連れ参戦","アウェイ皆勤","終電ダッシュ","タオマフ収集家","逆転信者","PK見れない人","前泊の達人","コンコース徘徊","選手バス待ち","開門3時間前","ビール片手に","今日も最前列"];
 const WORDS=["今年こそ昇格","声出していきましょう","スタグルが楽しみで来てます","アウェイ全通が今年の目標","後半40分からが本番","雨の日ほど燃える","まずは残留、話はそれから","遠征先の銭湯を巡ってます","スタメン発表が一番緊張する","引き分けは勝ちに数えない派","ユニは毎年買う派","セットプレーで祈る係","帰りの電車で反省会","選手入場で毎回泣く"];
-const RARES=[["遠征組","アウェイから来ていたサポ"],["常連","今季20試合以上チェックインしている人"],["雨の日","雨の試合で会った"],["平日ナイター","平日の夜に会った"],["開幕戦","開幕戦で会った"],["最終節","最終節で会った"],["初期メンバー","会員番号が100番以内の人"],["最初の5人","そのクラブで最初に名刺を作った5人"],["スタジアムで交換","2人とも同じ日にチェックインして、その場で直接交換した"]];
+const RARES=[["遠征組","アウェイから来ていたサポ"],["常連","今季20試合以上チェックインしている人"],["雨の日","雨の試合で会った"],["平日ナイター","平日の夜に会った"],["開幕戦","開幕戦で会った"],["最終節","最終節で会った"],["初期メンバー","会員番号が100番以内の人"],["最初の5人","そのクラブで最初に名刺を作った5人"],["スタジアムで交換","2人とも同じ日にチェックインして、その場で直接交換した"],["やっと会えた","ノーマル名刺を持っていた人と、スタジアムで会った"]];
 const SEASON="2026/27",COMPS=["リーグ","ルヴァンカップ","天皇杯"];
 const KEY="sapo-meishi-live-1",OLD_KEY="sapo-meishi-none";
 const $=id=>document.getElementById(id);
@@ -839,6 +839,12 @@ const TITLES=[
 ["歴史の証人","昇格が決まった試合に立ち会う",()=>tagged("promo")],
 ["地獄まで一緒","推しクラブの降格が決まった試合に立ち会う",()=>tagged("down",true)],
 ["戴冠式の参列者","優勝が決まった試合に立ち会う",()=>tagged("champ")],
+["やっと会えた","ノーマル名刺を持っていた人と、スタジアムで会う",()=>BOOK().some(knewByPaper)],
+["紙から本物へ","ノーマル名刺を持っていた5人と、スタジアムで会う",()=>BOOK().filter(knewByPaper).length>=5],
+["名刺箱","ノーマル名刺を10枚集める",()=>NORM().length>=10],
+["紙の旅人","ノーマル名刺で10クラブ集める",()=>new Set(NORM().map(c=>c.club)).size>=10],
+["全国名刺めぐり","ノーマル名刺で30クラブ集める",()=>new Set(NORM().map(c=>c.club)).size>=30],
+["日本一周","ノーマル名刺で全60クラブ集める",()=>new Set(NORM().map(c=>c.club).filter(divOf)).size>=CLUBS.length],
 ["画面の前から","リモートで1試合チェックインする",()=>RL().length>=1],
 ["二刀流","同じシーズンに、現地とリモートの両方でチェックインする",()=>RL().some(r=>S.log.some(l=>(l.season||SEASON)===(r.season||SEASON)))],
 ["家だと勝つ","リモートで3連勝する",()=>rstreak("W")>=3],
@@ -858,7 +864,7 @@ const tagged=(kind,mineOnly)=>S.log.some(l=>String(l.tags||"").split(",").some(t
 const ID_EPOCH=Date.UTC(2026,9,3,15,0),idText=n=>"No."+String(n||0).padStart(6,"0");
 const newId=()=>Math.max(1,Math.floor((Date.now()-ID_EPOCH)/60000)+1);
 // プレートの格: 1 銅、2 銀、3 金、4 黒金
-const TIER={"はじめの一歩":1,"遠征デビュー":1,"はじめまして":1,"雨天決行":2,"平日休みの達人":2,"通い慣れ":2,"顔なじみ":2,"現地で名刺交換":2,"三階級制覇":3,"全国に知り合い":3,"レアハンター":3,"アウェイの鬼":4,"顔が広い":4,"最初の5人":4,"傷心旅行":1,"泣きっ面に雨":1,"ハシゴ観戦":1,"疫病神":2,"ゴールを知らない":2,"修行僧":2,"ドロー沼":2,"持ってる人":2,"お祭り騒ぎ":2,"浮気性":2,"有給の使い手":2,"雨男・雨女":2,"新体制の目撃者":2,"それでも来る人":3,"不敗神話":3,"ウノゼロ職人":3,"解任立会人":3,"歴史の証人":4,"地獄まで一緒":4,"戴冠式の参列者":4,"住んでる":4,"画面の前から":1,"二刀流":2,"家だと勝つ":2,"テレビを消した":2,"お茶の間サポ":2,"配信の住人":3};
+const TIER={"はじめの一歩":1,"遠征デビュー":1,"はじめまして":1,"雨天決行":2,"平日休みの達人":2,"通い慣れ":2,"顔なじみ":2,"現地で名刺交換":2,"三階級制覇":3,"全国に知り合い":3,"レアハンター":3,"アウェイの鬼":4,"顔が広い":4,"最初の5人":4,"傷心旅行":1,"泣きっ面に雨":1,"ハシゴ観戦":1,"疫病神":2,"ゴールを知らない":2,"修行僧":2,"ドロー沼":2,"持ってる人":2,"お祭り騒ぎ":2,"浮気性":2,"有給の使い手":2,"雨男・雨女":2,"新体制の目撃者":2,"それでも来る人":3,"不敗神話":3,"ウノゼロ職人":3,"解任立会人":3,"歴史の証人":4,"地獄まで一緒":4,"戴冠式の参列者":4,"住んでる":4,"やっと会えた":2,"紙から本物へ":3,"名刺箱":1,"紙の旅人":2,"全国名刺めぐり":3,"日本一周":4,"画面の前から":1,"二刀流":2,"家だと勝つ":2,"テレビを消した":2,"お茶の間サポ":2,"配信の住人":3};
 const TIER_NAME=["","銅","銀","金","黒金"];
 const plateHTML=(name,sm)=>'<span class="plate t'+(TIER[name]||1)+(sm?' sm':'')+'"><i></i><b>'+esc(name)+'</b><i></i></span>';
 const hiddenPlate=name=>'<span class="plate t'+(TIER[name]||1)+'"><i></i><b>？？？</b><i></i></span>';
@@ -866,11 +872,13 @@ const earned=()=>TITLES.filter(t=>t[2]()).map(t=>t[0]);
 function myTitle(){const e=earned();if(S.me.title===undefined)return e[e.length-1]||"";return e.includes(S.me.title)?S.me.title:""}
 
 // 見た目と演出に使うレア。運営の名刺は「開発者」として激レアの演出にする（図鑑や称号の数には入れない）
+// ノーマル名刺を先に持っていた人と、スタジアムで会った（または直接交換した）
+function knewByPaper(c){return !c.kind&&!!c.day&&NORMALL().some(n=>n.pid===c.id&&n.day&&n.day<=c.day)}
 function rareFx(c){return c&&c.idn===0&&!c.kind?["開発者","No.000000"]:rareOf(c)}
 function rareOf(c){
   if(c.idn===0||c.kind==="n"||c.kind==="r")return [];   // 運営の名刺（はじめの1枚）は、レアには数えない
   const trav=c.trav!==undefined?c.trav:(String(c.match||"").split(" vs ")[1]===c.club);
-  const r=[];if(trav)r.push("遠征組");if(c.games>=20)r.push("常連");if(c.rain)r.push("雨の日");if(c.wd)r.push("平日ナイター");if(c.op)r.push("開幕戦");if(c.fin)r.push("最終節");if(c.idn>0&&c.idn<=100)r.push("初期メンバー");if(FIRST5.has(+c.idn))r.push("最初の5人");if(c.direct&&c.place==="stadium")r.push("スタジアムで交換");return r;
+  const r=[];if(trav)r.push("遠征組");if(c.games>=20)r.push("常連");if(c.rain)r.push("雨の日");if(c.wd)r.push("平日ナイター");if(c.op)r.push("開幕戦");if(c.fin)r.push("最終節");if(c.idn>0&&c.idn<=100)r.push("初期メンバー");if(FIRST5.has(+c.idn))r.push("最初の5人");if(c.direct&&c.place==="stadium")r.push("スタジアムで交換");if(knewByPaper(c))r.push("やっと会えた");return r;
 }
 // 同じ試合の人を book に足す。すでに持っている人とは再会として回数を増やす。
 function meet(book,n,home,away,date,ha,rain,wd){
@@ -1052,7 +1060,9 @@ function renderZukan(){
   const got=Object.keys(cnt).filter(c=>divOf(c)).length;
   let h='<div class="seg z-kind">'+kindSeg()+'</div><button type="button" class="kind-q" data-kindq="1">名刺の種類のちがい</button><div class="group"><h2>'+(KIND==="n"?"ノーマル図鑑":KIND==="r"?"リモート図鑑":"スタジアム図鑑")+'<span>'+got+' / '+CLUBS.length+'</span></h2><p class="note">そのクラブのサポ名刺を1枚でも持っていると色がつきます。数字は持っている枚数です。色のついたクラブを押すと、その名刺が見られます。</p>';
   h+=DIVS.map(d=>'<h3>'+d+'<span>'+LEAGUE[d].filter(c=>cnt[c[0]]).length+' / '+LEAGUE[d].length+'</span></h3><div class="tiles">'+LEAGUE[d].map(c=>{const k=cnt[c[0]]||0;return k?'<button type="button" class="tile got" data-club="'+c[0]+'" aria-label="'+c[0]+'サポの名刺 '+k+'枚を見る" style="--club:'+c[1]+';--on-club:'+onColor(c[1])+'"><span>'+c[0]+'</span><b>×'+k+'</b></button>':'<div class="tile"><span>'+c[0]+'</span><b>—</b></div>'}).join("")+'</div>').join("")+'</div>';
-  if(KIND!=="st"){$("z-out").innerHTML=h+'<p class="note">レア図鑑と称号は、スタジアム名刺のほうにあります。</p>';return}
+  if(KIND!=="st"){const nc=new Set(NORM().map(c=>c.club).filter(divOf)).size,e0=earned();
+    h+='<div class="group"><h2>ノーマルの称号</h2><ul class="rows">'+[["名刺箱",NORM().length,10,"枚"],["紙の旅人",nc,10,"クラブ"],["全国名刺めぐり",nc,30,"クラブ"],["日本一周",nc,CLUBS.length,"クラブ"]].map(x=>{const g=e0.includes(x[0]);return '<li class="'+(g?'got':'locked')+'"><strong>'+(g?plateHTML(x[0]):hiddenPlate(x[0]))+'</strong><small>'+(TITLES.find(t=>t[0]===x[0])||[])[1]+'</small><span class="st">'+(g?'獲得':Math.min(x[1],x[2])+' / '+x[2]+' '+x[3])+'</span></li>'}).join("")+'</ul></div>';
+    $("z-out").innerHTML=h+'<p class="note">レア図鑑と称号は、スタジアム名刺のほうにあります。</p>';return}
   const rc=RARES.map(r=>BOOK().filter(c=>rareOf(c).includes(r[0])).length);
   h+='<div class="group"><h2>レア図鑑<span>'+rc.filter(Boolean).length+' / '+RARES.length+'</span></h2><p class="note">条件が1つでレア、2つ以上重なると激レアです。</p><ul class="rows">'+RARES.map((r,i)=>'<li class="'+(rc[i]?'got':'')+'"><strong>'+r[0]+'</strong><small>'+r[1]+'</small>'+(rc[i]?'<button type="button" class="btn ghost st" data-kind="'+r[0]+'">'+rc[i]+' 枚を見る</button>':'<span class="st">未発見</span>')+'</li>').join("")+'</ul></div>';
   const e=earned();
@@ -1510,7 +1520,7 @@ function openPaper(id){
   const c=NORMALL().concat(REMALL()).find(x=>x.id===id);if(!c)return;VIEW.ang=0;VIEW.cur=0;const rm=c.kind==="r";
   $("viewer").innerHTML='<div class="bar"><h2>'+esc(c.nick)+'さんの名刺</h2><button type="button" class="btn ghost" id="v-close">閉じる</button></div>'
     +'<div class="pflip'+(rm?' rflip':'')+'" style="--pc:'+esc(c.color)+';--pon:'+onColor(c.color)+'">'+solid(Object.assign({},c,{color:rm?"#1B222B":"#F6F2E7",skin:""}),0,paperFront(c),paperBack(c))+'</div><p class="hint">スワイプで裏返す</p>'
-    +'<div class="info"><p><b>'+(rm?'リモート名刺':'ノーマル名刺')+'</b>　'+(rm?esc(c.date)+'　'+esc(c.match)+' をリモートで応援'+((c.met||1)>1?'　'+c.met+'回目':''):esc(c.date)+' にもらいました')+'</p><p class="note">スタジアムで同じ試合にチェックインすると、この人のスタジアム名刺が別に手に入ります。</p>'
+    +'<div class="info"><p><b>'+(rm?'リモート名刺':'ノーマル名刺')+'</b>　'+(rm?esc(c.date)+'　'+esc(c.match)+' をリモートで応援'+((c.met||1)>1?'　'+c.met+'回目':''):esc(c.date)+' にもらいました')+'</p><p class="note">スタジアムで同じ試合にチェックインすると、この人のスタジアム名刺が別に手に入ります。そのときは「やっと会えた」のレアになります。</p>'
     +'<div class="row"><button type="button" class="btn ghost" id="v-rep">この名刺を通報する</button></div><div id="v-rep-out"></div></div>';
   $("v-rep").addEventListener("click",()=>{
     $("v-rep-out").innerHTML='<p class="note">理由を選ぶと、運営に届きます。この名刺は、あなたの名刺帳から見えなくなります。</p><div class="reasons">'+["不適切な写真","不適切な言葉","なりすまし","そのほか"].map(x=>'<button type="button" class="btn ghost" data-why="'+x+'">'+x+'</button>').join("")+'</div>';
@@ -1629,7 +1639,7 @@ function pkAll(){
 // 名刺の下の文字とボタンを、裏向きか表向きかに合わせる（名刺そのものは描き直さない）
 function pkMeta(){
   const k=PK,c=k.cards[k.i],r=rareFx(c).length,last=k.i===k.cards.length-1,t=$("pk-tag");
-  t.textContent=k.up?(r>1?"激レア！":r?"レア！":(c.met||1)>1?"また会えた":""):(r>1?"この光は…":r?"なにか光っている":"");
+  t.textContent=k.up?(knewByPaper(c)?(r>1?"やっと会えた！ 激レア！":"やっと会えた！"):r>1?"激レア！":r?"レア！":(c.met||1)>1?"また会えた":""):(r>1?"この光は…":r?"なにか光っている":"");
   t.classList.toggle("hit",k.up&&r>0);
   $("pk-hint").textContent=k.up?(last?"タップかスワイプで結果へ":"タップかスワイプで次へ"):"タップかスワイプでめくる";
   $("pk-btn").textContent=k.up?(last?"結果を見る":"次の名刺"):"めくる";
@@ -2151,7 +2161,7 @@ $("about-top").addEventListener("click",()=>$("about-open").click());
 
 
 // 新しい版が公開されていたら、自動で読み込み直す（ホーム画面から開くと更新ボタンがないため）
-const APP_VER="20261005115134";
+const APP_VER="20261005115916";
 async function checkUpdate(){
   try{
     const r=await fetch("version.txt?t="+Date.now(),{cache:"no-store"});if(!r.ok)return;
