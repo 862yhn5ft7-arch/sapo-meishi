@@ -168,6 +168,25 @@ body.tut #a2hs,body.tut #c-norm{display:none!important}
 #p-book.nm .stats{grid-template-columns:repeat(2,1fr)}
 #p-book.nm .stats div:nth-child(n+3),#p-book.nm #b-divs button[data-rare]{display:none}
 #b-kind,.z-kind{margin-bottom:6px}
+.k-big.sm{font-size:104px;margin-block:6px 2px}
+.k-more{display:flex;flex-direction:column;gap:8px;margin-top:auto;padding-top:10px}
+.k-tl{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
+.k-rest{font-size:11px;font-weight:700;opacity:.85}
+.k-hist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:3px;font-size:12px;font-weight:700}
+.k-hist li{display:grid;grid-template-columns:38px minmax(0,1fr) auto;gap:6px;align-items:baseline}
+.k-hist li span:nth-child(2){overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.k-hist li span:last-child{font-size:11px;opacity:.9}
+.k-none{margin:0;font-size:12px;opacity:.8}
+.k-link{align-self:flex-start;color:inherit;font-size:12px;font-weight:700;text-underline-offset:3px}
+.flip .k-dl{margin-top:8px;padding-top:8px}
+.detail{display:flex;flex-direction:column;gap:8px;text-align:left}
+.detail h3{margin:6px 0 0;font-size:14px}
+.detail .d-tl{display:flex;flex-wrap:wrap;gap:6px}
+.detail .d-hist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.detail .d-hist li{display:grid;grid-template-columns:74px minmax(0,1fr) auto;gap:8px;align-items:baseline;padding:7px 0;border-bottom:1px solid var(--line);font-size:13px}
+.detail .d-hist li span:first-child{color:var(--muted);font-size:12px}
+.detail .d-hist small{display:block;font-size:11px;color:var(--muted)}
+.detail .d-hist li span:last-child{font-weight:700;white-space:nowrap}
 .gc-area{width:auto;justify-items:center}
 .gflip{--w:340px;zoom:.74;cursor:inherit;touch-action:none}
 @media (min-height:760px){.gflip{zoom:.8}}
@@ -613,6 +632,9 @@ button.pick{cursor:pointer}
       <div class="row"><button type="button" class="btn flood" id="a2hs-go">追加する</button><button type="button" class="btn ghost" id="a2hs-x">あとで</button></div>
     </div>
   </div>
+  <div class="a2pop" id="detpop" hidden role="dialog" aria-modal="true" aria-label="観戦履歴と称号">
+    <div class="a2card"><b>観戦履歴と称号</b><div id="det-out" class="detail"></div><div class="row"><button type="button" class="btn ghost" id="det-x">閉じる</button></div></div>
+  </div>
   <div class="a2pop" id="kindpop" hidden role="dialog" aria-modal="true" aria-label="ノーマル名刺とスタジアム名刺のちがい">
     <div class="a2card"><b>名刺は2種類あります</b>
       <div class="kd n"><strong>ノーマル名刺</strong><ul><li>チェックインの画面で、1日3枚までもらえる</li><li>全国のサポの中から、だれかの名刺が届く</li><li>もらうだけ。相手に自分の名刺は渡らない</li><li>紙の名刺。レアはなし</li><li>持っている人とスタジアムで会うと、その人のスタジアム名刺が「やっと会えた」のレアになる</li></ul></div>
@@ -749,7 +771,7 @@ button.pick{cursor:pointer}
     <h3>名刺が見える相手</h3>
     <p>あなたの名刺は、このアプリを使っているほかのサポーターに見られます。</p>
     <ul>
-      <li>ノーマル名刺：1日3枚まで、全国のだれかの名刺が届く仕組みです。あなたの名刺（ニックネーム、推しクラブ、写真、ひとこと、背番号、推し選手、戦績）も、会ったことのない人に届きます。Xのアカウント名は載りません。</li>
+      <li>ノーマル名刺：1日3枚まで、全国のだれかの名刺が届く仕組みです。あなたの名刺（ニックネーム、推しクラブ、写真、ひとこと、背番号、推し選手、戦績、持っている称号、チェックインした試合の一覧）も、会ったことのない人に届きます。Xのアカウント名は載りません。</li>
       <li>スタジアム名刺：同じ試合にスタジアムでチェックインした人と、QRで直接交換した人に届きます。こちらにはXのアカウント名も載ります。</li>
     </ul>
     <p>アプリを使っていない人や、検索サイトからは見えません。</p>
@@ -1006,14 +1028,15 @@ function heroHTML(c){
   HERO.cur=HERO.ang;
   const back=h.top+'<div class="k-name">'+h.nick+(qr?'<div class="k-num"><span class="lb">背番号</span><b class="chrome">'+no+'</b></div>':'')+'</div>'
     +(qr?'<div class="k-qr"><img class="b-qr" src="'+qr+'" alt="交換用のQRコード" draggable="false"><span class="lb">読み取って名刺を交換</span></div>':'<div class="k-big chrome">'+no+'</div>')
-    +'<p class="k-word"></p><dl class="k-dl"><div class="wide"><dt class="lb">'+SEASON+' の内訳</dt><dd>'+c.by.replace(/・/g,'　')+'</dd></div></dl>';
+    +'<div class="k-more">'+titlesMini(earned(),3)+histHTML(myHist(),2)+'<a href="#" class="k-link" data-detail="me">観戦履歴と称号をくわしく見る</a></div>';
   return solid(c,HERO.ang,frontHTML(c),back,"flip")+'<p class="hint">スワイプで裏返すと、交換用のQRが出ます</p>';
 }
 // 相手の名刺の裏: ユニフォームの背中のように名前と背番号。下に、その人とのすれちがいの記録。
 function otherBackHTML(c,raw){
   const h=backHead(c),rare=rareFx(raw),met=raw.met||1;
   const where=raw.direct&&!raw.match?(raw.place==="stadium"?"スタジアムで交換":raw.idn===0?"はじめの1枚":"街で交換"):esc(raw.match)+(raw.ha==="A"?"（アウェイ）":"");
-  return h.top+'<div class="k-name">'+h.nick+'</div><div class="k-big chrome">'+(c.no||12)+'</div>'
+  return h.top+'<div class="k-name">'+h.nick+'</div><div class="k-big sm chrome">'+(c.no||12)+'</div>'
+    +'<div class="k-more">'+titlesMini(raw.tl||[],3)+'<div class="k-histbox" data-pid="'+esc(raw.id)+'"></div></div>'
     +'<dl class="k-dl"><div class="wide"><dt class="lb">'+(raw.direct&&!raw.match?"交換した日":"最後にすれちがった試合")+'</dt><dd>'+esc(raw.date)+'　'+where+'</dd></div>'
     +'<div><dt class="lb">会った回数</dt><dd>'+met+' 回</dd></div><div><dt class="lb">レア</dt><dd>'+(rare.length?rare.join("、"):"なし")+'</dd></div></dl>';
 }
@@ -1493,6 +1516,7 @@ function openCard(id){
     +solid(c,0,frontHTML(c),otherBackHTML(c,raw))+'<p class="hint">スワイプで裏返す</p>'
     +'<div class="info"><p><b>'+esc(raw.date)+'</b>　'+where+(met>1?'　'+met+'回目':'')+'</p>'
     +(rare.length?'<p>'+rare.map(r=>'<span class="why">'+r+'</span>').join("")+(rare.length>1?'激レア':'レア')+'</p>':'')
+    +'<div class="row"><button type="button" class="btn ghost" id="v-more">観戦履歴と称号をくわしく見る</button></div><div id="v-detail" class="detail"></div>'
     +'<div class="row"><button type="button" class="btn ghost" id="v-rep">この名刺を通報する</button></div><div id="v-rep-out"></div></div>';
   $("v-rep").addEventListener("click",()=>{
     $("v-rep-out").innerHTML='<p class="note">理由を選ぶと、運営に届きます。この名刺は、あなたの名刺帳から見えなくなります。</p><div class="reasons">'+["不適切な写真","不適切な言葉","なりすまし","そのほか"].map(x=>'<button type="button" class="btn ghost" data-why="'+x+'">'+x+'</button>').join("")+'</div>';
@@ -1506,6 +1530,7 @@ function openCard(id){
       S.hidden[id]=1;S.queue=S.queue.filter(q=>q!==id);save();closeCard();renderAll();netMsg("通報を受け付けました。ありがとうございます。");
     }catch(err){$("v-rep-out").innerHTML='<p class="xmsg">送れませんでした。電波のよいところで、もう一度お試しください。</p>'}
   });
+  vDetail(id,raw.tl||[]);
   lastFocus=document.activeElement;$("viewer").hidden=false;$("viewer").scrollTop=0;
   $("v-close").addEventListener("click",closeCard);try{$("v-close").focus()}catch(e){}
 }
@@ -1535,13 +1560,14 @@ function paperFront(c){
     +'<p class="p-got">'+(c.kind==="r"?esc(c.date)+'　'+esc(c.match)+'（リモート）'+((c.met||1)>1?'　'+c.met+'回目':''):esc(c.date)+' にもらった名刺')+'</p>';
 }
 function paperBack(c){
-  return '<div class="k-club">'+esc(c.club)+'</div><div class="k-name"><div class="c-nick" style="font-size:22px">'+esc(c.nick)+'</div></div><div class="k-big">'+(c.no||12)+'</div><p class="p-got">スタジアムで会うと、この人のスタジアム名刺が手に入ります</p>';
+  return '<div class="k-club">'+esc(c.club)+'</div><div class="k-name"><div class="c-nick" style="font-size:22px">'+esc(c.nick)+'</div></div><div class="k-big sm">'+(c.no||12)+'</div><div class="k-more">'+titlesMini(c.tl||[],3)+'<div class="k-histbox" data-pid="'+esc(c.pid)+'"></div></div><p class="p-got">スタジアムで会うと、この人のスタジアム名刺が手に入ります</p>';
 }
 function openPaper(id){
   const c=NORMALL().concat(REMALL()).find(x=>x.id===id);if(!c)return;VIEW.ang=0;VIEW.cur=0;const rm=c.kind==="r";
   $("viewer").innerHTML='<div class="bar"><h2>'+esc(c.nick)+'さんの名刺</h2><button type="button" class="btn ghost" id="v-close">閉じる</button></div>'
     +'<div class="pflip'+(rm?' rflip':'')+'" style="--pc:'+esc(c.color)+';--pon:'+onColor(c.color)+'">'+solid(Object.assign({},c,{color:rm?"#1B222B":"#F6F2E7",skin:""}),0,paperFront(c),paperBack(c))+'</div><p class="hint">スワイプで裏返す</p>'
     +'<div class="info"><p><b>'+(rm?'リモート名刺':'ノーマル名刺')+'</b>　'+(rm?esc(c.date)+'　'+esc(c.match)+' をリモートで応援'+((c.met||1)>1?'　'+c.met+'回目':''):esc(c.date)+' にもらいました')+'</p><p class="note">スタジアムで同じ試合にチェックインすると、この人のスタジアム名刺が別に手に入ります。そのときは「やっと会えた」のレアになります。</p>'
+    +'<div class="row"><button type="button" class="btn ghost" id="v-more">観戦履歴と称号をくわしく見る</button></div><div id="v-detail" class="detail"></div>'
     +'<div class="row"><button type="button" class="btn ghost" id="v-rep">この名刺を通報する</button></div><div id="v-rep-out"></div></div>';
   $("v-rep").addEventListener("click",()=>{
     $("v-rep-out").innerHTML='<p class="note">理由を選ぶと、運営に届きます。この名刺は、あなたの名刺帳から見えなくなります。</p><div class="reasons">'+["不適切な写真","不適切な言葉","なりすまし","そのほか"].map(x=>'<button type="button" class="btn ghost" data-why="'+x+'">'+x+'</button>').join("")+'</div>';
@@ -1555,6 +1581,7 @@ function openPaper(id){
       S.hidden[id]=1;save();closeCard();renderAll();netMsg("通報を受け付けました。ありがとうございます。");
     }catch(err){$("v-rep-out").innerHTML='<p class="xmsg">送れませんでした。電波のよいところで、もう一度お試しください。</p>'}
   });
+  vDetail(c.pid,c.tl||[]);
   lastFocus=document.activeElement;$("viewer").hidden=false;$("viewer").scrollTop=0;
   $("v-close").addEventListener("click",closeCard);try{$("v-close").focus()}catch(e){}
 }
@@ -1563,6 +1590,19 @@ document.addEventListener("click",e=>{
   const p=e.target.closest(".paper[data-id]");if(p)openPaper(p.dataset.id);
 });
 document.addEventListener("click",e=>{if(e.target.closest&&e.target.closest("[data-kindq]"))$("kindpop").hidden=false;else if(e.target===$("kindpop")||e.target===$("kind-x"))$("kindpop").hidden=true});
+function vDetail(pid,tl){
+  loadHist(pid);
+  $("v-more").addEventListener("click",async()=>{
+    const d=$("v-detail");if(d.innerHTML){d.innerHTML="";return}
+    d.innerHTML='<p class="note">読み込んでいます</p>';await loadHist(pid);
+    d.innerHTML=HIST[pid]?detailHTML(tl,HIST[pid]):'<p class="xmsg">読み込めませんでした。電波のよいところで、もう一度お試しください。</p>';
+  });
+}
+document.addEventListener("click",e=>{
+  const a=e.target.closest&&e.target.closest("[data-detail]");
+  if(a){e.preventDefault();const q=myStats();$("det-out").innerHTML='<p class="note">'+SEASON+' の内訳　'+esc(q.by.replace(/・/g,"　"))+'</p>'+detailHTML(earned(),myHist());$("detpop").hidden=false;return}
+  if(e.target===$("detpop")||e.target===$("det-x"))$("detpop").hidden=true;
+});
 function closeCard(){$("viewer").hidden=true;$("viewer").innerHTML="";try{lastFocus&&lastFocus.focus()}catch(e){}}
 document.addEventListener("click",e=>{
   if(e.target===$("viewer")){closeCard();return}
@@ -1935,7 +1975,7 @@ function applyProfile(p){
   pickClub=p.club;
 }
 // 自分の名刺の数字（相手の画面に出す用）
-function myStatsJSON(){const q=myStats();return {cards:q.cards,rare:q.rare,zukan:q.zukan[0],titles:q.titles[0],homeAll:q.home[1],rr:q.rrec}}
+function myStatsJSON(){const q=myStats();return {cards:q.cards,rare:q.rare,zukan:q.zukan[0],titles:q.titles[0],homeAll:q.home[1],rr:q.rrec,tl:earned()}}
 function profilePayload(){const m=S.me;return {nick:m.nick,club:m.club,color:m.color,style:m.style||"",word:m.word||"",fav:m.fav||"",back_no:m.no||12,x_handle:m.x||"",title:myTitle()||"",photo:m.photo||null,stats:myStatsJSON(),skin:skinOK(m.skin)?m.skin||"":""}}
 var pushT=0,pushed="";
 async function flushProfile(){
@@ -1959,7 +1999,7 @@ function buildBook(rows){
   const book=rows.map(r=>{
     const st=r.stats&&typeof r.stats==="object"?r.stats:{},day=[r.last_day,r.last_exchange].filter(Boolean).sort().pop()||"";
     return {id:r.id,nick:r.nick,club:r.club,color:/^#[0-9a-fA-F]{6}$/.test(r.color)?r.color:colorOf(r.club),style:r.style||"",word:r.word||"",fav:r.fav||"",no:r.back_no||12,x:xHandle(r.x_handle||""),title:names.includes(r.title)?r.title:"",pk:r.photo_key||"",photo:photoOf(r.id,r.photo_key),idn:r.member_no,
-      games:r.games||0,rec:[r.wins||0,r.draws||0,r.losses||0],rrec:rrOf(st),home:[r.home_games||0,Math.max(1,num(st.homeAll,40))],cards:num(st.cards,9999),rare:num(st.rare,9999),zukan:[num(st.zukan,CLUBS.length),CLUBS.length],titles:[num(st.titles,TITLES.length),TITLES.length],
+      games:r.games||0,rec:[r.wins||0,r.draws||0,r.losses||0],rrec:rrOf(st),tl:tlOf(st),home:[r.home_games||0,Math.max(1,num(st.homeAll,40))],cards:num(st.cards,9999),rare:num(st.rare,9999),zukan:[num(st.zukan,CLUBS.length),CLUBS.length],titles:[num(st.titles,TITLES.length),TITLES.length],
       met:r.met||1,day,date:day?fmt(dateOf(day)):"",match:r.last_match||"",ha:r.last_away?"A":"H",rain:!!r.any_rain,wd:!!r.any_weeknight,trav:!!r.any_trav,op:!!r.any_opening,fin:!!r.any_final,skin:["gold","black"].includes(r.skin)?r.skin:"",direct:!!r.direct,place:r.stadium?"stadium":"town",ex:r.last_exchange||""};
   }).sort((a,b)=>a.day<b.day?-1:a.day>b.day?1:0);
   const add=[];
@@ -1983,10 +2023,30 @@ function buildBook(rows){
   return add.length;
 }
 const rrOf=st=>st&&Array.isArray(st.rr)?[0,1,2].map(i=>Math.min(999,Math.max(0,parseInt(st.rr[i],10)||0))):[0,0,0];
+const tlOf=st=>st&&Array.isArray(st.tl)?st.tl.filter(t=>TITLES.some(x=>x[0]===t)).slice(0,80):[];
+// 観戦履歴。自分の分は手元の記録から、ほかの人の分はサーバーから（名刺を持っている相手の分だけ返る）
+const HIST={};
+const haTag=x=>x.remote?"リモート":x.ha==="A"?"アウェイ":x.ha==="N"?"ほかのクラブ":"ホーム";
+function myHist(){return S.log.concat(S.rlog||[]).sort((x,y)=>x.at<y.at?1:-1).map(l=>({date:l.date,match:l.match,ha:l.ha,remote:!!l.remote,res:l.res,score:l.score,comp:l.comp||"リーグ"}))}
+function histRows(rows){
+  return (rows||[]).map(r=>{const ha=r.home===r.club?"H":r.away===r.club?"A":"N",done=r.score_home!=null&&r.score_away!=null,a=ha!=="A"?r.score_home:r.score_away,b=ha!=="A"?r.score_away:r.score_home;
+    return {date:r.day?fmt(dateOf(r.day)):"",match:r.home+" vs "+r.away,ha,remote:!!r.remote,res:done&&ha!=="N"?(a>b?"W":a<b?"L":"D"):"",score:done?a+"-"+b:"",comp:r.comp||"リーグ"}});
+}
+const histHTML=(list,max)=>list.length?'<ul class="k-hist">'+list.slice(0,max).map(x=>'<li><span>'+esc(x.date.slice(5))+'</span><span>'+esc(x.match)+'</span><span>'+haTag(x)+(x.res?' '+RES_JA[x.res]:'')+'</span></li>').join("")+'</ul>':'<p class="k-none">観戦履歴はまだありません</p>';
+const titlesMini=(tl,max)=>tl.length?'<div class="k-tl">'+tl.slice().sort((a,b)=>(TIER[b]||1)-(TIER[a]||1)).slice(0,max).map(t=>plateHTML(t,true)).join("")+(tl.length>max?'<span class="k-rest">ほか '+(tl.length-max)+'</span>':'')+'</div>':'';
+function detailHTML(tl,list){
+  return '<h3>称号　'+tl.length+' 個</h3>'+(tl.length?'<div class="d-tl">'+tl.slice().sort((a,b)=>(TIER[b]||1)-(TIER[a]||1)).map(t=>plateHTML(t,true)).join("")+'</div>':'<p class="note">まだありません</p>')
+    +'<h3>観戦履歴　'+list.length+' 試合</h3>'+(list.length?'<ul class="d-hist">'+list.map(x=>'<li><span>'+esc(x.date)+'</span><span>'+esc(x.match)+'<small>'+esc(x.comp)+'　'+haTag(x)+'</small></span><span>'+(x.res?RES_JA[x.res]+(x.score?' '+x.score:''):'')+'</span></li>').join("")+'</ul>':'<p class="note">まだありません</p>');
+}
+async function loadHist(pid){
+  if(!HIST[pid]){try{const r=await sb.rpc("card_history",{p_id:pid});if(!r.error)HIST[pid]=histRows(r.data)}catch(e){}}
+  const list=HIST[pid];if(!list)return;
+  document.querySelectorAll('.k-histbox[data-pid="'+pid+'"]').forEach(el=>{el.innerHTML=histHTML(list,3)});
+}
 const recRow=(lb,r)=>'<div><dt class="lb">'+lb+'</dt><dd><b>'+r[0]+'</b>勝<b>'+r[1]+'</b>分<b>'+r[2]+'</b>敗</dd></div>';
 function buildNorm(rows){
   S.norm=rows.map(r=>({id:"n:"+r.id,pid:r.id,kind:"n",nick:r.nick,club:r.club,color:/^#[0-9a-fA-F]{6}$/.test(r.color)?r.color:colorOf(r.club),style:r.style||"",word:r.word||"",fav:r.fav||"",no:r.back_no||12,
-    pk:r.photo_key||"",photo:photoOf(r.id,r.photo_key),idn:r.member_no,games:r.games||0,rec:[r.wins||0,r.draws||0,r.losses||0],rrec:r.stats?rrOf(r.stats):null,day:r.day||"",date:r.day?fmt(dateOf(r.day)):"",met:1}));
+    pk:r.photo_key||"",photo:photoOf(r.id,r.photo_key),idn:r.member_no,games:r.games||0,rec:[r.wins||0,r.draws||0,r.losses||0],rrec:r.stats?rrOf(r.stats):null,tl:tlOf(r.stats),day:r.day||"",date:r.day?fmt(dateOf(r.day)):"",met:1}));
 }
 function buildRem(rows){
   S.rem=rows.map(r=>({id:"r:"+r.id,pid:r.id,kind:"r",nick:r.nick,club:r.club,color:/^#[0-9a-fA-F]{6}$/.test(r.color)?r.color:colorOf(r.club),style:r.style||"",word:r.word||"",fav:r.fav||"",no:r.back_no||12,
@@ -2191,7 +2251,7 @@ $("about-top").addEventListener("click",()=>$("about-open").click());
 
 
 // 新しい版が公開されていたら、自動で読み込み直す（ホーム画面から開くと更新ボタンがないため）
-const APP_VER="20261005121844";
+const APP_VER="20261005122412";
 async function checkUpdate(){
   try{
     const r=await fetch("version.txt?t="+Date.now(),{cache:"no-store"});if(!r.ok)return;
