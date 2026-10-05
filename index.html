@@ -161,6 +161,20 @@ body.tut #a2hs,body.tut #c-norm{display:none!important}
 #p-book.nm .stats{grid-template-columns:repeat(2,1fr)}
 #p-book.nm .stats div:nth-child(n+3),#p-book.nm #b-divs button[data-rare]{display:none}
 #b-kind,.z-kind{margin-bottom:6px}
+.gc-area{width:auto;justify-items:center}
+.gflip{--w:340px;zoom:.74;cursor:inherit;touch-action:none}
+@media (min-height:760px){.gflip{zoom:.8}}
+.gflip .face.front{transform:none}
+.gflip .face a{pointer-events:none}
+.gc .gcf.back{border-radius:12px;font-size:64px}
+.gc-deck{border-radius:12px}
+.gc.up .gflip .face.front{animation:gface .5s ease-out}
+.gc.up :not(.pflip)>.gflip .face.front::before{content:"";position:absolute;inset:0;z-index:2;pointer-events:none;background:linear-gradient(105deg,transparent 36%,rgba(255,255,255,.6) 50%,transparent 64%);transform:translateX(-130%);animation:gsheen 1s .18s ease-out forwards}
+@keyframes gsheen{to{transform:translateX(130%)}}
+@keyframes gface{from{filter:brightness(1.7) saturate(1.3)}to{filter:none}}
+.g-why{position:absolute;left:0;right:0;bottom:-30px;display:flex;justify-content:center;gap:6px;flex-wrap:wrap}
+.g-why .why{background:var(--flood);color:var(--on-flood);padding:1px 8px;border-radius:3px;font-size:12px;font-weight:700}
+@media (prefers-reduced-motion:reduce){.gc.up .gflip .face.front,.gc.up .gflip .face.front::before{animation:none}}
 #b-kind button,.z-kind button{font-size:13px;padding:10px 2px}
 body.tut #c-remote{display:none!important}
 .kd.r{background:linear-gradient(160deg,#2a3542,#1b222b);color:#eef2f6;border:1px solid #46566a}
@@ -847,6 +861,7 @@ const newId=()=>Math.max(1,Math.floor((Date.now()-ID_EPOCH)/60000)+1);
 const TIER={"はじめの一歩":1,"遠征デビュー":1,"はじめまして":1,"雨天決行":2,"平日休みの達人":2,"通い慣れ":2,"顔なじみ":2,"現地で名刺交換":2,"三階級制覇":3,"全国に知り合い":3,"レアハンター":3,"アウェイの鬼":4,"顔が広い":4,"最初の5人":4,"傷心旅行":1,"泣きっ面に雨":1,"ハシゴ観戦":1,"疫病神":2,"ゴールを知らない":2,"修行僧":2,"ドロー沼":2,"持ってる人":2,"お祭り騒ぎ":2,"浮気性":2,"有給の使い手":2,"雨男・雨女":2,"新体制の目撃者":2,"それでも来る人":3,"不敗神話":3,"ウノゼロ職人":3,"解任立会人":3,"歴史の証人":4,"地獄まで一緒":4,"戴冠式の参列者":4,"住んでる":4,"画面の前から":1,"二刀流":2,"家だと勝つ":2,"テレビを消した":2,"お茶の間サポ":2,"配信の住人":3};
 const TIER_NAME=["","銅","銀","金","黒金"];
 const plateHTML=(name,sm)=>'<span class="plate t'+(TIER[name]||1)+(sm?' sm':'')+'"><i></i><b>'+esc(name)+'</b><i></i></span>';
+const hiddenPlate=name=>'<span class="plate t'+(TIER[name]||1)+'"><i></i><b>？？？</b><i></i></span>';
 const earned=()=>TITLES.filter(t=>t[2]()).map(t=>t[0]);
 function myTitle(){const e=earned();if(S.me.title===undefined)return e[e.length-1]||"";return e.includes(S.me.title)?S.me.title:""}
 
@@ -1002,7 +1017,7 @@ function renderMine(){
   $("f-plates").innerHTML='<button type="button" class="pick" data-t="" aria-pressed="'+(cur==="")+'"><span class="none">付けない</span><small>名刺にプレートを出しません</small></button>'
     +TITLES.slice().sort((a,b)=>(TIER[a[0]]||1)-(TIER[b[0]]||1)).map(t=>e.includes(t[0])
       ?'<button type="button" class="pick" data-t="'+esc(t[0])+'" aria-pressed="'+(cur===t[0])+'">'+plateHTML(t[0])+'<small>'+TIER_NAME[TIER[t[0]]||1]+'　'+t[1]+'</small></button>'
-      :'<div class="pick locked">'+plateHTML(t[0])+'<small>'+TIER_NAME[TIER[t[0]]||1]+'　未獲得：'+t[1]+'</small></div>').join("");
+      :'<div class="pick locked">'+hiddenPlate(t[0])+'<small>'+TIER_NAME[TIER[t[0]]||1]+'　未獲得：'+t[1]+'</small></div>').join("");
   const curS=skinOK(S.me.skin)?S.me.skin||"":"";
   $("f-skins").innerHTML=SKINS.map(k=>k[3]()?'<button type="button" class="pick" data-s="'+k[0]+'" aria-pressed="'+(curS===k[0])+'"><span class="none">'+k[1]+'</span><small>'+k[2]+'</small></button>':'<div class="pick locked"><span class="none">'+k[1]+'</span><small>未解放：'+k[2]+'</small></div>').join("");
   const my=myStats();
@@ -1041,7 +1056,7 @@ function renderZukan(){
   const rc=RARES.map(r=>BOOK().filter(c=>rareOf(c).includes(r[0])).length);
   h+='<div class="group"><h2>レア図鑑<span>'+rc.filter(Boolean).length+' / '+RARES.length+'</span></h2><p class="note">条件が1つでレア、2つ以上重なると激レアです。</p><ul class="rows">'+RARES.map((r,i)=>'<li class="'+(rc[i]?'got':'')+'"><strong>'+r[0]+'</strong><small>'+r[1]+'</small>'+(rc[i]?'<button type="button" class="btn ghost st" data-kind="'+r[0]+'">'+rc[i]+' 枚を見る</button>':'<span class="st">未発見</span>')+'</li>').join("")+'</ul></div>';
   const e=earned();
-  h+='<div class="group"><h2>称号<span>'+e.length+' / '+TITLES.length+'</span></h2><ul class="rows">'+TITLES.map(t=>'<li class="'+(e.includes(t[0])?'got':'locked')+'"><strong>'+plateHTML(t[0])+'</strong><small>'+t[1]+'</small><span class="st">'+(e.includes(t[0])?'獲得':'未獲得')+'</span></li>').join("")+'</ul></div>';
+  h+='<div class="group"><h2>称号<span>'+e.length+' / '+TITLES.length+'</span></h2><ul class="rows">'+TITLES.map(t=>'<li class="'+(e.includes(t[0])?'got':'locked')+'"><strong>'+(e.includes(t[0])?plateHTML(t[0]):hiddenPlate(t[0]))+'</strong><small>'+t[1]+'</small><span class="st">'+(e.includes(t[0])?'獲得':'未獲得')+'</span></li>').join("")+'</ul></div>';
   if(RANK.rows.length){
     const mine=S.me.club,top=RANK.rows.slice(0,10),mi=RANK.rows.findIndex(r=>r.club===mine);
     const row=(r,i)=>'<li class="'+(r.club===mine?'me':'')+'"><b>'+(i+1)+'</b><span>'+esc(r.club)+'<small>　サポ '+r.fans+' 人・アウェイ '+r.away+' 回</small></span><span><b>'+r.checkins+'</b> 回</span></li>';
@@ -1463,6 +1478,16 @@ function openCard(id){
   lastFocus=document.activeElement;$("viewer").hidden=false;$("viewer").scrollTop=0;
   $("v-close").addEventListener("click",closeCard);try{$("v-close").focus()}catch(e){}
 }
+// 袋から出てくる名刺: 一覧用の小さい名刺ではなく、大きく開いたときと同じ質感の面をそのまま見せる
+function faceOnly(c,front){
+  const sk=c.skin==="gold"?"#C9A63B":c.skin==="black"?"#17191D":"",col=sk||c.color,on=onColor(col);
+  return '<div class="flip gflip '+(on==="#FFFFFF"?"on-dark":"on-light")+(sk?" sk":"")+'" style="--club:'+esc(col)+';--clubc:'+esc(c.color)+';--on-club:'+on+'"><article class="face front">'+front+'</article></div>';
+}
+function packFace(c){
+  if(c.kind==="n")return '<div class="pflip" style="--pc:'+esc(c.color)+';--pon:'+onColor(c.color)+'">'+faceOnly(Object.assign({},c,{color:"#F6F2E7",skin:""}),paperFront(c))+'</div>';
+  const q=statsOf(c),rare=rareFx(c);
+  return faceOnly(q,frontHTML(q))+(rare.length?'<div class="g-why">'+rare.map(r=>'<span class="why">'+esc(r)+'</span>').join("")+'</div>':'');
+}
 // ノーマル名刺の大きい表示: スタジアム名刺と同じ縦長の形で、紙の質感にする
 function paperFront(c){
   const n=[...(c.nick||"")],hsize=n.length<=6?34:n.length<=9?27:n.length<=12?21:18,d=esc(divOf(c.club)||"J");
@@ -1571,7 +1596,7 @@ function renderPack(pop){
     k.a=0;k.up=false;k.mv=false;
     p.innerHTML='<p class="pk-count">'+(k.i+1)+' / '+k.cards.length+'</p>'
       +'<div class="gc-area">'+(left>1?'<span class="gc-deck d2"></span>':'')+(left>0?'<span class="gc-deck d1"></span>':'')
-      +'<div class="gc'+(r>1?' super':r?' rare':'')+(pop==="first"?' first':' rise')+'" id="gc"><div class="gcf back"><span>?</span></div><div class="gcf front">'+cardHTML(c,{isNew:true})+'</div></div></div>'
+      +'<div class="gc'+(r>1?' super':r?' rare':'')+(pop==="first"?' first':' rise')+'" id="gc"><div class="gcf back"><span>?</span></div><div class="gcf front">'+packFace(c)+'</div></div></div>'
       +'<p class="pk-tag" id="pk-tag"></p><p class="pk-hint" id="pk-hint"></p>'
       +'<div class="row center"><button type="button" class="btn" data-pk="card" id="pk-btn"></button><button type="button" class="btn ghost" data-pk="all" id="pk-all">全部開ける</button></div>';
     pkMeta();
@@ -2126,7 +2151,7 @@ $("about-top").addEventListener("click",()=>$("about-open").click());
 
 
 // 新しい版が公開されていたら、自動で読み込み直す（ホーム画面から開くと更新ボタンがないため）
-const APP_VER="20261005111206";
+const APP_VER="20261005115134";
 async function checkUpdate(){
   try{
     const r=await fetch("version.txt?t="+Date.now(),{cache:"no-store"});if(!r.ok)return;
