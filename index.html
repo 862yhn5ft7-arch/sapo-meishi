@@ -632,6 +632,10 @@ button.pick{cursor:pointer}
       <div class="row"><button type="button" class="btn flood" id="a2hs-go">追加する</button><button type="button" class="btn ghost" id="a2hs-x">あとで</button></div>
     </div>
   </div>
+  <div class="a2pop" id="farpop" hidden role="dialog" aria-modal="true" aria-label="スタジアムの近くにいないようです">
+    <div class="a2card"><b>スタジアムの近くにいないようです</b><span id="far-t">会場から離れた場所にいるようです。スタジアムに着いてから、もう一度押してください。</span>
+      <div class="row"><button type="button" class="btn flood" id="far-remote">リモートで応援する</button><button type="button" class="btn" id="far-retry">もう一度</button><button type="button" class="btn ghost" id="far-x">閉じる</button></div></div>
+  </div>
   <div class="a2pop" id="detpop" hidden role="dialog" aria-modal="true" aria-label="観戦履歴と称号">
     <div class="a2card"><b>観戦履歴と称号</b><div id="det-out" class="detail"></div><div class="row"><button type="button" class="btn ghost" id="det-x">閉じる</button></div></div>
   </div>
@@ -1351,6 +1355,12 @@ $("c-go").addEventListener("click",async()=>{
     if(S.queue.length)nextPack();
   }catch(e){
     $("c-out").innerHTML='<p class="xmsg">'+esc(errText(e,CK_ERR))+'</p>'+(String(e&&e.message||"").includes("need_location")?GEO_HELP:'');
+    if(String(e&&e.message||"").includes("too_far")){
+      const own=ownToday(),canR=!!own&&m.ha!=="N"&&own.id===m.id&&!(S.rlog||[]).some(l=>l.key===own.id);
+      $("far-remote").hidden=!canR;
+      $("far-t").textContent=canR?"会場から離れた場所にいるようです。スタジアムにいない日は、リモートで応援できます（名刺は増えませんが、リモートの戦績と対抗戦の点が入ります）。":"会場から離れた場所にいるようです。スタジアムに着いてから、もう一度押してください。";
+      $("farpop").hidden=false;
+    }
     if(String(e&&e.message||"").includes("already_checked_in")){await sync()}else btn.disabled=false;
   }
 });
@@ -1375,6 +1385,10 @@ $("c-remote").addEventListener("click",async()=>{
     if(String(e&&e.message||"").includes("already_checked_in")){await sync()}else b.disabled=false;
   }
 });
+$("far-x").addEventListener("click",()=>{$("farpop").hidden=true});
+$("farpop").addEventListener("click",e=>{if(e.target===$("farpop"))$("farpop").hidden=true});
+$("far-retry").addEventListener("click",()=>{$("farpop").hidden=true;$("c-go").click()});
+$("far-remote").addEventListener("click",()=>{$("farpop").hidden=true;$("c-remote").click()});
 $("b-divs").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;if(b.dataset.rare){onlyRare=rareKind?false:!onlyRare;rareKind=""}else{fdiv=b.dataset.d;filter=""}renderBook()});
 // 図鑑から名刺帳へ: クラブを押すとそのクラブの名刺、レアの種類を押すとそのレアの名刺が並ぶ
 $("z-out").addEventListener("click",e=>{
@@ -2251,7 +2265,7 @@ $("about-top").addEventListener("click",()=>$("about-open").click());
 
 
 // 新しい版が公開されていたら、自動で読み込み直す（ホーム画面から開くと更新ボタンがないため）
-const APP_VER="20261005123655";
+const APP_VER="20261005124555";
 async function checkUpdate(){
   try{
     const r=await fetch("version.txt?t="+Date.now(),{cache:"no-store"});if(!r.ok)return;
