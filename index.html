@@ -168,11 +168,11 @@ body.tut #a2hs,body.tut #c-norm{display:none!important}
 #p-book.nm .stats{grid-template-columns:repeat(2,1fr)}
 #p-book.nm .stats div:nth-child(n+3),#p-book.nm #b-divs button[data-rare]{display:none}
 #b-kind,.z-kind{margin-bottom:6px}
-:not(.pflip)>.flip.mt2 .face{outline:5px solid var(--c2);outline-offset:-12px}
+:not(.pflip)>.flip.mt2 .face{outline:5px solid var(--k2);outline-offset:-12px}
 :not(.pflip)>.flip.mt2[class*="fr-"] .face{outline-width:3px;outline-offset:-23px}
-:not(.pflip)>.flip.mt2 .l-ava{box-shadow:0 0 0 3px var(--c2),0 0 0 4px rgba(0,0,0,.45)}
-:not(.pflip)>.flip.mt2 .l-coin{box-shadow:inset 0 2px 4px rgba(0,0,0,.45),0 0 0 3px var(--c2),0 1px 0 4px rgba(0,0,0,.35)}
-:not(.pflip)>.flip.mt2 .l-track i{background:linear-gradient(180deg,color-mix(in srgb,var(--c2) 62%,#fff),var(--c2) 50%,color-mix(in srgb,var(--c2) 78%,#000))}
+:not(.pflip)>.flip.mt2 .l-ava{box-shadow:0 0 0 3px var(--k2),0 0 0 4px rgba(0,0,0,.45)}
+:not(.pflip)>.flip.mt2 .l-coin{box-shadow:inset 0 2px 4px rgba(0,0,0,.45),0 0 0 3px var(--k2),0 1px 0 4px rgba(0,0,0,.35)}
+:not(.pflip)>.flip.mt2 .l-track i{background:linear-gradient(180deg,color-mix(in srgb,var(--k2) 62%,#fff),var(--k2) 50%,color-mix(in srgb,var(--k2) 78%,#000))}
 :not(.pflip)>.flip.mt2 .face{padding:24px}
 :not(.pflip)>.flip.mt2[class*="fr-"] .face{padding:30px}
 :not(.pflip)>.flip.mt2 .screw.s1{left:3px;top:3px}:not(.pflip)>.flip.mt2 .screw.s2{right:3px;top:3px}:not(.pflip)>.flip.mt2 .screw.s3{left:3px;bottom:3px}:not(.pflip)>.flip.mt2 .screw.s4{right:3px;bottom:3px}
@@ -202,9 +202,9 @@ label:has(#f-color){display:none}
   border-radius:14px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.3),inset 0 0 30px rgba(0,0,0,.22),0 30px 40px -18px rgba(0,0,0,.55)}
 .flip[class*="pt-"] .face::after,.flip[class*="pt-"] .screw{display:none}
 .flip[class*="pt-"] .slab,.flip[class*="pt-"] .edge{border-radius:14px}
-.flip.pt-sv .face{background:var(--mesh),var(--fold),repeating-linear-gradient(90deg,var(--club) 0 34px,var(--c2) 34px 68px)}
-.flip.pt-sh .face{background:var(--mesh),var(--fold),repeating-linear-gradient(180deg,var(--club) 0 34px,var(--c2) 34px 68px)}
-.flip.pt-ck .face{background:var(--mesh),var(--fold),repeating-linear-gradient(90deg,color-mix(in srgb,var(--c2) 55%,transparent) 0 34px,transparent 34px 68px),repeating-linear-gradient(180deg,var(--club) 0 34px,var(--c2) 34px 68px)}
+.flip.pt-sv .face{background:var(--mesh),var(--fold),repeating-linear-gradient(90deg,var(--club) 0 34px,var(--k2) 34px 68px)}
+.flip.pt-sh .face{background:var(--mesh),var(--fold),repeating-linear-gradient(180deg,var(--club) 0 34px,var(--k2) 34px 68px)}
+.flip.pt-ck .face{background:var(--mesh),var(--fold),repeating-linear-gradient(90deg,color-mix(in srgb,var(--k2) 55%,transparent) 0 34px,transparent 34px 68px),repeating-linear-gradient(180deg,var(--club) 0 34px,var(--k2) 34px 68px)}
 .flip.pt-un .face{background:var(--mesh),var(--fold),linear-gradient(var(--club),var(--club))}
 .k-big.sm{font-size:104px;margin-block:6px 2px}
 .k-more{display:flex;flex-direction:column;gap:8px;margin-top:auto;padding-top:10px}
@@ -1061,7 +1061,7 @@ function frontHTML(c){
 // 厚みのある1枚の板として、表と裏を組み立てる
 function solid(c,a,front,back,id){
   const sk="",col=c.color,on=onColor(col);
-  return '<div class="flip '+(on==="#FFFFFF"?"on-dark":"on-light")+(sk?" sk":"")+ptClass(c)+(Math.cos(a*Math.PI/180)<0?" show-back":"")+'"'+(id?' id="'+id+'"':'')+' style="--club:'+esc(col)+';--clubc:'+esc(c.color)+';--c2:'+color2Of(c.club)+';--on-club:'+on+';--ang:'+a+'deg">'
+  return '<div class="flip '+(on==="#FFFFFF"?"on-dark":"on-light")+(sk?" sk":"")+ptClass(c)+(Math.cos(a*Math.PI/180)<0?" show-back":"")+'"'+(id?' id="'+id+'"':'')+' style="--club:'+esc(col)+';--clubc:'+esc(c.color)+';--k2:'+color2Of(c.club)+';--on-club:'+on+';--ang:'+a+'deg">'
     +[-3,-2,-1,0,1,2,3].map(z=>'<i class="slab" style="--z:'+z+'px"></i>').join("")+'<i class="edge l"></i><i class="edge r"></i>'
     +'<article class="face front">'+front+'</article><article class="face back">'+back+'</article></div>';
 }
@@ -1604,7 +1604,7 @@ function openCard(id){
 // 袋から出てくる名刺: 一覧用の小さい名刺ではなく、大きく開いたときと同じ質感の面をそのまま見せる
 function faceOnly(c,front){
   const sk="",col=c.color,on=onColor(col);
-  return '<div class="flip gflip '+(on==="#FFFFFF"?"on-dark":"on-light")+(sk?" sk":"")+ptClass(c)+'" style="--club:'+esc(col)+';--clubc:'+esc(c.color)+';--c2:'+color2Of(c.club)+';--on-club:'+on+'"><article class="face front">'+front+'</article></div>';
+  return '<div class="flip gflip '+(on==="#FFFFFF"?"on-dark":"on-light")+(sk?" sk":"")+ptClass(c)+'" style="--club:'+esc(col)+';--clubc:'+esc(c.color)+';--k2:'+color2Of(c.club)+';--on-club:'+on+'"><article class="face front">'+front+'</article></div>';
 }
 function packFace(c){
   if(c.kind==="n")return '<div class="pflip" style="--pc:'+esc(c.color)+';--pon:'+onColor(c.color)+'">'+faceOnly(Object.assign({},c,{color:"#F6F2E7",skin:""}),paperFront(c))+'</div>';
@@ -2318,7 +2318,7 @@ $("about-top").addEventListener("click",()=>$("about-open").click());
 
 
 // 新しい版が公開されていたら、自動で読み込み直す（ホーム画面から開くと更新ボタンがないため）
-const APP_VER="20261006104134";
+const APP_VER="20261006104911";
 async function checkUpdate(){
   try{
     const r=await fetch("version.txt?t="+Date.now(),{cache:"no-store"});if(!r.ok)return;
