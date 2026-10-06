@@ -1061,7 +1061,7 @@ const REMALL=()=>Array.isArray(S.rem)?S.rem:[];
 const REM=()=>REMALL().filter(c=>!(S.hidden&&S.hidden[c.id]));
 const SRC=()=>KIND==="n"?NORM():KIND==="r"?REM():BOOK();
 const kindSeg=()=>'<button type="button" data-k="n" aria-pressed="'+(KIND==="n")+'">ノーマル '+NORM().length+'</button><button type="button" data-k="st" aria-pressed="'+(KIND==="st")+'">スタジアム '+BOOK().length+'</button>';
-const PACK_SIZE=5,ADS=false,CONTACT="VolKD01"; // ADS: 2袋目から広告を挟むか（Web版では切っておく）
+const PACK_SIZE=5,ADS=false,CONTACT="DaruVor5"; // ADS: 2袋目から広告を挟むか（Web版では切っておく）
 const packS=()=>JSON.stringify(Object.assign({},S,{book:S.book.map(c=>c.photo?Object.assign({},c,{photo:""}):c)}));
 function save(){try{localStorage.setItem(KEY,packS())}catch(e){}if(typeof pushProfile==="function")pushProfile()}
 
@@ -2443,7 +2443,7 @@ $("about-top").addEventListener("click",()=>$("about-open").click());
 
 
 // 新しい版が公開されていたら、自動で読み込み直す（ホーム画面から開くと更新ボタンがないため）
-const APP_VER="20261006120729";
+const APP_VER="20261006144130";
 async function checkUpdate(){
   try{
     const r=await fetch("version.txt?t="+Date.now(),{cache:"no-store"});if(!r.ok)return;
