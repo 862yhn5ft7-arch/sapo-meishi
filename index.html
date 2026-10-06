@@ -1585,7 +1585,7 @@ async function redeem(token){
     if(r.error)throw r.error;
     await sync();
     const c=S.book.find(b=>b.idn===r.data.member_no);
-    if(c){unseal(c);S.fresh=[c.id];save();renderAll();xfx(c,()=>exchanged(c,false))}
+    if(c)xGacha(c);
     else $("x-out").innerHTML='<p class="xmsg">'+esc(r.data.nick)+'さんと交換しました。</p>';
   }catch(e){$("x-out").innerHTML='<p class="xmsg">'+esc(errText(e,X_ERR))+'</p>'}
   XRD=false;
@@ -1636,6 +1636,10 @@ function xfx(c,done){
 }
 // QRを見せている側: 相手が読み取ったら気づいて、同じ演出を出す
 let XRD=false,xpBusy=false,xpAt=0;
+function xGacha(c){
+  const cur=S.book.find(b=>b.id===c.id)||c;cur.sealed=true;if(!S.queue.includes(cur.id))S.queue.unshift(cur.id);S.fresh=[cur.id];save();renderAll();
+  xfx(cur,()=>{$("tab-card").click();$("x-panel").hidden=false;exchanged(cur,false);openPack([cur],{line:"交換した名刺",label:cur.date||""})});
+}
 async function xPoll(){
   if(xpBusy||XRD||!sb||!UID||!S.setup)return;xpBusy=true;xpAt=Date.now();
   try{
@@ -1646,7 +1650,7 @@ async function xPoll(){
         while(syncing)await new Promise(ok=>setTimeout(ok,150));
         await sync(true);
         const c=S.book.find(b=>b.id===hit.id);
-        if(c&&!XRD){unseal(c);S.fresh=[c.id];save();renderAll();xfx(c,()=>{$("tab-card").click();$("x-panel").hidden=false;exchanged(c,false)})}
+        if(c&&!XRD)xGacha(c);
       }
     }
   }catch(e){}
@@ -2430,7 +2434,7 @@ $("about-top").addEventListener("click",()=>$("about-open").click());
 
 
 // 新しい版が公開されていたら、自動で読み込み直す（ホーム画面から開くと更新ボタンがないため）
-const APP_VER="20261006114637";
+const APP_VER="20261006115236";
 async function checkUpdate(){
   try{
     const r=await fetch("version.txt?t="+Date.now(),{cache:"no-store"});if(!r.ok)return;
