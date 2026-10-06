@@ -168,6 +168,12 @@ body.tut #a2hs,body.tut #c-norm{display:none!important}
 #p-book.nm .stats{grid-template-columns:repeat(2,1fr)}
 #p-book.nm .stats div:nth-child(n+3),#p-book.nm #b-divs button[data-rare]{display:none}
 #b-kind,.z-kind{margin-bottom:6px}
+#scan{position:fixed;inset:0;z-index:60;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:0 20px calc(28px + env(safe-area-inset-bottom))}
+#scan[hidden]{display:none}
+#scan video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+#scan .scan-f{position:absolute;left:50%;top:42%;width:min(68vw,300px);aspect-ratio:1;transform:translate(-50%,-50%);border:3px solid #F2C200;border-radius:18px;box-shadow:0 0 0 100vmax rgba(0,0,0,.45)}
+#scan p{position:relative;margin:0 0 14px;color:#fff;font-weight:700;text-align:center;text-shadow:0 1px 3px #000}
+#scan .btn{position:relative;min-width:160px}
 :not(.pflip)>.flip.mt2 .face{outline:5px solid var(--k2);outline-offset:-12px}
 :not(.pflip)>.flip.mt2[class*="fr-"] .face{outline-width:3px;outline-offset:-23px}
 :not(.pflip)>.flip.mt2 .l-ava{box-shadow:0 0 0 3px var(--k2),0 0 0 4px rgba(0,0,0,.45)}
@@ -713,6 +719,7 @@ button.pick{cursor:pointer}
         <button type="button" class="btn ghost" id="m-share-go" hidden>シェア</button>
         <button type="button" class="btn ghost" id="m-season-go">まとめ</button>
       </div>
+      <div class="row center"><button type="button" class="btn ghost" id="x-scan">相手のQRを読み取る</button></div>
       <div id="m-share"></div>
       <div class="xpanel" id="x-panel" hidden>
         <h2 hidden>QRで交換</h2>
@@ -797,6 +804,7 @@ button.pick{cursor:pointer}
   </footer>
 </div>
 
+<div id="scan" hidden role="dialog" aria-modal="true" aria-label="QRを読み取る"><video id="scan-v" playsinline muted autoplay></video><div class="scan-f"></div><p id="scan-t">相手の名刺の裏のQRを、枠に入れてください</p><button type="button" class="btn" id="scan-x">閉じる</button></div>
 <div class="about" id="about" hidden role="dialog" aria-modal="true" aria-label="このアプリについて">
   <div class="in">
     <div class="row between"><h2>このアプリについて</h2><button type="button" class="btn ghost" id="about-close">閉じる</button></div>
@@ -1558,6 +1566,33 @@ function qrURL(code){
     return cv.toDataURL("image/png");
   }catch(e){return ""}
 }
+let SCAN=null;
+function scanStop(){if(SCAN){clearInterval(SCAN.tm);try{SCAN.st.getTracks().forEach(t=>t.stop())}catch(e){}SCAN=null}$("scan").hidden=true;try{$("scan-v").srcObject=null}catch(e){}}
+function loadJsQR(){return new Promise((ok,ng)=>{if(window.jsQR)return ok();const sc=document.createElement("script");sc.src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js";sc.onload=()=>ok();sc.onerror=()=>ng(new Error("jsqr"));document.head.appendChild(sc)})}
+async function scanStart(){
+  if(!S.setup||!UID){netMsg("先に名刺を作ってください。");return}
+  $("scan-t").textContent="カメラを準備しています";$("scan").hidden=false;
+  let st;
+  try{st=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"}},audio:false})}
+  catch(e){$("scan-t").textContent="カメラを使えませんでした。端末の設定で、このアプリのカメラを許可してください。";return}
+  if($("scan").hidden){st.getTracks().forEach(t=>t.stop());return}
+  const v=$("scan-v");v.srcObject=st;try{await v.play()}catch(e){}
+  let det=null;try{if("BarcodeDetector" in window)det=new BarcodeDetector({formats:["qr_code"]})}catch(e){det=null}
+  if(!det){try{await loadJsQR()}catch(e){$("scan-t").textContent="読み取りの部品を読み込めませんでした。電波のよいところで、もう一度ためしてください。";st.getTracks().forEach(t=>t.stop());return}}
+  if($("scan").hidden){st.getTracks().forEach(t=>t.stop());return}
+  $("scan-t").textContent="相手の名刺の裏のQRを、枠に入れてください";
+  const cv=document.createElement("canvas"),cx=cv.getContext("2d",{willReadFrequently:true});let busy=false;
+  const got=txt=>{const m=String(txt||"").match(/x=([0-9a-f]{32})/);if(!m){$("scan-t").textContent="サポ名刺のQRではないようです";return}scanStop();redeem(m[1])};
+  SCAN={st,tm:setInterval(async()=>{
+    if(busy||!SCAN||v.readyState<2||!v.videoWidth)return;busy=true;
+    try{
+      if(det){const r=await det.detect(v);if(r&&r[0])got(r[0].rawValue)}
+      else{const k=Math.min(1,640/Math.max(v.videoWidth,v.videoHeight));cv.width=Math.round(v.videoWidth*k);cv.height=Math.round(v.videoHeight*k);cx.drawImage(v,0,0,cv.width,cv.height);const d=cx.getImageData(0,0,cv.width,cv.height),r=window.jsQR(d.data,d.width,d.height,{inversionAttempts:"dontInvert"});if(r&&r.data)got(r.data)}
+    }catch(e){}
+    busy=false},220)};
+}
+$("x-scan").addEventListener("click",scanStart);$("scan-x").addEventListener("click",scanStop);
+document.addEventListener("visibilitychange",()=>{if(document.hidden&&SCAN)scanStop()});
 function openExchange(){
   $("x-code").value=xLink();
   $("x-panel").hidden=false;$("x-out").innerHTML="";
@@ -2041,7 +2076,7 @@ async function ensureKey(){
 }
 function takeHash(){const m=location.hash.match(/x=([0-9a-f]{32})/);if(!m)return "";try{history.replaceState(null,"",location.pathname+location.search)}catch(e){}return m[1]}
 PENDING=takeHash();
-window.addEventListener("hashchange",()=>{const t=takeHash();if(!t)return;if(S.setup&&UID)redeem(t);else{PENDING=t;netMsg("名刺を作ると、そのまま交換できます。")}});
+window.addEventListener("hashchange",()=>{const t=takeHash();if(!t)return;if(S.setup&&UID)redeem(t);else{PENDING=t;netMsg("名刺を作ると、そのまま交換できます。すでに名刺がある方は、いつものアプリを開いて「相手のQRを読み取る」を押してください。")}});
 function netMsg(t){const n=$("net");n.textContent=t;n.hidden=!t}
 function applyProfile(p){
   S.me={nick:p.nick,club:p.club,color:colorOf(p.club),style:p.style,word:p.word,fav:p.fav||"",no:p.back_no||12,x:p.x_handle||"",photo:p.photo||"",title:S.me&&S.me.title!==undefined?S.me.title:(p.title||undefined),idn:p.member_no,skin:p.skin||""};
@@ -2201,7 +2236,7 @@ async function boot(){
     try{localStorage.setItem(KEY,packS())}catch(e){}
     fillForm();renderAll();renderSetup();applySetup();await phLoad();
     if(S.setup){const keepMsg=$("net").textContent;await sync();if(!PENDING&&matchToday())$("tab-checkin").click();if(keepMsg&&keepMsg.includes("呼び戻"))setTimeout(()=>netMsg(keepMsg),1600);ensureKey();if(PENDING){const t=PENDING;PENDING="";redeem(t)}}
-    else if(PENDING)netMsg("名刺を作ると、そのまま交換できます。");
+    else if(PENDING)netMsg("名刺を作ると、そのまま交換できます。すでに名刺がある方は、いつものアプリを開いて「相手のQRを読み取る」を押してください。");
   }catch(e){netMsg("通信できませんでした。電波のよいところで開き直してください。")}
 }
 document.addEventListener("visibilitychange",()=>{if(!document.hidden&&S.setup&&UID&&Date.now()-lastSync>30000)sync()});
@@ -2324,7 +2359,7 @@ $("about-top").addEventListener("click",()=>$("about-open").click());
 
 
 // 新しい版が公開されていたら、自動で読み込み直す（ホーム画面から開くと更新ボタンがないため）
-const APP_VER="20261006111430";
+const APP_VER="20261006112829";
 async function checkUpdate(){
   try{
     const r=await fetch("version.txt?t="+Date.now(),{cache:"no-store"});if(!r.ok)return;
