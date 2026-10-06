@@ -168,14 +168,14 @@ body.tut #a2hs,body.tut #c-norm{display:none!important}
 #p-book.nm .stats{grid-template-columns:repeat(2,1fr)}
 #p-book.nm .stats div:nth-child(n+3),#p-book.nm #b-divs button[data-rare]{display:none}
 #b-kind,.z-kind{margin-bottom:6px}
-:not(.pflip)>.flip:not([class*="pt-"]) .face{outline:5px solid var(--c2);outline-offset:-12px}
-:not(.pflip)>.flip[class*="fr-"]:not([class*="pt-"]) .face{outline-width:3px;outline-offset:-23px}
-:not(.pflip)>.flip:not([class*="pt-"]) .l-ava{box-shadow:0 0 0 3px var(--c2),0 0 0 4px rgba(0,0,0,.45)}
-:not(.pflip)>.flip:not([class*="pt-"]) .l-coin{box-shadow:inset 0 2px 4px rgba(0,0,0,.45),0 0 0 3px var(--c2),0 1px 0 4px rgba(0,0,0,.35)}
-:not(.pflip)>.flip:not([class*="pt-"]) .l-track i{background:linear-gradient(180deg,color-mix(in srgb,var(--c2) 62%,#fff),var(--c2) 50%,color-mix(in srgb,var(--c2) 78%,#000))}
-:not(.pflip)>.flip:not([class*="pt-"]) .face{padding:24px}
-:not(.pflip)>.flip[class*="fr-"]:not([class*="pt-"]) .face{padding:30px}
-:not(.pflip)>.flip:not([class*="pt-"]) .screw.s1{left:3px;top:3px}:not(.pflip)>.flip:not([class*="pt-"]) .screw.s2{right:3px;top:3px}:not(.pflip)>.flip:not([class*="pt-"]) .screw.s3{left:3px;bottom:3px}:not(.pflip)>.flip:not([class*="pt-"]) .screw.s4{right:3px;bottom:3px}
+:not(.pflip)>.flip.mt2 .face{outline:5px solid var(--c2);outline-offset:-12px}
+:not(.pflip)>.flip.mt2[class*="fr-"] .face{outline-width:3px;outline-offset:-23px}
+:not(.pflip)>.flip.mt2 .l-ava{box-shadow:0 0 0 3px var(--c2),0 0 0 4px rgba(0,0,0,.45)}
+:not(.pflip)>.flip.mt2 .l-coin{box-shadow:inset 0 2px 4px rgba(0,0,0,.45),0 0 0 3px var(--c2),0 1px 0 4px rgba(0,0,0,.35)}
+:not(.pflip)>.flip.mt2 .l-track i{background:linear-gradient(180deg,color-mix(in srgb,var(--c2) 62%,#fff),var(--c2) 50%,color-mix(in srgb,var(--c2) 78%,#000))}
+:not(.pflip)>.flip.mt2 .face{padding:24px}
+:not(.pflip)>.flip.mt2[class*="fr-"] .face{padding:30px}
+:not(.pflip)>.flip.mt2 .screw.s1{left:3px;top:3px}:not(.pflip)>.flip.mt2 .screw.s2{right:3px;top:3px}:not(.pflip)>.flip.mt2 .screw.s3{left:3px;bottom:3px}:not(.pflip)>.flip.mt2 .screw.s4{right:3px;bottom:3px}
 .pk-lab{grid-column:1/-1;margin:6px 0 0;font-size:12px;font-weight:700;color:var(--muted)}
 .flip[class*="pt-"] .face{text-shadow:0 1px 1px rgba(0,0,0,.25)}
 .flip.on-light[class*="pt-"] .face{text-shadow:none}
@@ -1090,13 +1090,13 @@ function otherBackHTML(c,raw){
     +'<dl class="k-dl"><div class="wide"><dt class="lb">'+(raw.direct&&!raw.match?"交換した日":"最後にすれちがった試合")+'</dt><dd>'+esc(raw.date)+'　'+where+'</dd></div>'
     +'<div><dt class="lb">会った回数</dt><dd>'+met+' 回</dd></div><div><dt class="lb">レア</dt><dd>'+(rare.length?rare.join("、"):"なし")+'</dd></div></dl>';
 }
-const PATS=["un","sv","sh","ck"],FRS=["gold","black"];
+const PATS=["m2","un","sv","sh","ck"],FRS=["gold","black"];
 const skinParts=s=>{s=String(s||"");if(FRS.includes(s))return {p:"",f:s};const a=s.split(".");return {p:PATS.includes(a[0])?a[0]:"",f:FRS.includes(a[1])?a[1]:""}};
 const skinJoin=(p,f)=>(p||"")+(f?"."+f:"");
-const ptClass=c=>{const k=skinParts(c.skin);return (k.p?" pt-"+k.p:"")+(k.f?" fr-"+k.f:"")};
+const ptClass=c=>{const k=skinParts(c.skin);return (k.p==="m2"?" mt2":k.p?" pt-"+k.p:"")+(k.f?" fr-"+k.f:"")};
 const FRAMES=[["","枠なし","最初から使えます",()=>true],["gold","ゴールドの枠","今季10試合チェックインすると使えます",()=>S.log.filter(l=>(l.season||SEASON)===SEASON).length>=10],["black","ブラックの枠","称号を5つ集めると使えます",()=>earned().length>=5]];
 const skinClean=s=>{const k=skinParts(s),p=SKINS.find(x=>x[0]===k.p),f=FRAMES.find(x=>x[0]===k.f);return skinJoin(p&&p[3]()?k.p:"",f&&f[3]()?k.f:"")};
-const SKINS=[["","クラブカラー","最初から使えます",()=>true],["un","ユニフォーム","称号を1つ集めると使えます",()=>earned().length>=1],["sv","たてじま","称号を3つ集めると使えます",()=>earned().length>=3],["sh","よこじま","称号を6つ集めると使えます",()=>earned().length>=6],["ck","チェック","称号を10個集めると使えます",()=>earned().length>=10]];
+const SKINS=[["","クラブカラー","最初から使えます",()=>true],["m2","クラブカラー2色","最初から使えます",()=>true],["un","ユニフォーム","称号を1つ集めると使えます",()=>earned().length>=1],["sv","たてじま","称号を3つ集めると使えます",()=>earned().length>=3],["sh","よこじま","称号を6つ集めると使えます",()=>earned().length>=6],["ck","チェック","称号を10個集めると使えます",()=>earned().length>=10]];
 const skinOK=s=>{const k=SKINS.find(x=>x[0]===(s||""));return !!k&&k[3]()};
 function myStats(){
   const e=earned(),mine=S.log.filter(l=>(l.season||SEASON)===SEASON),n=k=>mine.filter(l=>(l.comp||"リーグ")===k).length;
@@ -2318,7 +2318,7 @@ $("about-top").addEventListener("click",()=>$("about-open").click());
 
 
 // 新しい版が公開されていたら、自動で読み込み直す（ホーム画面から開くと更新ボタンがないため）
-const APP_VER="20261005134432";
+const APP_VER="20261006104134";
 async function checkUpdate(){
   try{
     const r=await fetch("version.txt?t="+Date.now(),{cache:"no-store"});if(!r.ok)return;
