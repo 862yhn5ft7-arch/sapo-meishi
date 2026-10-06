@@ -775,6 +775,7 @@ button.pick{cursor:pointer}
       <label>ニックネーム<input type="text" id="f-nick" maxlength="14"></label>
       <label>推しクラブ<select id="f-club"></select></label>
       <label>クラブカラー<input type="color" id="f-color"></label>
+      <p class="xmsg" id="f-ng" hidden></p>
       <label>座席<select id="f-seat"></select></label>
       <label>観戦スタイル<select id="f-style"></select></label>
       <label>ひとこと<input type="text" id="f-word" maxlength="24"></label>
@@ -902,6 +903,10 @@ const DIVS=Object.keys(LEAGUE);
 const CLUBS=DIVS.flatMap(d=>LEAGUE[d].map(c=>[c[0],c[1],d]));
 const divOf=c=>(CLUBS.find(x=>x[0]===c)||[0,0,""])[2];
 const clubOpts=ex=>DIVS.map(d=>'<optgroup label="'+d+'">'+LEAGUE[d].filter(c=>c[0]!==ex).map(c=>'<option>'+c[0]+'</option>').join("")+'</optgroup>').join("");
+const NG=["死ね", "氏ね", "タヒね", "しねよ", "殺す", "殺せ", "殺した", "殺して", "ころすぞ", "コロス", "自殺", "くたばれ", "クソ", "糞", "ゴミクズ", "クズ野郎", "キチガイ", "気違い", "基地外", "ガイジ", "土人", "ニガー", "nigger", "セックス", "sex", "ちんこ", "ちんぽ", "チンコ", "チンポ", "まんこ", "マンコ", "おっぱい", "エロい", "レイプ", "強姦", "痴漢", "風俗", "ヤリモク", "パパ活", "援交", "大麻", "覚醒剤", "闇バイト", "八百長", "http", "://"];
+const ngNorm=t=>String(t||"").normalize("NFKC").toLowerCase().replace(/[\s・.\-_*]/g,"");
+const ngHit=t=>{const n=ngNorm(t);return NG.some(w=>n.includes(w))||/0\d{9,10}/.test(n.replace(/[^\d]/g,""))};
+const NG_MSG="使えない言葉、または連絡先が入っています。その部分は保存されていません。書き直してください。";
 const SEATS=["ゴール裏","バックスタンド","メインスタンド","コーナー","芝生・立ち見","いろいろ"];
 const STYLES=["跳んで歌う","声を出す","手拍子で応援","じっくり見る","戦術を見る","家族でのんびり","スタグル優先","写真を撮る"];
 const OLDST={"ゴール裏で跳ぶ":["ゴール裏","跳んで歌う"],"ゴール裏で声出し":["ゴール裏","声を出す"],"バクスタでじっくり":["バックスタンド","じっくり見る"],"メインで戦術を見る":["メインスタンド","戦術を見る"],"家族でのんびり":["","家族でのんびり"],"スタグル優先":["","スタグル優先"]};
@@ -1371,7 +1376,10 @@ function readForm(e){
   const clubChanged=e&&e.target.id==="f-club";
   if(clubChanged)$("f-color").value=colorOf($("f-club").value);
   const title=S.me.title;
-  S.me={nick:$("f-nick").value.trim(),club:$("f-club").value,color:colorOf($("f-club").value),style:stJoin($("f-seat").value,$("f-style").value),word:$("f-word").value.trim(),fav:$("f-fav").value.trim(),no:Math.min(99,Math.max(1,parseInt($("f-no").value,10)||S.me.no||12)),x:xHandle($("f-x").value),photo:S.me.photo||"",title,idn:S.me.idn,skin:S.me.skin||""};
+  let ngBad=false;const ngv=(id,old)=>{const v=$(id).value.trim();if(ngHit(v)){ngBad=true;return old||""}return v};
+  const _nick=ngv("f-nick",S.me.nick),_word=ngv("f-word",S.me.word),_fav=ngv("f-fav",S.me.fav);
+  $("f-ng").hidden=!ngBad;$("f-ng").textContent=ngBad?NG_MSG:"";
+  S.me={nick:_nick,club:$("f-club").value,color:colorOf($("f-club").value),style:stJoin($("f-seat").value,$("f-style").value),word:_word,fav:_fav,no:Math.min(99,Math.max(1,parseInt($("f-no").value,10)||S.me.no||12)),x:xHandle($("f-x").value),photo:S.me.photo||"",title,idn:S.me.idn,skin:S.me.skin||""};
   save();renderMine();if(clubChanged){$("c-out").innerHTML="";MATCHES=[];renderToday();if(sb&&UID)loadMatches().then(()=>{renderAll()}).catch(()=>{})}
 }
 ["f-nick","f-club","f-color","f-seat","f-style","f-word","f-no","f-fav","f-x"].forEach(id=>$(id).addEventListener("input",readForm));
@@ -1975,6 +1983,7 @@ $("s-go").addEventListener("click",async()=>{
     if(!sb)throw new Error("offline");
     if(!UID){const r=await sb.auth.signInAnonymously();if(r.error)throw r.error;UID=r.data.user.id}
     const nick=[...($("s-nick").value.trim()||"名無しのサポ")].slice(0,14).join("");
+    if(ngHit(nick)){btn.disabled=false;btn.textContent=pickClub+"サポとして始める";netMsg("そのニックネームには使えない言葉が入っています。別の名前にしてください。");return}
     let r=await sb.from("profiles").insert({id:UID,nick,club:pickClub,color:colorOf(pickClub),style:S.me.style||stJoin(SEATS[1],STYLES[3]),word:pick(WORDS)}).select().single();
     const isNew=!r.error;if(isNew)document.body.classList.add("tut");
     if(r.error&&String(r.error.code)==="23505")r=await sb.from("profiles").select("*").eq("id",UID).single();
@@ -2164,7 +2173,7 @@ async function flushProfile(){
   if(!sb||!UID||!S.setup||!S.me.nick||!S.me.club)return;
   const p=profilePayload(),j=JSON.stringify(p);if(j===pushed)return;
   const r=await sb.from("profiles").update(p).eq("id",UID);
-  if(!r.error){pushed=j;netMsg("")}else netMsg("名刺を保存できませんでした。電波のよいところで開き直してください。");
+  if(!r.error){pushed=j;netMsg("")}else netMsg(/ng_word/.test(String(r.error.message||""))?"使えない言葉が入っているため、名刺を保存できませんでした。書き直してください。":"名刺を保存できませんでした。電波のよいところで開き直してください。");
 }
 function pushProfile(){clearTimeout(pushT);pushT=setTimeout(()=>{flushProfile().catch(()=>{})},900)}
 async function loadMatches(){
@@ -2434,7 +2443,7 @@ $("about-top").addEventListener("click",()=>$("about-open").click());
 
 
 // 新しい版が公開されていたら、自動で読み込み直す（ホーム画面から開くと更新ボタンがないため）
-const APP_VER="20261006115236";
+const APP_VER="20261006120729";
 async function checkUpdate(){
   try{
     const r=await fetch("version.txt?t="+Date.now(),{cache:"no-store"});if(!r.ok)return;
