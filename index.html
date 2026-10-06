@@ -736,6 +736,7 @@ button.pick{cursor:pointer}
       <label>ニックネーム<input type="text" id="f-nick" maxlength="14"></label>
       <label>推しクラブ<select id="f-club"></select></label>
       <label>クラブカラー<input type="color" id="f-color"></label>
+      <label>座席<select id="f-seat"></select></label>
       <label>観戦スタイル<select id="f-style"></select></label>
       <label>ひとこと<input type="text" id="f-word" maxlength="24"></label>
       <label>背番号（1〜99）<input type="number" id="f-no" min="1" max="99" inputmode="numeric"></label>
@@ -860,7 +861,12 @@ const DIVS=Object.keys(LEAGUE);
 const CLUBS=DIVS.flatMap(d=>LEAGUE[d].map(c=>[c[0],c[1],d]));
 const divOf=c=>(CLUBS.find(x=>x[0]===c)||[0,0,""])[2];
 const clubOpts=ex=>DIVS.map(d=>'<optgroup label="'+d+'">'+LEAGUE[d].filter(c=>c[0]!==ex).map(c=>'<option>'+c[0]+'</option>').join("")+'</optgroup>').join("");
-const STYLES=["ゴール裏で跳ぶ","ゴール裏で声出し","バクスタでじっくり","メインで戦術を見る","家族でのんびり","スタグル優先"];
+const SEATS=["ゴール裏","バックスタンド","メインスタンド","コーナー","芝生・立ち見","いろいろ"];
+const STYLES=["跳んで歌う","声を出す","手拍子で応援","じっくり見る","戦術を見る","家族でのんびり","スタグル優先","写真を撮る"];
+const OLDST={"ゴール裏で跳ぶ":["ゴール裏","跳んで歌う"],"ゴール裏で声出し":["ゴール裏","声を出す"],"バクスタでじっくり":["バックスタンド","じっくり見る"],"メインで戦術を見る":["メインスタンド","戦術を見る"],"家族でのんびり":["","家族でのんびり"],"スタグル優先":["","スタグル優先"]};
+const stParts=v=>{v=String(v||"");if(v.includes("｜")){const a=v.split("｜");return [a[0],a.slice(1).join("｜")]}return OLDST[v]||["",v]};
+const stJoin=(a,b)=>a+"｜"+b;
+const stRows=(c,dt)=>{const p=stParts(c.style);return (p[0]?'<div>'+dt+'座席</dt><dd>'+esc(p[0])+'</dd></div>':'')+(p[1]?'<div>'+dt+'スタイル</dt><dd>'+esc(p[1])+'</dd></div>':'')};
 const NICKS=["ゴール裏の住人","遠征は寝台派","雨男サポ","スタグル番長","太鼓のとなり","年チケ12年目","バクスタの主","声枯れ担当","ゲーフラ職人","平日は社畜","子連れ参戦","アウェイ皆勤","終電ダッシュ","タオマフ収集家","逆転信者","PK見れない人","前泊の達人","コンコース徘徊","選手バス待ち","開門3時間前","ビール片手に","今日も最前列"];
 const WORDS=["今年こそ昇格","声出していきましょう","スタグルが楽しみで来てます","アウェイ全通が今年の目標","後半40分からが本番","雨の日ほど燃える","まずは残留、話はそれから","遠征先の銭湯を巡ってます","スタメン発表が一番緊張する","引き分けは勝ちに数えない派","ユニは毎年買う派","セットプレーで祈る係","帰りの電車で反省会","選手入場で毎回泣く"];
 const RARES=[["遠征組","アウェイから来ていたサポ"],["常連","今季20試合以上チェックインしている人"],["雨の日","雨の試合で会った"],["平日ナイター","平日の夜に会った"],["開幕戦","開幕戦で会った"],["最終節","最終節で会った"],["初期メンバー","会員番号が100番以内の人"],["切り込み隊長","そのクラブで最初に名刺を作った5人"],["スタジアムで交換","2人とも同じ日にチェックインして、その場で直接交換した"],["やっと会えた","ノーマル名刺を持っていた人と、スタジアムで会った"]];
@@ -978,14 +984,14 @@ function meet(book,n,home,away,date,ha,rain,wd){
     const used=book.filter(c=>c.club===club).map(c=>c.nick),pool=NICKS.filter(x=>!used.includes(x));
     const nick=pool.length?pick(pool):pick(NICKS)+(used.length+1);
     const r=Math.random(),id=Date.now().toString(36)+"-"+i+"-"+Math.random().toString(36).slice(2,7);
-    book.push({id,nick,club,color:colorOf(club),style:pick(STYLES),word:pick(WORDS),fav:"背番号"+pick([1,4,5,7,8,9,10,11,13,14,18,20,23,27,41]),title:Math.random()<0.35?pick(TITLES)[0]:"",idn:Math.random()<0.04?1+Math.floor(Math.random()*100):101+Math.floor(Math.random()*4900),games:1+Math.floor(r*r*24),date,match,ha,rain,wd,trav:club===away,met:1});
+    book.push({id,nick,club,color:colorOf(club),style:stJoin(pick(SEATS),pick(STYLES)),word:pick(WORDS),fav:"背番号"+pick([1,4,5,7,8,9,10,11,13,14,18,20,23,27,41]),title:Math.random()<0.35?pick(TITLES)[0]:"",idn:Math.random()<0.04?1+Math.floor(Math.random()*100):101+Math.floor(Math.random()*4900),games:1+Math.floor(r*r*24),date,match,ha,rain,wd,trav:club===away,met:1});
     ids.push(id);
   }
   return {ids,re};
 }
 function seed(){
   // 試合数はチェックインした分だけ数えるので、最初は名刺帳も履歴も空
-  let me={nick:"",club:"",color:"#777777",style:STYLES[2],word:"スタグルは早めに並ぶ派",fav:"",x:"",photo:""};
+  let me={nick:"",club:"",color:"#777777",style:stJoin(SEATS[1],STYLES[3]),word:"スタグルは早めに並ぶ派",fav:"",x:"",photo:""};
   try{const o=JSON.parse(localStorage.getItem(OLD_KEY));if(o&&o.me&&divOf(o.me.club)){me=o.me;delete me.since;delete me.title}}catch(e){}
   return {me,book:[],log:[],fresh:[],queue:[],setup:false};
 }
@@ -1039,7 +1045,7 @@ function cardHTML(c,opt){
     +'<div class="who">'+(c.photo?'<img class="ava" src="'+esc(c.photo)+'" alt="">':'<span class="ava">'+esc([...(c.nick||"?")][0])+'</span>')+'<div><div class="nick">'+(esc(c.nick)||"ニックネーム")+'</div>'+(c.title?'<div>'+plateHTML(c.title,true,c.club)+'</div>':'')+'</div></div>'
     +(c.word?'<div class="word">「'+esc(c.word)+'」</div>':'')
     +(links?'<div class="links">'+links+'</div>':'')
-    +'<dl><div><dt>今季の現地（'+SEASON+'）</dt><dd><b>'+c.games+'</b> 試合'+(c.by?'<small>'+c.by+'</small>':'')+'</dd></div><div><dt>スタイル</dt><dd>'+esc(c.style)+'</dd></div></dl>'
+    +'<dl><div><dt>今季の現地（'+SEASON+'）</dt><dd><b>'+c.games+'</b> 試合'+(c.by?'<small>'+c.by+'</small>':'')+'</dd></div>'+stRows(c,'<dt>')+'</dl>'
     +foot+'</div></article>';
 }
 // 表の面の中身（自分の名刺でも、名刺帳から開いた相手の名刺でも同じ形）
@@ -1052,7 +1058,7 @@ function frontHTML(c){
     +'<div class="l-cols"><div class="l-left">'+(c.photo?'<img class="l-ava" src="'+esc(c.photo)+'" alt="" draggable="false">':'<span class="l-ava">'+esc(n[0])+'</span>')
     +'<div class="l-coin"><span class="lb">現地</span><b class="chrome">'+c.games+'</b><span class="lb">試合</span></div></div>'
     +'<dl class="pan st-rows">'+recRow("現地",c.rec)+recRow("リモート",c.rrec||[0,0,0])
-    +'<div><dt class="lb">スタイル</dt><dd>'+esc(c.style)+'</dd></div>'
+    +stRows(c,'<dt class="lb">')
     +(c.fav?'<div><dt class="lb">推し</dt><dd>'+esc(c.fav)+'</dd></div>':'')
     +'<div><dt class="lb">名刺</dt><dd><b>'+c.cards+'</b>枚<small>　レア '+c.rare+'</small></dd></div></dl></div>'
     +(c.word?'<p class="l-word">「'+esc(c.word)+'」</p>':'')
@@ -1317,17 +1323,17 @@ function renderAll(){renderMine();renderLog();renderBook();renderZukan();renderT
 
 // 名刺フォーム
 $("f-club").innerHTML=clubOpts();
-$("f-style").innerHTML=STYLES.map(s=>'<option>'+s+'</option>').join("");
-function fillForm(){$("f-nick").value=S.me.nick;$("f-club").value=S.me.club;$("f-color").value=S.me.color;$("f-style").value=S.me.style;$("f-word").value=S.me.word;$("f-fav").value=S.me.fav||"";$("f-no").value=S.me.no||12;$("f-x").value=S.me.x?"@"+S.me.x:""}
+$("f-style").innerHTML=STYLES.map(s=>'<option>'+s+'</option>').join("");$("f-seat").innerHTML=SEATS.map(s=>'<option>'+s+'</option>').join("");
+function fillForm(){$("f-nick").value=S.me.nick;$("f-club").value=S.me.club;$("f-color").value=S.me.color;{const p=stParts(S.me.style);$("f-seat").value=SEATS.includes(p[0])?p[0]:SEATS[5];$("f-style").value=STYLES.includes(p[1])?p[1]:STYLES[3]}$("f-word").value=S.me.word;$("f-fav").value=S.me.fav||"";$("f-no").value=S.me.no||12;$("f-x").value=S.me.x?"@"+S.me.x:""}
 function xHandle(v){const m=v.trim().replace(/^https?:\/\/(www\.)?(x|twitter)\.com\//i,"").replace(/^@/,"").match(/^[A-Za-z0-9_]{1,15}/);return m?m[0]:""}
 function readForm(e){
   const clubChanged=e&&e.target.id==="f-club";
   if(clubChanged)$("f-color").value=colorOf($("f-club").value);
   const title=S.me.title;
-  S.me={nick:$("f-nick").value.trim(),club:$("f-club").value,color:colorOf($("f-club").value),style:$("f-style").value,word:$("f-word").value.trim(),fav:$("f-fav").value.trim(),no:Math.min(99,Math.max(1,parseInt($("f-no").value,10)||S.me.no||12)),x:xHandle($("f-x").value),photo:S.me.photo||"",title,idn:S.me.idn,skin:S.me.skin||""};
+  S.me={nick:$("f-nick").value.trim(),club:$("f-club").value,color:colorOf($("f-club").value),style:stJoin($("f-seat").value,$("f-style").value),word:$("f-word").value.trim(),fav:$("f-fav").value.trim(),no:Math.min(99,Math.max(1,parseInt($("f-no").value,10)||S.me.no||12)),x:xHandle($("f-x").value),photo:S.me.photo||"",title,idn:S.me.idn,skin:S.me.skin||""};
   save();renderMine();if(clubChanged){$("c-out").innerHTML="";MATCHES=[];renderToday();if(sb&&UID)loadMatches().then(()=>{renderAll()}).catch(()=>{})}
 }
-["f-nick","f-club","f-color","f-style","f-word","f-no","f-fav","f-x"].forEach(id=>$(id).addEventListener("input",readForm));
+["f-nick","f-club","f-color","f-seat","f-style","f-word","f-no","f-fav","f-x"].forEach(id=>$(id).addEventListener("input",readForm));
 
 $("f-skins").addEventListener("click",e=>{const b=e.target.closest("button.pick");if(!b)return;const k=skinParts(skinClean(S.me.skin));S.me.skin=skinJoin(b.dataset.p!==undefined?b.dataset.p:k.p,b.dataset.f!==undefined?b.dataset.f:k.f);save();renderMine()});
 $("f-plates").addEventListener("click",e=>{const b=e.target.closest("button.pick");if(!b)return;S.me.title=b.dataset.t;save();renderMine()});
@@ -1621,7 +1627,7 @@ function paperFront(c){
     +'<div class="l-coin"><span class="lb">現地</span><b>'+c.games+'</b><span class="lb">試合</span></div></div>'
     +'<dl class="pan st-rows">'+recRow("現地",c.rec)+(c.rrec?recRow("リモート",c.rrec):'')
     +'<div><dt class="lb">背番号</dt><dd><b>'+(c.no||12)+'</b></dd></div>'
-    +(c.style?'<div><dt class="lb">スタイル</dt><dd>'+esc(c.style)+'</dd></div>':'')
+    +stRows(c,'<dt class="lb">')
     +(c.fav?'<div><dt class="lb">推し</dt><dd>'+esc(c.fav)+'</dd></div>':'')+'</dl></div>'
     +(c.word?'<p class="l-word">「'+esc(c.word)+'」</p>':'')
     +'<p class="p-got">'+(c.kind==="r"?esc(c.date)+'　'+esc(c.match)+'（リモート）'+((c.met||1)>1?'　'+c.met+'回目':''):esc(c.date)+' にもらった名刺')+'</p>';
@@ -1868,7 +1874,7 @@ $("s-go").addEventListener("click",async()=>{
     if(!sb)throw new Error("offline");
     if(!UID){const r=await sb.auth.signInAnonymously();if(r.error)throw r.error;UID=r.data.user.id}
     const nick=[...($("s-nick").value.trim()||"名無しのサポ")].slice(0,14).join("");
-    let r=await sb.from("profiles").insert({id:UID,nick,club:pickClub,color:colorOf(pickClub),style:S.me.style||STYLES[2],word:pick(WORDS)}).select().single();
+    let r=await sb.from("profiles").insert({id:UID,nick,club:pickClub,color:colorOf(pickClub),style:S.me.style||stJoin(SEATS[1],STYLES[3]),word:pick(WORDS)}).select().single();
     const isNew=!r.error;if(isNew)document.body.classList.add("tut");
     if(r.error&&String(r.error.code)==="23505")r=await sb.from("profiles").select("*").eq("id",UID).single();
     if(r.error)throw r.error;
@@ -2318,7 +2324,7 @@ $("about-top").addEventListener("click",()=>$("about-open").click());
 
 
 // 新しい版が公開されていたら、自動で読み込み直す（ホーム画面から開くと更新ボタンがないため）
-const APP_VER="20261006104911";
+const APP_VER="20261006111430";
 async function checkUpdate(){
   try{
     const r=await fetch("version.txt?t="+Date.now(),{cache:"no-store"});if(!r.ok)return;
