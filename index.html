@@ -168,6 +168,32 @@ body.tut #a2hs,body.tut #c-norm{display:none!important}
 #p-book.nm .stats{grid-template-columns:repeat(2,1fr)}
 #p-book.nm .stats div:nth-child(n+3),#p-book.nm #b-divs button[data-rare]{display:none}
 #b-kind,.z-kind{margin-bottom:6px}
+.xchoice{display:flex;flex-direction:column;gap:10px}
+.xchoice .btn{display:flex;flex-direction:column;align-items:center;gap:3px;padding:16px 12px;font-size:17px;width:100%}
+.xchoice .btn small{font-size:12px;font-weight:500;opacity:.8}
+#xfx{position:fixed;inset:0;z-index:90;display:flex;align-items:center;justify-content:center;background:radial-gradient(70% 50% at 50% 45%,rgba(36,72,159,.92),rgba(5,8,14,.96));animation:xfbg .3s ease both}
+#xfx[hidden]{display:none}
+.xf-in{display:flex;flex-direction:column;align-items:center;gap:6px;color:#fff;text-align:center}
+.xf-stage{position:relative;width:260px;height:200px}
+.xf-c{position:absolute;top:18px;width:112px;height:160px;border-radius:12px;background:linear-gradient(160deg,color-mix(in srgb,var(--club) 80%,#fff),var(--club) 45%,color-mix(in srgb,var(--club) 72%,#000));border:2px solid rgba(255,255,255,.75);box-shadow:0 12px 26px rgba(0,0,0,.55);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:8px;overflow:hidden}
+.xf-c i{font-style:normal;font-size:44px;font-weight:900;line-height:1}
+.xf-c b{font-size:13px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.xf-c small{font-size:10px;font-weight:700;opacity:.85}
+.xf-c.a{left:0;animation:xfa 2.4s cubic-bezier(.45,0,.2,1) both}
+.xf-c.b{left:148px;z-index:2;animation:xfb 2.4s cubic-bezier(.45,0,.2,1) both}
+.xf-fl{position:absolute;left:50%;top:50%;width:120px;height:120px;margin:-60px 0 0 -60px;border-radius:50%;background:radial-gradient(circle,#fff 0%,rgba(242,194,0,.9) 35%,rgba(242,194,0,0) 70%);opacity:0;animation:xffl 2.4s ease-out both}
+.xf-t{margin:8px 0 0;font-size:34px;font-weight:900;letter-spacing:.06em;color:#F2C200;animation:xft 2.4s ease both}
+.xf-s{margin:0;font-size:16px;font-weight:700;animation:xfs 2.4s ease both}
+@keyframes xfbg{from{opacity:0}to{opacity:1}}
+@keyframes xfa{0%{transform:translateX(-170%) rotate(-16deg);opacity:0}20%{transform:translateX(0) rotate(-6deg);opacity:1}38%{transform:translateX(0) rotate(-6deg)}58%{transform:translate(148px,-22px) rotate(10deg)}72%,100%{transform:translate(176px,6px) rotate(9deg) scale(.86);opacity:.8}}
+@keyframes xfb{0%{transform:translateX(170%) rotate(16deg);opacity:0}20%{transform:translateX(0) rotate(6deg);opacity:1}38%{transform:translateX(0) rotate(6deg)}58%{transform:translate(-148px,22px) rotate(-10deg)}72%{transform:translate(-74px,0) rotate(0) scale(1.22)}80%,100%{transform:translate(-74px,0) rotate(0) scale(1.14)}}
+@keyframes xffl{0%,44%{opacity:0;transform:scale(.2)}52%{opacity:1;transform:scale(1.6)}70%,100%{opacity:0;transform:scale(3.4)}}
+@keyframes xft{0%,50%{opacity:0;transform:scale(.5)}62%{opacity:1;transform:scale(1.18)}70%,100%{opacity:1;transform:scale(1)}}
+@keyframes xfs{0%,66%{opacity:0;transform:translateY(8px)}80%,100%{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.xf-c,.xf-fl,.xf-t,.xf-s{animation-duration:.01s}}
+body.tut.tutn #c-norm{display:flex!important}body.tutn #tut-ck{display:none!important}
+#coach.top{bottom:auto;top:calc(10px + env(safe-area-inset-top,0px))}
+.norm-ex{margin:0;font-size:12.5px;line-height:1.6;color:var(--muted)}
 #scan{position:fixed;inset:0;z-index:60;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:0 20px calc(28px + env(safe-area-inset-bottom))}
 #scan[hidden]{display:none}
 #scan video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
@@ -690,8 +716,15 @@ button.pick{cursor:pointer}
       <span>同じ人でも、ノーマルとスタジアムは別の名刺として集まります。スタジアムに行けない日は「リモートで応援する」を押すと、名刺は増えませんが、リモートの戦績と称号が残ります。</span>
       <div class="row"><button type="button" class="btn ghost" id="kind-x">閉じる</button></div></div>
   </div>
+  <div class="a2pop" id="xpop" hidden role="dialog" aria-modal="true" aria-label="名刺を交換する">
+    <div class="a2card"><b>名刺を交換する</b><span>どちらか1人がQRを見せて、もう1人が読み取ると、2人の名刺帳にお互いの名刺が入ります。</span>
+      <div class="xchoice"><button type="button" class="btn flood" id="x-scan">相手のQRを読み取る<small>このアプリのカメラが開きます</small></button><button type="button" class="btn" id="x-show">自分のQRを見せる<small>名刺が裏返って、QRが出ます</small></button></div>
+      <span>スマホのカメラアプリではなく、このアプリの「相手のQRを読み取る」で読んでください。</span>
+      <div class="row"><button type="button" class="btn ghost" id="x-x">閉じる</button></div></div>
+  </div>
+  <div id="xfx" hidden></div>
   <div class="a2pop" id="tutpop" hidden role="dialog" aria-modal="true" aria-label="はじめの1枚">
-    <div class="a2card"><b>名刺ができました</b><span>使い方を1分で練習しましょう。チェックインして、名刺を1枚もらうところまでやってみます。</span><div class="row"><button type="button" class="btn flood" id="tut-go">練習をはじめる</button><button type="button" class="btn ghost" id="tut-skip0">とばす</button></div></div>
+    <div class="a2card"><b>名刺ができました</b><span>使い方を2分ほどで、いっしょに練習しましょう。名刺の見方、チェックイン、名刺のもらい方、交換のしかたまで、順番に案内します。</span><div class="row"><button type="button" class="btn flood" id="tut-go">練習をはじめる</button><button type="button" class="btn ghost" id="tut-skip0">とばす</button></div></div>
   </div>
   <div class="a2pop" id="gotpop" hidden role="dialog" aria-modal="true" aria-label="称号を獲得">
     <div class="a2card gotcard"><span class="got-k">称号を獲得</span><ul class="got-list" id="got-list"></ul><div class="row"><button type="button" class="btn flood" id="got-use">名刺に付ける</button><button type="button" class="btn ghost" id="got-x">閉じる</button></div></div>
@@ -719,7 +752,6 @@ button.pick{cursor:pointer}
         <button type="button" class="btn ghost" id="m-share-go" hidden>シェア</button>
         <button type="button" class="btn ghost" id="m-season-go">まとめ</button>
       </div>
-      <div class="row center"><button type="button" class="btn ghost" id="x-scan">相手のQRを読み取る</button></div>
       <div id="m-share"></div>
       <div class="xpanel" id="x-panel" hidden>
         <h2 hidden>QRで交換</h2>
@@ -838,6 +870,7 @@ button.pick{cursor:pointer}
     <p>登録なしで使えるかわりに、名刺は「合鍵」でこの端末に結びついています。合鍵は端末の中に自動で保存され、ブラウザのデータが消えても、どこかに残っていれば開いたときに自動で名刺が戻ります。</p>
     <ul>
       <li>ホーム画面に追加しておくと、アイコンにも合鍵が入り、いちばん消えにくくなります。</li>
+      <li><button type="button" class="btn ghost" id="about-a2hs">ホーム画面に追加する方法を見る</button></li>
       <li>機種変更のときは、下の「復元リンクを自分に送る」で、自分あてのメモやメッセージに残しておいてください。新しい端末でそのリンクを開くだけで戻ります。</li>
     </ul>
     <div class="danger">
@@ -1300,7 +1333,7 @@ function renderToday(){
 function renderNorm(){
   const el=$("c-norm");if(!el)return;
   const iso=isoOf(today()),used=NORMALL().filter(c=>c.day===iso).length,left=Math.max(0,3-used),none=S.normNone===iso;
-  el.innerHTML='<div class="normbox"><div><b>今日のノーマル名刺</b><span>'+(!left?'今日の3枚はもらいました。また明日。':none?'いまは、もらえる名刺がありません。サポーターが増えると、また引けます。':'あと '+left+' 枚もらえます（1日3枚まで）')+'</span></div>'+(left&&!none?'<button type="button" class="btn" id="n-go">名刺を引く</button>':'')+'</div><button type="button" class="kind-q" data-kindq="1">名刺の種類のちがい</button><div id="c-norm-out"></div>';
+  el.innerHTML='<div class="normbox"><div><b>今日のノーマル名刺</b><span>'+(!left?'今日の3枚はもらいました。また明日。':none?'いまは、もらえる名刺がありません。サポーターが増えると、また引けます。':'あと '+left+' 枚もらえます（1日3枚まで）')+'</span></div>'+(left&&!none?'<button type="button" class="btn" id="n-go">名刺を引く</button>':'')+'</div><p class="norm-ex">ノーマル名刺は、全国のどこかのサポの名刺が届く「紙の名刺」です。試合のない日も、毎日3枚までもらえます。もらうだけなので、相手にあなたの名刺は渡りません。もらった名刺は、名刺帳の「ノーマル」のページに入ります。その人とスタジアムで会えると、その人のスタジアム名刺が「やっと会えた」のレアになります。</p><button type="button" class="kind-q" data-kindq="1">スタジアム名刺とのちがいを見る</button><div id="c-norm-out"></div>';
   const b=$("n-go");if(b)b.addEventListener("click",drawNormal);
 }
 async function drawNormal(){
@@ -1539,10 +1572,11 @@ setInterval(()=>{
   if(document.hidden||!S.setup||curTab!=="card")return;
   const f=$("flip"),showing=(f&&f.classList.contains("show-back"))||!$("x-panel").hidden;
   if(showing&&!xLink())refreshToken();
+  if(f&&f.classList.contains("show-back")&&$("xfx").hidden&&Date.now()-xpAt>3000)xPoll();
 },1000);
 const X_ERR={bad_token:"このQRは使えません。相手にもう一度、名刺の裏のQRを出してもらってください。",expired_token:"QRの期限が切れています。相手にもう一度、名刺の裏のQRを出してもらってください。",own_token:"これは自分のQRです。相手のQRを読んでください。",no_profile:"先に名刺を作ってください。"};
 async function redeem(token){
-  $("tab-card").click();editMode(false);$("x-panel").hidden=false;$("x-code").value=xLink();
+  XRD=true;$("tab-card").click();editMode(false);$("x-panel").hidden=false;$("x-code").value=xLink();
   $("x-out").innerHTML='<p class="note">交換しています</p>';
   try{
     if(!sb||!UID)throw new Error("not_signed_in");
@@ -1551,9 +1585,10 @@ async function redeem(token){
     if(r.error)throw r.error;
     await sync();
     const c=S.book.find(b=>b.idn===r.data.member_no);
-    if(c){unseal(c);S.fresh=[c.id];save();renderAll();exchanged(c,false)}
+    if(c){unseal(c);S.fresh=[c.id];save();renderAll();xfx(c,()=>exchanged(c,false))}
     else $("x-out").innerHTML='<p class="xmsg">'+esc(r.data.nick)+'さんと交換しました。</p>';
   }catch(e){$("x-out").innerHTML='<p class="xmsg">'+esc(errText(e,X_ERR))+'</p>'}
+  XRD=false;
 }
 // 名刺の裏に出す交換用QR。部品を読み込めないときは空を返し、裏は背番号だけになる。
 function qrURL(code){
@@ -1593,12 +1628,39 @@ async function scanStart(){
 }
 $("x-scan").addEventListener("click",scanStart);$("scan-x").addEventListener("click",scanStop);
 document.addEventListener("visibilitychange",()=>{if(document.hidden&&SCAN)scanStop()});
+function xfx(c,done){
+  const el=$("xfx"),mini=(o,k)=>'<div class="xf-c '+k+'" style="--club:'+esc(o.color||"#777777")+';color:'+onColor(o.color||"#777777")+'"><i>'+esc((o.nick||"？").slice(0,1))+'</i><b>'+esc(o.nick||"")+'</b><small>'+esc(o.club||"")+'サポ</small></div>';
+  el.innerHTML='<div class="xf-in"><div class="xf-stage"><span class="xf-fl"></span>'+mini(S.me,"a")+mini(c,"b")+'</div><p class="xf-t">名刺交換！</p><p class="xf-s">'+esc(c.nick)+'さんと交換しました</p></div>';
+  el.hidden=false;let fin=false;const end=()=>{if(fin)return;fin=true;el.hidden=true;el.innerHTML="";if(done)done()};
+  el.onclick=end;setTimeout(end,2900);try{if(navigator.vibrate)navigator.vibrate([20,70,40])}catch(e){}
+}
+// QRを見せている側: 相手が読み取ったら気づいて、同じ演出を出す
+let XRD=false,xpBusy=false,xpAt=0;
+async function xPoll(){
+  if(xpBusy||XRD||!sb||!UID||!S.setup)return;xpBusy=true;xpAt=Date.now();
+  try{
+    const r=await sb.rpc("my_book");
+    if(!r.error&&!XRD){
+      const hit=(r.data||[]).find(x=>x.last_exchange&&S.ex[x.id]!==x.last_exchange&&!(S.hidden&&S.hidden[x.id]));
+      if(hit){
+        while(syncing)await new Promise(ok=>setTimeout(ok,150));
+        await sync(true);
+        const c=S.book.find(b=>b.id===hit.id);
+        if(c&&!XRD){unseal(c);S.fresh=[c.id];save();renderAll();xfx(c,()=>{$("tab-card").click();$("x-panel").hidden=false;exchanged(c,false)})}
+      }
+    }
+  }catch(e){}
+  xpBusy=false;
+}
 function openExchange(){
   $("x-code").value=xLink();
   $("x-panel").hidden=false;$("x-out").innerHTML="";
   if(!xLink())refreshToken();
 }
-$("x-open").addEventListener("click",()=>{$("x-panel").hidden=true;$("x-out").innerHTML="";HERO.ang+=180;HF.animateTo(HERO.ang);if(!xLink())refreshToken()});
+$("x-open").addEventListener("click",()=>{$("x-panel").hidden=true;$("x-out").innerHTML="";$("xpop").hidden=false});
+$("x-x").addEventListener("click",()=>{$("xpop").hidden=true});$("xpop").addEventListener("click",e=>{if(e.target===$("xpop"))$("xpop").hidden=true});
+$("x-scan").addEventListener("click",()=>{$("xpop").hidden=true});
+$("x-show").addEventListener("click",()=>{$("xpop").hidden=true;const f=$("flip");if(!(f&&f.classList.contains("show-back"))){HERO.ang+=180;HF.animateTo(HERO.ang)}if(!xLink())refreshToken();window.scrollTo(0,0)});
 $("x-copy").addEventListener("click",()=>{
   const t=$("x-code"),ok=()=>{$("x-copy").textContent="コピーしました";setTimeout(()=>{$("x-copy").textContent="リンクをコピー"},1800)};
   const fb=()=>{try{t.focus();t.select()}catch(e){}$("x-copy").textContent="選択しました。長押しでコピー"};
@@ -1845,7 +1907,7 @@ $("pack").addEventListener("click",e=>{
   else if(act==="all")pkAll();
   else if(act==="ad"){if(ADS)openAd();else nextPack()}
   else if(act==="adok")nextPack();
-  else if(act==="close"){clearTimeout(k.autoT);$("pack").hidden=true;$("pack").innerHTML="";PK=null;renderAll();if(S.tut&&S.tut<10)tutStep(5)}
+  else if(act==="close"){clearTimeout(k.autoT);$("pack").hidden=true;$("pack").innerHTML="";PK=null;renderAll();if(S.tut&&S.tut<=4)tutStep(5)}
 });
 // 操作: 袋は横になぞると切れ目が指についてくる。
 // 名刺は、裏向きなら横に動かした分だけ回り（離すとめくれる）、表向きなら指についてきて、離すと飛んでいく。
@@ -1933,15 +1995,22 @@ function coach(text,opt){
 function hl(sel){if(tutHl)tutHl.classList.remove("tut-hl");tutHl=sel?document.querySelector(sel):null;if(tutHl)tutHl.classList.add("tut-hl")}
 function tutStep(n){
   S.tut=n;save();document.body.classList.toggle("tut",n<TUT_END);if(n>=5&&n<=8)KIND="st";$("tutpop").hidden=n!==1;
+  document.body.classList.toggle("tutn",n===8.3);$("coach").classList.toggle("top",n===1.4||n===8.6);
+  const N=(t,to,sel,o)=>{coach(t,Object.assign({next:()=>tutStep(to)},o||{}));hl(sel||"")};
   if(n===1){$("tab-card").click();coach("");hl("")}
-  else if(n===2){coach("まずはチェックインの練習です。下の「チェックイン」を押してください。");hl("#tab-checkin")}
-  else if(n===3){coach("試合の日にスタジアムに着いたら、このボタンを押します。押してみましょう。");hl("#tut-ck-go")}
+  else if(n===1.2){$("tab-card").click();window.scrollTo(0,0);N("これがあなたの「サポ名刺」です。試合に通うほど、戦績・集めた名刺の数・称号が、ここにたまっていきます。",1.4,"#stage")}
+  else if(n===1.4){setTimeout(()=>{try{$("e-open").scrollIntoView({block:"center"})}catch(e){}},60);N("「編集」を押すと、写真・ひとこと・座席・観戦スタイル・推し選手を変えられます。練習が終わったら、好きなように作ってみてください。",2,"#e-open")}
+  else if(n===2){coach("次はチェックインの練習です。下の「チェックイン」を押してください。");hl("#tab-checkin")}
+  else if(n===3){coach("試合の日にスタジアムに着いたら、このボタンを押します。同じ試合にいたサポの名刺が届きます。押してみましょう。");hl("#tut-ck-go")}
   else if(n===4){coach("");hl("")}
   else if(n===5){coach("もらった名刺は「名刺帳」に入ります。下の「名刺帳」を押してください。");hl("#tab-book")}
-  else if(n===6){coach("集めた名刺がここに並びます。上の切り替えで、ノーマル名刺とスタジアム名刺を分けて見られます。名刺を押すと大きく見られます。",{next:()=>tutStep(7)});hl("")}
+  else if(n===6){N("集めた名刺がここに並びます。名刺を押すと大きく見られて、裏返すと観戦の記録や称号も見られます。",6.5)}
+  else if(n===6.5){N("名刺は2種類あります。「スタジアム」は、同じ試合にいた人や、QRで交換した人の名刺。「ノーマル」は、試合のない日ももらえる全国のサポの名刺です。上の切り替えで見られます。",7,"#b-kind")}
   else if(n===7){coach("次は「図鑑」です。下の「図鑑」を押してください。");hl("#tab-zukan")}
-  else if(n===8){coach("名刺を集めたクラブに色が付きます。全60クラブを目指しましょう。下には、レアの種類と称号の一覧もあります。",{next:()=>tutStep(9)});hl("")}
-  else if(n===9){coach("練習はここまでです。試合の日に、スタジアムでチェックインしてください。試合のない日も、チェックインの画面で「ノーマル名刺」を1日3枚までもらえます。",{next:()=>tutStep(TUT_END),label:"はじめる",last:true});hl("")}
+  else if(n===8){N("名刺を集めたクラブに色が付きます。全60クラブを目指しましょう。下には、レアの種類と称号の一覧もあります。称号の名前は、とるまで「？？？」です。",8.3)}
+  else if(n===8.3){$("tab-checkin").click();window.scrollTo(0,0);N("試合のない日は、ここで「ノーマル名刺」を1日3枚までもらえます。もらうだけなので、相手にあなたの名刺は渡りません。練習のあとで引いてみてください。",8.6,"#c-norm")}
+  else if(n===8.6){$("tab-card").click();setTimeout(()=>{try{$("x-open").scrollIntoView({block:"center"})}catch(e){}},60);N("スタジアムや街で会ったサポとは、「交換」で名刺を交換できます。1人がQRを見せて、もう1人がこのアプリで読み取ります。",9,"#x-open")}
+  else if(n===9){coach("練習はここまでです。このあと出る案内にそって「ホーム画面に追加」しておくと、名刺が消えにくくなります。試合の日に、スタジアムでチェックインしてください。",{next:()=>tutStep(TUT_END),label:"はじめる",last:true});hl("")}
   else{coach("");hl("");renderAll();$("tab-card").click()}
 }
 // とばしても、はじめの1枚は名刺帳に入れておく
@@ -1949,7 +2018,7 @@ async function tutSkip(){
   tutStep(TUT_END);
   try{const r=await sb.rpc("tutorial_card");if(!r.error&&r.data){while(syncing)await new Promise(ok=>setTimeout(ok,150));await sync(true)}}catch(e){}
 }
-$("tut-go").addEventListener("click",()=>tutStep(2));
+$("tut-go").addEventListener("click",()=>tutStep(1.2));
 $("tut-skip0").addEventListener("click",tutSkip);
 $("coach-skip").addEventListener("click",tutSkip);
 $("coach-n").addEventListener("click",()=>{const f=coachNext;if(f)f()});
@@ -2276,13 +2345,14 @@ document.addEventListener("pointerdown",e=>{const b=e.target&&e.target.closest?e
 (()=>{
   const day=isoOf(new Date());let seen=false;try{seen=localStorage.getItem(KEY+"-a2hs")===day}catch(e){}
   const alone=(window.matchMedia&&window.matchMedia("(display-mode: standalone)").matches)||window.navigator.standalone===true;
-  if(seen||alone)return;
+  const auto=!(seen||alone);
   const ios=/iPhone|iPad|iPod/.test(navigator.userAgent);
   // XやLINEなどのアプリの中で開いている場合は、ホーム画面に追加できないので、先にSafariやChromeで開いてもらう
   const inApp=/Twitter|Line\/|Instagram|FBAN|FBAV|FB_IAB/.test(navigator.userAgent);
+  const and=/Android/.test(navigator.userAgent);
+  const hI='<small>iPhone・iPad：画面の下か上にある、四角から上向き矢印の「共有」ボタン。見当たらないときは「…」を押すと、その中にあります</small>',hA='<small>Android：画面の右上の「︙」メニュー</small>',hP='<small>パソコン：アドレス欄の右はしにあるインストールのマーク、またはブラウザのメニュー</small>';
   const steps=inApp?["画面の右上か右下の「…」を押す",(ios?"「Safariで開く」":"「ブラウザで開く」")+"を選ぶ","開いた先で、もう一度この案内の「追加する」を押す"]
-    :ios?["下の「追加する」を押す","画面の右下の「…」を押して、「共有」を選ぶ<small>四角から上向き矢印の共有ボタンが見えている場合は、それを押します</small>","「ホーム画面に追加」を選ぶ<small>見当たらないときは、下にスクロールすると出てきます</small>","右上の「追加」を押す"]
-    :["下の「追加する」を押す","ブラウザの右上のメニュー（︙）を押す","「ホーム画面に追加」を選ぶ"];
+    :["下の「追加する」を押す","ブラウザの「共有」か「メニュー」を開く"+(ios?hI:and?hA:hI+hA+hP),"「ホーム画面に追加」を選ぶ<small>ブラウザによっては「アプリをインストール」「ショートカットを追加」と書かれています。見当たらないときは、下にスクロールすると出てきます</small>","「追加」か「インストール」を押す<small>ホーム画面にアイコンができたら完了です。次からは、そのアイコンから開いてください</small>"];
   $("a2hs-t").textContent=inApp?"いまはXやLINEなどのアプリの中で開いています。このままだと名刺が消えやすいので、先にブラウザで開いてください。":"名刺が消えにくくなり、消えてもアイコンから開くだけで元に戻ります。アプリのように開けます。";
   $("a2hs-steps").innerHTML=steps.map(x=>"<li>"+x+"</li>").join("");
   if(inApp)$("a2hs-go").hidden=true;
@@ -2294,7 +2364,8 @@ document.addEventListener("pointerdown",e=>{const b=e.target&&e.target.closest?e
     const li=$("a2hs-steps").children;if(li[0])li[0].style.textDecoration="line-through";if(li[1])li[1].className="on";
     $("a2hs-go").hidden=true;$("a2hs-x").textContent="終わった";
   });
-  $("a2hs").hidden=false;
+  if(auto)$("a2hs").hidden=false;
+  {const ab=$("about-a2hs");if(ab)ab.addEventListener("click",()=>{$("about").hidden=true;$("a2hs").hidden=false})}
   $("a2hs-x").addEventListener("click",()=>{$("a2hs").hidden=true;try{history.replaceState(null,"",location.pathname)}catch(e){};try{localStorage.setItem(KEY+"-a2hs",day)}catch(e){}});
 })();
 // 引き継ぎ
@@ -2359,7 +2430,7 @@ $("about-top").addEventListener("click",()=>$("about-open").click());
 
 
 // 新しい版が公開されていたら、自動で読み込み直す（ホーム画面から開くと更新ボタンがないため）
-const APP_VER="20261006112829";
+const APP_VER="20261006114637";
 async function checkUpdate(){
   try{
     const r=await fetch("version.txt?t="+Date.now(),{cache:"no-store"});if(!r.ok)return;
