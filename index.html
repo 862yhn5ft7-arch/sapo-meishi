@@ -140,6 +140,8 @@ button,.btn{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 .pick-list button:active{background:var(--line)}
 #c-other{display:flex;flex-direction:column;gap:6px}
 #c-other:empty{display:none}
+.gotcard .row{justify-content:center}
+.gotcard .got-note{margin:2px 0 0;font-size:12px}
 .geo-help{margin-top:8px;padding:12px;border:1px solid var(--line);border-radius:6px;background:var(--surface);font-size:13px;display:flex;flex-direction:column;gap:6px}
 .geo-help ol{margin:0;padding-left:1.4em;display:flex;flex-direction:column;gap:4px}
 .geo-help small{color:var(--muted)}
@@ -727,7 +729,7 @@ button.pick{cursor:pointer}
     <div class="a2card"><b>名刺ができました</b><span>使い方を2分ほどで、いっしょに練習しましょう。名刺の見方、チェックイン、名刺のもらい方、交換のしかたまで、順番に案内します。</span><div class="row"><button type="button" class="btn flood" id="tut-go">練習をはじめる</button><button type="button" class="btn ghost" id="tut-skip0">とばす</button></div></div>
   </div>
   <div class="a2pop" id="gotpop" hidden role="dialog" aria-modal="true" aria-label="称号を獲得">
-    <div class="a2card gotcard"><span class="got-k">称号を獲得</span><ul class="got-list" id="got-list"></ul><div class="row"><button type="button" class="btn flood" id="got-use">名刺に付ける</button><button type="button" class="btn ghost" id="got-x">閉じる</button></div></div>
+    <div class="a2card gotcard"><span class="got-k">称号を獲得</span><ul class="got-list" id="got-list"></ul><div class="row"><button type="button" class="btn flood" id="got-use">名刺に付ける</button></div><div class="row"><a class="btn" id="got-post" href="#" target="_blank" rel="noopener">Xで自慢する</a><button type="button" class="btn ghost" id="got-x">閉じる</button></div><p class="note got-note">投稿画面が開きます。文は自由に直せます。</p></div>
   </div>
   <div class="a2pop" id="sumpop" hidden role="dialog" aria-modal="true" aria-label="今季のまとめ">
     <div class="a2card"><b>今季のまとめ</b><div id="sum-out"></div><div class="row"><button type="button" class="btn ghost" id="sum-x">閉じる</button></div></div>
@@ -2343,6 +2345,9 @@ function checkTitles(){
   S.got=seen.concat(fresh);save();
   gotNew=fresh.slice().sort((a,b)=>(TIER[a]||1)-(TIER[b]||1));
   $("got-list").innerHTML=gotNew.slice().reverse().map(t=>{const d=TITLES.find(x=>x[0]===t);return '<li>'+plateHTML(t)+'<small>'+(SECRET.includes(t)?'隠し称号　':'')+esc(d?d[1]:"")+'</small></li>'}).join("");
+  (()=>{const top=gotNew[gotNew.length-1],d=TITLES.find(x=>x[0]===top),nm=plateName(top);
+    const tx="称号「"+nm+"」を獲得しました"+((TIER[top]||1)>=3?"🏅\n":"\n")+(d?"（"+d[1]+"）\n":"")+(gotNew.length>1?"ほか"+(gotNew.length-1)+"個\n":"")+"\n#サポ名刺 #Jリーグ\nhttps://sapo-meishi.com";
+    $("got-post").href="https://x.com/intent/post?text="+encodeURIComponent(tx)})();
   $("got-use").textContent=gotNew.length>1?"「"+plateName(gotNew[gotNew.length-1])+"」を名刺に付ける":"名刺に付ける";
   $("gotpop").hidden=false;try{if(navigator.vibrate)navigator.vibrate([30,60,30])}catch(err){}
 }
@@ -2443,7 +2448,7 @@ $("about-top").addEventListener("click",()=>$("about-open").click());
 
 
 // 新しい版が公開されていたら、自動で読み込み直す（ホーム画面から開くと更新ボタンがないため）
-const APP_VER="20261006144130";
+const APP_VER="20261007120811";
 async function checkUpdate(){
   try{
     const r=await fetch("version.txt?t="+Date.now(),{cache:"no-store"});if(!r.ok)return;
