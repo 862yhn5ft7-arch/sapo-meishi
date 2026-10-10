@@ -140,6 +140,8 @@ button,.btn{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 .pick-list button:active{background:var(--line)}
 #c-other{display:flex;flex-direction:column;gap:6px}
 #c-other:empty{display:none}
+.paper .p-x{margin:6px 0 2px;font-size:13px;font-weight:700}
+.paper .p-x a{color:inherit;text-decoration:underline;text-underline-offset:3px}
 .gotcard .row{justify-content:center}
 .gotcard .got-note{margin:2px 0 0;font-size:12px}
 .geo-help{margin-top:8px;padding:12px;border:1px solid var(--line);border-radius:6px;background:var(--surface);font-size:13px;display:flex;flex-direction:column;gap:6px}
@@ -713,7 +715,7 @@ button.pick{cursor:pointer}
   </div>
   <div class="a2pop" id="kindpop" hidden role="dialog" aria-modal="true" aria-label="ノーマル名刺とスタジアム名刺のちがい">
     <div class="a2card"><b>名刺は2種類あります</b>
-      <div class="kd n"><strong>ノーマル名刺</strong><ul><li>チェックインの画面で、1日3枚までもらえる</li><li>全国のサポの中から、だれかの名刺が届く</li><li>もらうだけ。相手に自分の名刺は渡らない</li><li>紙の名刺。レアはなし</li><li>持っている人とスタジアムで会うと、その人のスタジアム名刺が「やっと会えた」のレアになる</li></ul></div>
+      <div class="kd n"><strong>ノーマル名刺</strong><ul><li>チェックインの画面で、1日3枚までもらえる</li><li>全国のサポの中から、だれかの名刺が届く</li><li>もらうだけ。相手に自分の名刺は渡らない</li><li>相手がXのアカウントを入れていれば載る</li><li>紙の名刺。レアはなし</li><li>持っている人とスタジアムで会うと、その人のスタジアム名刺が「やっと会えた」のレアになる</li></ul></div>
       <div class="kd s"><strong>スタジアム名刺</strong><ul><li>試合の日にスタジアムでチェックインすると、同じ試合にいたサポと交換になる</li><li>QRで直接交換しても手に入る</li><li>レア・激レアがある</li><li>称号とレア図鑑は、こちらの名刺で数える</li><li>相手のXアカウントが載る</li></ul></div>
       <span>同じ人でも、ノーマルとスタジアムは別の名刺として集まります。スタジアムに行けない日は「リモートで応援する」を押すと、名刺は増えませんが、リモートの戦績と称号が残ります。</span>
       <div class="row"><button type="button" class="btn ghost" id="kind-x">閉じる</button></div></div>
@@ -791,7 +793,7 @@ button.pick{cursor:pointer}
         <div class="row"><input type="file" id="f-photo" accept="image/*" aria-label="名刺の写真を選ぶ"><button type="button" class="btn ghost" id="f-photo-x">写真を外す</button></div>
       </div>
     </div>
-    <p class="note">本名は載せません。Xのアカウントは入れた人だけ名刺に出て、すれちがった相手がタップするとXのプロフィールが開きます。名刺の内容は、すれちがった相手と交換した相手にだけ見えます。試合数は、今シーズン（2026/27）にこのアプリでチェックインした分だけを数えます。リーグ戦、ルヴァンカップ、天皇杯が対象です。</p>
+    <p class="note">本名は載せません。Xのアカウントは入れた人だけ名刺に出ます。ノーマル名刺で届いた知らない人にも見えて、タップするとXのプロフィールが開きます。名刺の内容は、すれちがった相手と交換した相手にだけ見えます。試合数は、今シーズン（2026/27）にこのアプリでチェックインした分だけを数えます。リーグ戦、ルヴァンカップ、天皇杯が対象です。</p>
       <button type="button" class="btn" id="e-done2">完了して名刺を見る</button>
     </div>
   </section>
@@ -857,8 +859,8 @@ button.pick{cursor:pointer}
     <h3>名刺が見える相手</h3>
     <p>あなたの名刺は、このアプリを使っているほかのサポーターに見られます。</p>
     <ul>
-      <li>ノーマル名刺：1日3枚まで、全国のだれかの名刺が届く仕組みです。あなたの名刺（ニックネーム、推しクラブ、写真、ひとこと、背番号、推し選手、戦績、持っている称号、チェックインした試合の一覧）も、会ったことのない人に届きます。Xのアカウント名は載りません。</li>
-      <li>スタジアム名刺：同じ試合にスタジアムでチェックインした人と、QRで直接交換した人に届きます。こちらにはXのアカウント名も載ります。</li>
+      <li>ノーマル名刺：1日3枚まで、全国のだれかの名刺が届く仕組みです。あなたの名刺（ニックネーム、推しクラブ、写真、ひとこと、背番号、推し選手、戦績、持っている称号、チェックインした試合の一覧）も、会ったことのない人に届きます。Xのアカウント名を入れている人は、それも載ります。</li>
+      <li>スタジアム名刺：同じ試合にスタジアムでチェックインした人と、QRで直接交換した人に届きます。こちらも、Xのアカウント名を入れていれば載ります。</li>
     </ul>
     <p>アプリを使っていない人や、検索サイトからは見えません。</p>
     <h3>通報について</h3>
@@ -1074,6 +1076,7 @@ function paperHTML(c,big){
     +'<div class="p-top"><span>'+esc(c.club)+'サポ　'+esc(divOf(c.club)||"")+'</span><span class="p-kind">'+(rm?"リモート":"ノーマル")+'</span></div>'
     +'<div class="p-who">'+(c.photo?'<img class="p-ava" src="'+esc(c.photo)+'" alt="">':'<span class="p-ava">'+esc([...(c.nick||"?")][0])+'</span>')+'<div><div class="p-nick">'+esc(c.nick)+'</div><div class="p-no">背番号 '+(c.no||12)+(c.fav?'　推し '+esc(c.fav):'')+'</div></div></div>'
     +(c.word?'<p class="p-word">「'+esc(c.word)+'」</p>':'')
+    +(big&&c.x?'<p class="p-x"><a href="https://x.com/'+esc(c.x)+'" target="_blank" rel="noopener">X @'+esc(c.x)+'</a></p>':'')
     +'<div class="p-rec"><span>現地 <b>'+c.rec[0]+'</b>勝<b>'+c.rec[1]+'</b>分<b>'+c.rec[2]+'</b>敗</span>'+(c.rrec?'<span>リモート <b>'+c.rrec[0]+'</b>勝<b>'+c.rrec[1]+'</b>分<b>'+c.rrec[2]+'</b>敗</span>':'')+'<span>現地 <b>'+c.games+'</b>試合</span></div>'
     +'<div class="p-foot">'+(rm?esc(c.date)+'　'+esc(c.match)+' をリモートで'+((c.met||1)>1?'　<b>'+c.met+'回目</b>':''):esc(c.date)+' にもらった名刺')+'</div></article>';
 }
@@ -2238,7 +2241,7 @@ async function loadHist(pid){
 const recRow=(lb,r)=>'<div><dt class="lb">'+lb+'</dt><dd><b>'+r[0]+'</b>勝<b>'+r[1]+'</b>分<b>'+r[2]+'</b>敗</dd></div>';
 function buildNorm(rows){
   S.norm=rows.map(r=>({id:"n:"+r.id,pid:r.id,kind:"n",nick:r.nick,club:r.club,color:colorOf(r.club),style:r.style||"",word:r.word||"",fav:r.fav||"",no:r.back_no||12,
-    pk:r.photo_key||"",photo:photoOf(r.id,r.photo_key),idn:r.member_no,games:r.games||0,rec:[r.wins||0,r.draws||0,r.losses||0],rrec:r.stats?rrOf(r.stats):null,tl:tlOf(r.stats),day:r.day||"",date:r.day?fmt(dateOf(r.day)):"",met:1}));
+    x:xHandle(r.x_handle||""),pk:r.photo_key||"",photo:photoOf(r.id,r.photo_key),idn:r.member_no,games:r.games||0,rec:[r.wins||0,r.draws||0,r.losses||0],rrec:r.stats?rrOf(r.stats):null,tl:tlOf(r.stats),day:r.day||"",date:r.day?fmt(dateOf(r.day)):"",met:1}));
 }
 function buildRem(rows){
   S.rem=rows.map(r=>({id:"r:"+r.id,pid:r.id,kind:"r",nick:r.nick,club:r.club,color:colorOf(r.club),style:r.style||"",word:r.word||"",fav:r.fav||"",no:r.back_no||12,
@@ -2448,7 +2451,7 @@ $("about-top").addEventListener("click",()=>$("about-open").click());
 
 
 // 新しい版が公開されていたら、自動で読み込み直す（ホーム画面から開くと更新ボタンがないため）
-const APP_VER="20261007120811";
+const APP_VER="20261009162925";
 async function checkUpdate(){
   try{
     const r=await fetch("version.txt?t="+Date.now(),{cache:"no-store"});if(!r.ok)return;
