@@ -976,12 +976,6 @@ const TITLES=[
 ["紙の旅人","ノーマル名刺で10クラブ集める",()=>new Set(NORM().map(c=>c.club)).size>=10],
 ["全国名刺めぐり","ノーマル名刺で30クラブ集める",()=>new Set(NORM().map(c=>c.club)).size>=30],
 ["日本一周","ノーマル名刺で全60クラブ集める",()=>new Set(NORM().map(c=>c.club).filter(divOf)).size>=CLUBS.length],
-["勝ち点3","サポ対抗戦で勝った試合に、現地でチェックインする",()=>S.log.some(l=>l.bt&&l.bt.res==="W")],
-["応援は届いた","リモートでチェックインした試合で、サポ対抗戦に勝つ",()=>RL().some(l=>l.bt&&l.bt.res==="W")],
-["孤軍奮闘","自分のクラブのサポが自分ひとりの試合に、現地でチェックインする",()=>S.log.some(l=>l.bt&&l.bt.res&&l.bt.f===3)],
-["数の暴力","サポ対抗戦に10点差以上で勝つ",()=>S.log.some(l=>l.bt&&l.bt.res==="W"&&l.bt.f-l.bt.a>=10)],
-["アウェイジャック","アウェイで、サポ対抗戦に勝つ",()=>S.log.some(l=>l.ha==="A"&&l.bt&&l.bt.res==="W")],
-["連戦連勝","サポ対抗戦で3連勝する",()=>{let b=0,c=0;S.log.filter(l=>l.bt&&l.bt.res).forEach(l=>{c=l.bt.res==="W"?c+1:0;if(c>b)b=c});return b>=3}],
 ["画面の前から","リモートで1試合チェックインする",()=>RL().length>=1],
 ["二刀流","同じシーズンに、現地とリモートの両方でチェックインする",()=>RL().some(r=>S.log.some(l=>(l.season||SEASON)===(r.season||SEASON)))],
 ["家だと勝つ","リモートで3連勝する",()=>rstreak("W")>=3],
@@ -1461,7 +1455,7 @@ $("c-go").addEventListener("click",async()=>{
     await sync(true);
     const got=S.queue.map(id=>S.book.find(c=>c.id===id)).filter(Boolean),re=got.filter(c=>(c.met||1)>1).length;
     $("c-out").innerHTML='<div class="result"><p class="big">いま <b>'+n+'</b> 人とすれちがいました</p><p class="note">'+esc(home)+' vs '+esc(away)+'。'+(n?'名刺は袋に入って届きます。':'まだ誰もチェックインしていません。')+'あとからチェックインした人の名刺は、あとで届きます。</p>'
-      +'<p class="note">試合結果は、試合が終わってから名刺の戦績に入ります。サポ対抗戦は、'+esc(mine)+'に 3点 入りました。</p>'
+      +'<p class="note">試合結果は、試合が終わってから名刺の戦績に入ります。</p>'
       +'<div class="row"><button class="btn" id="toBook">名刺帳を見る</button></div></div>';
     const line=home+" vs "+away+"　"+m.label,rare=got.filter(c=>rareOf(c).length).length;
     $("toBook").addEventListener("click",()=>{KIND="st";$("tab-book").click()});
@@ -1491,7 +1485,7 @@ $("c-remote").addEventListener("click",async()=>{
     while(syncing)await new Promise(ok=>setTimeout(ok,150));
     await sync(true);
     const cards=[],rw=(S.rlog||[]).length;
-    $("c-out").innerHTML='<div class="result"><p class="big">リモートでチェックインしました</p><p class="note">'+esc(home)+' vs '+esc(away)+'。いま、この試合を <b>'+(n+1)+'</b> 人が応援しています。リモートは '+rw+' 試合目です。試合の結果は、名刺の「リモート」の戦績に入ります。サポ対抗戦は、'+esc(mine)+'に 1点 入りました。</p><p class="note">スタジアムに着いたら「スタジアムに着いた」を押すと、スタジアムのチェックインに切り替わります。</p></div>';
+    $("c-out").innerHTML='<div class="result"><p class="big">リモートでチェックインしました</p><p class="note">'+esc(home)+' vs '+esc(away)+'。いま、この試合を <b>'+(n+1)+'</b> 人が応援しています。リモートは '+rw+' 試合目です。試合の結果は、名刺の「リモート」の戦績に入ります。</p><p class="note">スタジアムに着いたら「スタジアムに着いた」を押すと、スタジアムのチェックインに切り替わります。</p></div>';
     if(cards.length)openPack(cards,{line:home+" vs "+away,label:fmt(today()),kind:"r"});
   }catch(e){
     $("c-out").innerHTML='<p class="xmsg">'+esc(errText(e,CK_ERR))+'</p>';
@@ -2298,7 +2292,7 @@ async function sync(force){
     try{const nr=await sb.rpc("my_normals");if(!nr.error)buildNorm(nr.data||[])}catch(e){}
     S.rem=[];if(KIND==="r")KIND="n";
     buildLog(a.data||[]);added=buildBook(b.data||[]);
-    try{const mt=matchToday();if(mt){const c=await sb.rpc("match_count",{p_match:mt.id});if(!c.error)NOW={id:mt.id,n:c.data||0};const bb=await sb.rpc("match_battle",{p_match:mt.id});if(!bb.error&&bb.data&&bb.data[0])BNOW=Object.assign({id:mt.id},bb.data[0])}}catch(e){}
+    try{const mt=matchToday();if(mt){const c=await sb.rpc("match_count",{p_match:mt.id});if(!c.error)NOW={id:mt.id,n:c.data||0};BNOW=null}}catch(e){}
     save();renderAll();netMsg("");lastSync=Date.now();fetchPhotos();
   }catch(e){netMsg("通信できませんでした。電波のよいところで開き直してください。")}
   syncing=false;return added;
@@ -2333,7 +2327,7 @@ setInterval(()=>{if(!document.hidden&&S.setup&&UID&&!PK){const m=matchToday();if
 // クラブ別の集計を取りに行く（5分に1回まで）
 async function loadRank(){
   if(!sb||!UID||Date.now()-RANK.at<300000)return;
-  try{const t=await sb.rpc("battle_table");if(!t.error)BTAB=t.data||[]}catch(e){}
+  BTAB=[];
   try{const r=await sb.rpc("club_ranking");if(!r.error){RANK={at:Date.now(),rows:r.data||[]};if(curTab==="zukan")renderZukan()}}catch(e){}
 }
 $("m-season-go").addEventListener("click",()=>{$("sumpop").hidden=false;showShare($("sum-out"),{kind:"season"})});
@@ -2451,7 +2445,7 @@ $("about-top").addEventListener("click",()=>$("about-open").click());
 
 
 // 新しい版が公開されていたら、自動で読み込み直す（ホーム画面から開くと更新ボタンがないため）
-const APP_VER="20261009162925";
+const APP_VER="20261010084542";
 async function checkUpdate(){
   try{
     const r=await fetch("version.txt?t="+Date.now(),{cache:"no-store"});if(!r.ok)return;
